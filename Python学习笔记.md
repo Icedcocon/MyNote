@@ -688,19 +688,147 @@ lambda arg,arg,...:expression
 
 对于多值函数的结果返回一个元组。
 
-#### 13.yield语句------
+#### 13.yield语句（存疑）
 
-#### 14.global语句------
+        yield表达式定义一个生成器函数，按需要产生结果。
 
-#### 15.nonlocal语句
+        yie1d将函数状态挂起，并返回一个expression（表达式）值。
 
-#### 16.import语句----------------
+        下一个迭代中，函数先前的位置和变量状态被恢复，并在yield语句之后立即控制恢复。
+
+        使用return语句结束该迭代或直接离开函数的结尾。
+
+```python
+def generateSquares(N):
+    for i in range(N):
+    yield i *2
+>>> G = generateSquares(5)   #含有 init,_next_
+>>> 1ist(G)                  #现在生成结果
+[0,1,4,9,16]
+
+a. 不接受输入值或者输入值是None
+        yield 1
+b. 接受输入值
+        s = yield 1
+c. 接受输入，但不返回数据，这样默认返回None
+        s = yield
+d.既不接受输入，也不返回值，默认返回None
+        yield
+第一种：当函数调用到yield时，返回yield的右边经过计算的值 ，这里说计算的意思是，
+       yield后面可以写成函数，表达式等，
+第二种：当函数调用到yield时，必须传入一个值，该值存入s中，然后返回yield后面的
+       表达式的值并保存当前状态
+第三种：只是将数据接受进来，然后执行yield后的语句，再次执行到yield时，保存当前
+       状态并返回，这样的用例一般是只打印一些处理消息，而不需要结果的方式。
+第四种：这样的只能遍历generator内部的数据了。
+```
+
+#### 14.global语句（不理解）
+
+        当它在类或函数定义语句中被使用时，会导致出现在那个环境中的name（名称）的所有形式都被处理为对那个名称的一个全局（模块层）变量的引用，即无论这个name（名称）是否被赋值以及这个name（名称）是否已存在。
+
+        可以在局部作用域内重新关联外部作用域的变量。
+
+#### 15.nonlocal语句（不理解）
+
+        当它被用在嵌套函数中时，会导致出现在该环境中name（名称）的所有形式都被处理为对那个名称在内嵌函数范围内的一个局部变量的引用，即无论这个name（名称）是否被赋值。
+
+        可以给外部作用域的变量赋值。
+
+#### 16.import语句
+
+        （1）概念
+
+```python
+import [package.]module [as name]
+      [[package.]module [as name]]*
+```
+
+        可选的as子句将一个变量name赋给导入的模块对象，并将原有模块名字删除。
+
+        可选的packagei前缀表示包目录路径。
+
+        模块通常是一个Python源代码或编译过的字节码文件。
+
+        模块搜索路径是sys.path,一个从程序的顶层目录初始化的目录名列表
+
+        CPython中，导人也可以用对应于外部语言名的属性加载编译过的C和C++扩展名文件。
+
+        （2）导入算法
+
+                由sys.path定义的模块搜索路径中以绝对路径导入最左侧分量迭代每个目录
+
+1. 如果找到了directory\spam\\\__init\_\_.py，则一个导入正规包并将其返回。
+
+2. 如果找到了directory\spam.{py,pyc,or other module extension}，则导入一个简单的模块并将其返回。
+
+3. 如果发现directory\spam\是一个目录，则将其记录并继续在搜索路径的下一个目录中扫描。
+
+4. 如果没有发现上面的任一种情况，则继续在搜索路径的下一个目录中进行扫描。
 
 #### 17.from语句
 
-#### 18.class语句------------------
+```python
+from [package.]*module import
+            [(] name [as othername]
+            [, name [as othername]]*[)]
+from [package.]*module import *
 
-#### 19.try语句-----------------------
+
+from source import name [,name]*        #绝对路径：sys.path
+from . import module [,module]*         #相对路径：仅pkg
+from .source import name [,name]*       #相对路径：仅pkg
+from . import module [,module]*         #pkg中的父目录
+from ..source import name [,name]       #pkg中的父目录
+```
+
+        （1）包相对导入语法
+
+                from语句(不是import)可以在模块名中使用引导点指定内部包模块的引用一导入
+
+#### 18.class语句
+
+```python
+[decoration]
+class name [ ( super [, super]* [, metaclass=M ) ]
+    suite
+```
+
+        class语句构建新的类对象，这些对象是加工实例对象的工厂。
+
+        新的类对象继承于给定顺序中每个列出的超类，并被赋给name变量。
+
+- 超类（基类）列在表头中的括号内
+
+- 类中的赋值语句创建类成员
+
+#### 19.try语句
+
+```python
+try:
+    suite
+except [type [as value]]:
+    suite
+[except [type [as value]]:
+    suite]*
+[else:
+    suite]
+[finally:
+    suite]
+
+
+try:
+    suite
+finally:
+    suite
+```
+
+        try语句可以用作在try suite中抛出异常句柄的suites指定except子句。
+
+        如果在try suite中没有异常出现则运行else子句。
+
+        finally子句在异常发生或未发生的地方都运行。
+        except子句捕获和恢复异常，finally子句运行中断动作（块退出）
 
 #### 20.raise语句----------
 
@@ -771,5 +899,57 @@ lambda <参数列表> : <表达式>
     ·需要调整闭包函数的参数及返回值与主要函数相对应才能正常使用
 
     封装顺序为有内而外，执行顺序为由外而内
+
+### 迭代器和生成器
+
+#### 1.迭代器协议
+
+        （1）迭代器协议
+
+        迭代器必须同时实现\_\_next\_\_和\_\_iter\_\_两个方法
+        迭代器必须是可迭代的，即「迭代器」是一种「可迭代对象」。
+        所有迭代器的__iter__方法都只要return self即可。
+
+        （2）迭代器的意义
+
+        统一通过next()方法获取数据，屏蔽底层不同的数据读取方式，简化编程
+
+        容器类的数据结构只关心数据的静态存储，迭代器对象负责记录迭代过程的状态信息。
+
+        （3）两种可迭代对象
+
+        ●容器类型的
+                ■列表、元组、字典等
+                ■只有__iter__接口
+                ■静态的数据
+                ■需要额外的迭代器支持
+                ■支持多次迭代
+        ●迭代器类型
+                ■文件、StringlO等
+                ■同时实现__iter__和__next__接口
+                ■动态的
+                ■只能迭代一次
+
+
+
+#### 2.生成器
+
+        ●当调用生成器函数得到生成器对象时
+                ■此时的生成器对象可以理解为处**初始**状态
+        ●通过next（）调用生成器对象，对应的生成器函数代码开始运行
+                ■此时生成器对象处于**运行中**状态
+        ●如果遇到了yield语句，next（）返回时
+                ■yield语句右边的对象作为next（）的返回值
+                ■生成器在yield语句所在位置**暂停**，当再次使用next（）时继续从该位置继续运行
+        ●如果执行到函数结束，则抛出StopIteration异常
+                ■不管是使用了return语句显式地返回值，或者默认返回None值，返回值都只能作为异常的值一并抛出
+                ■此时的生成器对象处于**结束**的状态
+                ■对于已经结束的生成器对象再次调用next（）,直接抛出StopIteration异常，并且不含返回值
+
+<img title="" src="file:///D:/Cache/MarkText/2022-07-22-12-18-49-image.png" alt="" data-align="center" width="510">
+
+        
+
+       
 
     

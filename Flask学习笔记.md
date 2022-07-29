@@ -37,6 +37,49 @@
 
 create_app 是一个应用工厂函数
 
+# pymysql
+
+```python
+import pymysql.cursors
+
+# Connect to the database
+connection = pymysql.connect(host='10.166.15.33',
+                             user='root',
+                             password='123456',
+                             db='fryDemo',
+                             charset='utf8mb4',
+                             cursorclass=pymysql.cursors.DictCursor)
+
+if __name__ == '__main__':
+    try:
+        with connection.cursor() as cursor:
+            # Create a new record
+            sql = "CREATE TABLE IF NOT EXISTS `users`(\
+            `id` int primary key auto_increment not null,\
+            `password` varchar(150),\
+            `email` varchar(150)\
+            )"
+            cursor.execute(sql)
+
+        with connection.cursor() as cursor:
+            # Create a new record
+            sql = "INSERT INTO `users` (`email`, `password`) VALUES (%s, %s)"
+            cursor.execute(sql, ('webmaster@python.org', 'very-secret'))
+
+        # connection is not autocommit by default. So you must commit to save
+        # your changes.
+        connection.commit()
+
+        with connection.cursor() as cursor:
+            # Read a single record
+            sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
+            cursor.execute(sql, ('webmaster@python.org',))
+            result = cursor.fetchone()
+            print(result)
+    finally:
+        connection.close()
+```
+
 # 路由
 
 ## 

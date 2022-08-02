@@ -88,7 +88,7 @@ xxxx.sql这种文件被称为sql脚本文件。 sql脚本文件中编写了大�
 
 **\c** 用来终止一条命令的输入。
 
-# 2 建表操作
+# 2 建表操作及增删改
 
 ### 2.1 创建一个表create
 
@@ -199,4 +199,256 @@ update t_user set name = 'jack', birth = '2000-10-11', create_time = now() where
   
   - 这种删除优点：快速。
 
-# 
+# 3.单表查询
+
+### 3.1基础条件查询
+
+- **条件查询**`select 字段1,字段2,字段3.... from 表名 where 条件;`
+1. **= 等于**
+
+```sql
+-- 查询薪资等于800的员工姓名和编号？
+ select empno,ename from emp where sal = 800;
+-- 查询SMITH的编号和薪资？
+ select empno,sal from emp where ename = 'SMITH';
+```
+
+2. **<>或!= 不等于**
+
+```sql
+-- 查询薪资不等于800的员工姓名和编号？
+ select empno,ename from emp where sal != 800;
+ select empno,ename from emp where sal <> 800; // 小于号和大于号组成的不等号
+```
+
+3. **< 小于** **<= 小于等于**
+
+```sql
+-- 查询薪资小于等于3000的员工姓名和编号？
+ select empno,ename,sal from emp where sal <= 3000;
+```
+
+4. **>大于  >= 大于等于**
+
+```sql
+-- 查询薪资大于等于3000的员工姓名和编号？
+ select empno,ename,sal from emp where sal >= 3000;
+```
+
+5. **between … and …. 两个值之间, 等同于 >= and <=**
+
+```sql
+-- 查询薪资在2450和3000之间的员工信息？包括2450和3000
+-- 第一种方式：>= and <= 
+ select empno,ename,sal from emp where sal >= 2450 and sal <= 3000;
+-- 第二种方式：between … and … 
+ select empno,ename,sal from emp where sql between 2450 and 3000;
+```
+
+6. **is null 为 null（is not null 不为空）**
+
+```sql
+-- 查询哪些员工的津贴/补助为null？
+ select empno,ename,sal,comm from emp where comm = null;
+-- 查询哪些员工的津贴/补助不为null？
+ select empno,ename,sal,comm from emp where comm is not null;
+```
+
+7. **and 且 or 或**
+
+```sql
+select * from emp where sal > 2500 and (deptno = 10 or deptno = 20);
+-- and和or同时出现，and优先级较高。如果想让or先执行，需要加“小括号”。
+```
+
+8. **in 包含，相当于多个 or （not in 不在这个范围中）**
+
+```sql
+-- 查询工作岗位是MANAGER和SALESMAN的员工？
+select empno,ename,job from emp where job = 'MANAGER' or job = 'SALESMAN';
+select empno,ename,job from emp where job in('MANAGER', 'SALESMAN');
+```
+
+9. **not 取非，主要用在 is 或 in 中**
+
+```sql
+is null
+is not null
+in
+not in
+```
+
+10. **like 模糊查询**
+
+称为模糊查询，支持%或下划线匹配
+
+- %匹配任意多个字符
+- 下划线：任意一个字符。
+- 查找含有通配符的字符串需要用'\'转义
+
+```sql
+-- 找出名字中含有O的？
+ select ename from emp where ename like '%O%';
+-- 找出名字中有“_”的？
+ select name from t_student where name like '%_%'; //这样不行。
+ select name from t_student where name like '%\_%'; // \转义字符。
+```
+
+11. **distinct 去重**
+- 把查询结果去除重复记录【distinct】
+
+- distinct只能出现在**所有字段的最前方**。
+
+- distinct出现在job,deptno两个字段之前，表示**两个字段联合起来去重**。
+
+```sql
+ select distinct job from emp;
+ select distinct job,deptno from emp;
+```
+
+### 3.2排序
+
+- **asc默认升序**`select 字段 from 表名 order by 字段;`(ascend)
+
+```sql
+-- 查询所有员工薪资并排序？
+ select ename,sal from emp order by sal; 
+```
+
+- **desc指定降序**`select 字段 from 表名 order by 字段 desc;`(descend)
+
+```sql
+ select ename,sal from emp order by sal desc;
+
+
+-- 查询员工名字和薪资，要求按照薪资升序，如果薪资一样的话，再按照名字升序排列。
+ select ename,sal from emp order by sal asc, ename asc; 
+-- sal在前，起主导，只有sal相等的时候，才会考虑启用ename排序。
+```
+
+### 3.3分页
+
+- **limit 分页查询**`limit startIndex, length;`
+  
+  - 作用：将查询结果集的一部分取出来。通常使用在分页查询当中。
+  
+  - 起始**下标从0开始**。
+  
+  - 缺省用法：`limit 5;` 取前5.
+
+```sql
+-- 按照薪资降序，取出排名在前5名的员工？
+select ename,sal from emp order by sal desc limit 5;
+-- limit在order by之后执行
+
+
+-- 取出工资排名在[3-5]名的员工？
+select ename,sal from emp order by sal desc limit 2, 3;
+-- 2表示起始位置从下标2开始，就是第三条记录。3表示长度。
+```
+
+- 每页显示3条记录
+  
+  - 第1页：`limit 0,3 [0 1 2]`
+  - 第2页：`limit 3,3 [3 4 5]`
+  - 第3页：`limit 6,3 [6 7 8]`
+
+- 每页显示pageSize条记录
+  
+  - **第pageNo页：`limit (pageNo - 1) * pageSize , pageSize`**
+
+# 4.函数
+
+### 4.1单行处理函数
+
+- 单行处理函数特点：一个输入对应一个输出。
+
+- 多行处理函数特点：多个输入对应一个输出。
+1. lower/upper 转换小写/大写
+
+```sql
+ select lower(ename) as ename from emp;
+```
+
+2. substr 取子串`substr( 被截取的字符串, 起始下标, 截取的长度);`
+
+```sql
+select substr(ename, 1, 1) as ename from emp;
+-- 注意：起始下标从1开始，没有0.
+
+-- 找出员工名字第一个字母是A的员工信息？
+-- 第一种方式：模糊查询
+ select ename from emp where ename like 'A%';
+-- 第二种方式：substr函数
+ select ename from emp where substr(ename,1,1) = 'A';
+```
+
+3. concat函数进行字符串的拼接
+
+```sql
+ select concat(empno,ename) from emp;
+```
+
+4. length 取长度
+
+```sql
+ select length(ename) enamelength from emp;
+```
+
+5. trim 去空格
+
+```sql
+ select * from emp where ename = '  KING';
+```
+
+str_to_date 将字符串转换成日期
+date_format 格式化日期
+format 设置千分位
+round 四舍五入
+
+        select 字段 from 表名;
+        select ename from emp;
+        select 'abc' from emp; // select后面直接跟“字面量/字面值”
+        mysql> select 'abc' as bieming from emp;
+        select round(1236.567, 1) as result from emp; //保留1个小数
+        select round(1236.567, 2) as result from emp; //保留2个小数
+        select round(1236.567, -1) as result from emp; // 保留到十位。
+
+rand() 生成随机数
+
+        mysql> select round(rand()*100,0) from emp; // 100以内的随机数
+
+ifnull 可以将 null 转换成一个具体值
+
+        ifnull是空处理函数。专门处理空的。
+        在所有数据库当中，只要有NULL参与的数学运算，最终结果就是NULL。
+        mysql> select ename, sal + comm as salcomm from emp;
+
+### 4.2分组函数
+
+- 多行处理函数的特点：输入多行，最终输出一行。
+  - count 计数
+  - sum 求和
+  - avg 平均值
+  - max 最大值
+  - min 最小值
+- 注意： 分组函数在使用的时候必须先进行分组，然后才能用。 如果你没有对数据进行分组，整张表默认为一组。
+
+找出最高工资？
+        mysql> select max(sal) from emp;
+找出最低工资？
+        mysql> select min(sal) from emp;
+计算工资和：
+        mysql> select sum(sal) from emp;
+计算平均工资：
+        mysql> select avg(sal) from emp;
+计算员工数量？
+        mysql> select count(ename) from emp;
+
+**分组函数在使用的时候需要注意哪些？**
+
+- 第一点：分组函数自动忽略NULL，你不需要提前对NULL进行处理。
+- 第二点：分组函数中count(*)和count(具体字段)有什么区别？*
+  - count(具体字段)：表示统计该字段下所有不为NULL的元素的总数。
+  - count(*)：统计表当中的总行数。（只要有一行数据count则++） 因为每一行记录不可能都为NULL，一行数据中有一列不为NULL，则这行数据就是有效的。
+- 第三点：分组函数不能够直接使用在where子句中。 找出比最低工资高的员工信息。 select ename,sal from emp where sal > min(sal); 表面上没问题，运行一下？ ERROR 1111 (HY000): Invalid use of group function

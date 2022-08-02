@@ -900,6 +900,44 @@ lambda <参数列表> : <表达式>
 
     封装顺序为有内而外，执行顺序为由外而内
 
+##### 4.装饰器的实现
+
+- wrapper
+
+```python
+# --------------------- 函数实现Wrapper -------------------------
+def decorator(func):
+    counter = 0
+    def wrapper(*args): # 可用于实例方法
+        nonlocal counter
+        counter += 1
+        func(*args)
+    return wrapper
+
+@decorator
+def moning(name):
+    print('Good moning! --%s' % name)
+
+moning(321)
+
+# --------------------- 类实现Wrapper -------------------------
+class Decorator:
+    def __init__(self, func):
+        self.func = func
+    def __call__(self, *args):
+        print('='*10)
+        self.func(*args)
+        print('='*10)
+
+@Decorator
+def hello(name):
+    print('Hello world! --%s' % name)
+
+hello(123)
+```
+
+
+
 ### 迭代器
 
 ##### 1.迭代器协议

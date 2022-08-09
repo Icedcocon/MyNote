@@ -411,8 +411,6 @@ select ename,job from emp where job = 'SALESMAN';
 | MARTIN | SALESMAN |
 | TURNER | SALESMAN |
 +--------+----------+
-
-
 ```
 
 - UNION 和 UNION ALL 内部的 SELECT 语句必须拥有**相同数量的字段**。

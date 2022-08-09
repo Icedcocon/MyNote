@@ -1,3 +1,110 @@
+# 使用Bash实现Docker
+
+### Nnamespace
+
+##### 简介
+
+- Namespace是Linux用来隔离全局资源（如PID）的一种方式。同一个namespace的一个或多个进程只能看到该namespace中的资源。
+- 为了兼容传统的全局资源管理方式，Linux为每一种资源准备了一个全局的namespace ，Linux中的每一个进程都默认加入了这些全局namespace。
+- Linux中的每个进程都有一个/proc/[pid]/ns/目录，里面包含了该进程所属的namespace信息
+
+```bash
+# $$是当前用户uid
+sudo ls -l /proc/$$/ns
+
+# 该目录下有很多符号链接，每个符号链接代表一个该进程所属的namespace。
+# 用readlink读取这些符号链接可以查看进程所属的namespace id。
+sudo readlink /proc/$$/ns/uts
+```
+
+### uts namespace
+
+##### 简介
+
+- uts namespace用于隔离系统的主机名等信息。
+
+- unshare命令用于新建一个namespace，并在新namespace中执行一条命令。
+  
+  ```bash
+  unshare [options] [program [arguments]]
+  # 常用options如下：
+  # --uts创建新的uts namespace
+  # --mount创建新的mount namespace
+  # --pid创建新的pid namespace
+  # --user创建新的user namespace
+  # 如：
+  sudo unshare --uts /bin/bash
+  ```
+
+- 进行试验如下：
+  
+  ```bash
+  # 1.查看一下全局的hostname及uts namespace id
+  hostname
+  sudo readlink /proc/$$/ns/uts
+  
+  # 2.创建一个新的uts namespace，并查看其namespce id。
+  sudo unshare --uts /bin/bash
+  hostname
+  sudo readlink /proc/$$/ns/uts
+  # 新uts namespace的id与全局uts namespace的id不一致
+  
+  # 3.将新uts namespace的hostname改为dreamland，并强制更新Shell提示符。
+  hostname dreamland
+  hostname
+  exec /bin/bash 
+  # exec /bin/bash用于强制更新Shell的提示符
+  # 新uts namespace的hostname的确是被修改了，并未影响到全局的uts namespace。
+  ```
+
+- 默认情况下，子进程与父进程处于相同的namespace中。即，在新的uts namespace中创建一个子进程与父进程同属一个namespace。
+
+```bash
+#!/bin/bash
+usage () 
+{        
+    echo -e "033[31mIMPORTANT: Run As Root033[0m"        
+    echo ""        
+    echo "Usage:    docker.sh [OPTIONS]"        
+    echo ""        
+    echo "A docker written by shell"        
+    echo ""        
+    echo "Options:"        
+    echo "          -c string       docker command"        
+    echo '                          ("run")'        
+    echo "          -m              memory"        
+    echo '                          ("100M, 200M, 300M...")'        
+    echo "          -C string       container name"        
+    echo "          -I string       image name"        
+    echo "          -V string       volume"        
+    echo "          -P string       program to run in container"        
+    return 0
+}
+
+if test "$(whoami)" != root
+then usage        
+     exit -1
+fi
+
+while getopts c:m:C:I:V:P: option
+do        
+
+case "$option"    in    
+    c) cmd=$OPTARG;;
+    m) memory=$OPTARG;;
+    C) container=$OPTARG;;
+    I) image=$OPTARG;;
+    V) volume=$OPTARG;;
+    P) program=$OPTARG;;
+    ?) usage
+    exit -2;;
+esac
+done
+
+export cmd=$cmdexport memory=$memoryexport container=$containerexport image=$imageexport volume=$volumeexport program=$programunshare 
+--uts ./container.sh
+```
+
 ### 1.Docker 是什么？
 
 - 是实现容器技术的一种工具

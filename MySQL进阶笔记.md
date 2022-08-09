@@ -1,84 +1,58 @@
 # Mysql进阶
 
-### 简介
-
-| 序号  | Day01          | Day02   | Day03    | Day04      |
-|:---:| -------------- | ------- | -------- | ---------- |
-| 1   | Linux系统安装MySQL | 体系结构    | 应用优化     | MySQL 常用工具 |
-| 2   | 索引             | 存储引擎    | 查询缓存优化   | MySQL 日志   |
-| 3   | 视图             | 优化SQL步骤 | 内存管理及优化  | MySQL 主从复制 |
-| 4   | 存储过程和函数        | 索引使用    | MySQL锁问题 | 综合案例       |
-| 5   | 触发器            | SQL优化   | 常用SQL技巧  |            |
-
 ### 1. Linux 系统安装MySQL
 
 #### 1.1 下载Linux 安装包
 
 ```
-https://dev.mysql.com/downloads/mysql/5.7.html#downloads
+https://dev.mysql.com/downloads/mysql/5.7.html #downloads 
 ```
-
-![1555661091565](C:/Users/Administrator/AppData/Roaming/Typora/typora-user-images/1555661091565.png) 
 
 #### 1.2 安装MySQL
 
-```
-1). 卸载 centos 中预安装的 mysql
+```bash
+# 1). 卸载 centos 中预安装的 mysql
+rpm -qa | grep -i mysql
+rpm -e mysql-libs-5.1.71-1.el6.x86_64 --nodeps
 
-    rpm -qa | grep -i mysql
+# 2). 上传 mysql 的安装包
+alt + p -------> put  E:/test/MySQL-5.6.22-1.el6.i686.rpm-bundle.tar
 
-    rpm -e mysql-libs-5.1.71-1.el6.x86_64 --nodeps
+# 3). 解压 mysql 的安装包 
+mkdir mysql
+tar -xvf MySQL-5.6.22-1.el6.i686.rpm-bundle.tar -C /root/mysql
 
-2). 上传 mysql 的安装包
+# 4). 安装依赖包 
+yum -y install libaio.so.1 libgcc_s.so.1 libstdc++.so.6 libncurses.so.5 --setopt=protected_multilib=false
+yum  update libstdc++-4.4.7-4.el6.x86_64
 
-    alt + p -------> put  E:/test/MySQL-5.6.22-1.el6.i686.rpm-bundle.tar
+# 5). 安装 mysql-client
+rpm -ivh MySQL-client-5.6.22-1.el6.i686.rpm
 
-3). 解压 mysql 的安装包 
-
-    mkdir mysql
-
-    tar -xvf MySQL-5.6.22-1.el6.i686.rpm-bundle.tar -C /root/mysql
-
-4). 安装依赖包 
-
-    yum -y install libaio.so.1 libgcc_s.so.1 libstdc++.so.6 libncurses.so.5 --setopt=protected_multilib=false
-
-    yum  update libstdc++-4.4.7-4.el6.x86_64
-
-5). 安装 mysql-client
-
-    rpm -ivh MySQL-client-5.6.22-1.el6.i686.rpm
-
-6). 安装 mysql-server
-
-    rpm -ivh MySQL-server-5.6.22-1.el6.i686.rpm
+# 6). 安装 mysql-server
+rpm -ivh MySQL-server-5.6.22-1.el6.i686.rpm
 ```
 
 #### 1.3 启动 MySQL 服务
 
-```SQL
+```bash
 service mysql start
-
 service mysql stop
-
 service mysql status
-
 service mysql restart
 ```
 
 #### 1.4 登录MySQL
 
-```
-mysql 安装完成之后, 会自动生成一个随机的密码, 并且保存在一个密码文件中 : /root/.mysql_secret
-
+```bash
+# mysql 安装完成之后, 会自动生成一个随机的密码
+# 并且保存在一个密码文件中 : /root/.mysql_secret
 mysql -u root -p 
 
-登录之后, 修改密码 :
-
+# 登录之后, 修改密码 :
 set password = password('itcast');
 
-授权远程访问 : 
-
+# 授权远程访问 : 
 grant all privileges on *.* to 'root' @'%' identified by 'itcast';
 flush privileges;
 ```

@@ -357,6 +357,68 @@ select ename,sal from emp order by sal desc limit 2, 3;
   
   - **第pageNo页：`limit (pageNo - 1) * pageSize , pageSize`**
 
+### 3.4Union
+
+- 将两个 select 语句的结果作为一个整体显示出来。
+
+- 两者区别：
+  
+  - union 会自动压缩多个结果集合中的重复结果
+  
+  - union all 则将所有的结果全部显示出来，即便重复。
+
+- union (all)对两个结果集进行并集操作，同时进行默认规则的排序
+
+```sql
+# ====================== OR ===========================
+mysql>  select ename,job from emp where job = 'SALESMAN' or job = 'MANAGER';
++--------+----------+
+| ename  | job      |
++--------+----------+
+| ALLEN  | SALESMAN |
+| WARD   | SALESMAN |
+| JONES  | MANAGER  |
+| MARTIN | SALESMAN |
+| BLAKE  | MANAGER  |
+| CLARK  | MANAGER  |
+| TURNER | SALESMAN |
++--------+----------+
+# ====================== IN ===========================
+mysql> select ename,job from emp where job in('MANAGER','SALESMAN');
++--------+----------+
+| ename  | job      |
++--------+----------+
+| ALLEN  | SALESMAN |
+| WARD   | SALESMAN |
+| JONES  | MANAGER  |
+| MARTIN | SALESMAN |
+| BLAKE  | MANAGER  |
+| CLARK  | MANAGER  |
+| TURNER | SALESMAN |
++--------+----------+
+# ====================== UNION ===========================
+select ename,job from emp where job = 'MANAGER'
+union
+select ename,job from emp where job = 'SALESMAN';
++--------+----------+
+| ename  | job      |
++--------+----------+
+| JONES  | MANAGER  |
+| BLAKE  | MANAGER  |
+| CLARK  | MANAGER  |
+| ALLEN  | SALESMAN |
+| WARD   | SALESMAN |
+| MARTIN | SALESMAN |
+| TURNER | SALESMAN |
++--------+----------+
+
+
+```
+
+- UNION 和 UNION ALL 内部的 SELECT 语句必须拥有**相同数量的字段**。
+
+- 如果UNION前后的SELECT语句中字段顺序不同，**结果字段的顺序以union 前面的表字段顺序为准**。
+
 # 4.函数
 
 ### 4.1单行处理函数
@@ -765,162 +827,155 @@ on t.avgsal between s.losal and s.hisal;
 
 ## 8.约束
 
-- 在创建表的时候，我们可以给表中的字段加上一些约束，来保证这个表中数据的完整性、有效性！！！
-
 ### 8.1约束类型
 
-- 非空约束：not null
-- 唯一性约束: unique
-- 主键约束: primary key （简称PK）
-- 外键约束：foreign key（简称FK）
-- 检查约束：check（mysql不支持，oracle支持）
-
-我们这里重点学习四个约束：**not null，unique，primary key，foreign key。**
+- 非空约束：**not null**
+- 唯一性约束: **unique**
+- 主键约束: **primary key** （简称PK）
+- 外键约束：**foreign key**（简称FK）
+- 检查约束：check（mysql不支持，oracle支持）**
 
 ### 8.2not null
 
 - 非空约束not null约束的字段不能为NULL。
 
+```sql
 drop table if exists t_vip;
-    create table t_vip(
-        id int,
-        name varchar(255) not null  // not null只有列级约束，没有表级约束！
+create table t_vip(
+    id int,
+    name varchar(255) not null // not null只有列级约束，没有表级约束！
     );
 insert into t_vip(id,name) values(1,'zhangsan');
 insert into t_vip(id) values(3);
-    ERROR 1364 (HY000): Field 'name' doesn't have a default value
+-- ERROR 1364 (HY000): Field 'name' doesn't have a default value
+```
 
 ### 8.3unique
 
 - 唯一性约束unique约束的字段不能重复，但是**可以为NULL**。
-  
-    drop table if exists t_vip;
-    create table t_vip(
-  
-        id int,
-        name varchar(255) unique,
-        email varchar(255)
-  
-    );
-    insert into t_vip(id,name,email) values(2,'lisi','lisi@123.com');
-    insert into t_vip(id,name,email) values(3,'wangwu','wangwu@123.com');
-    select * from t_vip;
-    insert into t_vip(id,name,email) values(4,'wangwu','wangwu@sina.com');
-    ERROR 1062 (23000): Duplicate entry 'wangwu' for key 'name'
-    insert into t_vip(id) values(4);
-    insert into t_vip(id) values(5);
-    +------+----------+------------------+
-    | id   | name     | email            |
-    +------+----------+------------------+
-    |    1 | zhangsan | zhangsan@123.com |
-    |    2 | lisi     | lisi@123.com     |
-    |    3 | wangwu   | wangwu@123.com   |
-    |    4 | NULL     | NULL             |
-    |    5 | NULL     | NULL             |
-    +------+----------+------------------+
-    name字段虽然被unique约束了，但是可以为NULL。
+
+```sql
+drop table if exists t_vip;
+create table t_vip(
+    id int,
+    name varchar(255) unique,
+    email varchar(255)
+);
+insert into t_vip(id,name,email) values(2,'lisi','lisi@123.com');
+insert into t_vip(id,name,email) values(3,'wangwu','wangwu@123.com');
+insert into t_vip(id,name,email) values(4,'wangwu','wangwu@sina.com');
+-- ERROR 1062 (23000): Duplicate entry 'wangwu' for key 'name'
+insert into t_vip(id) values(4);
+insert into t_vip(id) values(5);
+```
 
 #### 8.3.1联合唯一
 
-- name和email两个字段联合起来具有唯一性！！！！
-
+```sql
+-- name和email两个字段联合起来具有唯一性
 drop table if exists t_vip;
 create table t_vip(
     id int,
     name varchar(255),
     email varchar(255),
     unique(name,email) // 约束没有添加在列的后面，这种约束被称为表级约束。
-);
+    );
 insert into t_vip(id,name,email) values(1,'zhangsan','zhangsan@123.com');
 insert into t_vip(id,name,email) values(2,'zhangsan','zhangsan@sina.com');
-    name和email两个字段联合起来唯一！！！
+-- name和email两个字段联合起来唯一
 
 insert into t_vip(id,name,email) values(3,'zhangsan','zhangsan@sina.com');
-    ERROR 1062 (23000): Duplicate entry 'zhangsan-zhangsan@sina.com' for key 'name'
+-- ERROR 1062 (23000): Duplicate entry 'zhangsan-zhangsan@sina.com' for key 'name'
+```
 
-- 在mysql当中，如果一个字段同时被not null和unique约束的话，该字段自动变成主键字段。（注意：oracle中不一样！）
+- 在mysql当中，如果一个字段同时被not null和unique约束的话，该字段自动变成主键字段。（注意：oracle中不是）
 
 ### 8.4primary key
 
-- 主键值是每一行记录的唯一标识。主键值是每一行记录的身份证号！！！
+- 主键值是每一行记录的唯一标识。
 
 - 主键的特征：not null + unique（主键值不能是NULL，同时也不能重复！）
 
+```sql
 drop table if exists t_vip;
-        // 1个字段做主键，叫做：单一主键
-        create table t_vip(
-            id int primary key,  //列级约束
-            name varchar(255),
-            primary key(id)  // 表级约束
-        );
-        insert into t_vip(id,name) values(1,'zhangsan');
-        insert into t_vip(id,name) values(2,'lisi');
-        //错误：不能重复
-        insert into t_vip(id,name) values(2,'wangwu');
-        ERROR 1062 (23000): Duplicate entry '2' for key 'PRIMARY'
-        //错误：不能为NULL
-        insert into t_vip(name) values('zhaoliu');
-        ERROR 1364 (HY000): Field 'id' doesn't have a default value
+-- 1个字段做主键，称为：单一主键
+create table t_vip(
+    id int primary key, //列级约束
+    name varchar(255),
+    primary key(id) // 表级约束
+    );
+insert into t_vip(id,name) values(1,'zhangsan');
+insert into t_vip(id,name) values(2,'lisi');
+-- 错误：不能重复
+insert into t_vip(id,name) values(2,'wangwu');
+-- ERROR 1062 (23000): Duplicate entry '2' for key 'PRIMARY'
+-- 错误：不能为NULL
+insert into t_vip(name) values('zhaoliu');
+-- ERROR 1364 (HY000): Field 'id' doesn't have a default value
+```
 
 #### 8.4.1复合主键
 
+```sql
 drop table if exists t_vip;
-        // id和name联合起来做主键：复合主键！！！！
-        create table t_vip(
-            id int,
-            name varchar(255),
-            email varchar(255),
-            primary key(id,name)
-        );
+-- id和name联合起来做主键：复合主键！！！！
+create table t_vip(
+    id int,
+    name varchar(255),
+    email varchar(255),
+    primary key(id,name)
+    );
 insert into t_vip(id,name,email) values(1,'zhangsan','zhangsan@123.com');
 insert into t_vip(id,name,email) values(1,'lisi','lisi@123.com');
-//错误：不能重复
+-- 错误：不能重复
 insert into t_vip(id,name,email) values(1,'lisi','lisi@123.com');
-    ERROR 1062 (23000): Duplicate entry '1-lisi' for key 'PRIMARY'
+-- ERROR 1062 (23000): Duplicate entry '1-lisi' for key 'PRIMARY'
+```
 
-- 在实际开发中不建议使用：复合主键。建议使用单一主键！
-- 因为主键值存在的意义就是这行记录的身份证号，只要意义达到即可，单一主键可以做到。
+- 在实际开发中不建议使用复合主键。大部分场景单一主键可以实现标记的作用。
+- 一张表，主键约束只能添加1个。（**主键只能有1个**）
 
-一个表中主键约束能加两个吗？
-        drop table if exists t_vip;
-        create table t_vip(
-            id int primary key,
-            name varchar(255) primary key
-        );
-        ERROR 1068 (42000): Multiple primary key defined
-
-- 结论：一张表，主键约束只能添加1个。（主键只能有1个。）
+```sql
+-- 一个表中主键约束能加两个吗？
+drop table if exists t_vip;
+    create table t_vip(
+    id int primary key,
+    name varchar(255) primary key
+    );
+-- ERROR 1068 (42000): Multiple primary key defined
+```
 
 **主键分类**
 
-- 自然主键：主键值是一个自然数，和业务没关系。
+- **自然主键**：主键值是一个自然数，和业务没关系。
 
-- 业务主键：主键值和业务紧密关联，例如拿银行卡账号做主键值。这就是业务主键！
+- **业务主键**：主键值和业务紧密关联，例如拿银行卡账号做主键值。
 
 #### 8.4.2主键自增
 
 - 在mysql当中，有一种机制，可以帮助我们自动维护一个主键值
 
-rop table if exists t_vip;
+```sql
+drop table if exists t_vip;
 create table t_vip(
     id int primary key auto_increment, //auto_increment表示自增，从1开始，以1递增！
     name varchar(255)
-);
-        insert into t_vip(name) values('zhangsan');
-        insert into t_vip(name) values('zhangsan');
-        insert into t_vip(name) values('zhangsan');
-        insert into t_vip(name) values('zhangsan');
-        insert into t_vip(name) values('zhangsan');
-        insert into t_vip(name) values('zhangsan');
-
-        +----+----------+
-        | id | name     |
-        +----+----------+
-        |  1 | zhangsan |
-        |  2 | zhangsan |
-        |  3 | zhangsan |
-        |  4 | zhangsan |
-        |  5 | zhangsan |
+    );
+insert into t_vip(name) values('zhangsan');
+insert into t_vip(name) values('zhangsan');
+insert into t_vip(name) values('zhangsan');
+insert into t_vip(name) values('zhangsan');
+insert into t_vip(name) values('zhangsan');
+insert into t_vip(name) values('zhangsan');
+    +----+----------+
+    | id | name     |
+    +----+----------+
+    |  1 | zhangsan |
+    |  2 | zhangsan |
+    |  3 | zhangsan |
+    |  4 | zhangsan |
+    |  5 | zhangsan |
+```
 
 ### 8.5foreign key
 
@@ -937,7 +992,8 @@ create table t_student(
     no int primary key auto_increment,
     name varchar(255),
     cno int,
-    foreign key(cno) references t_class(classno)
+    foreign key(cno) references t_class(classno)
+    -- t_class是父表，t_student是子表
 );
 insert into t_class(classno, classname) values(100, '北京市大兴区亦庄镇第二中学高三1班');
 insert into t_class(classno, classname) values(101, '北京市大兴区亦庄镇第二中学高三1班');
@@ -950,8 +1006,6 @@ insert into t_student(name,cno) values('lisi', 101);
 
 - 外键可以为空，可以理解成 一名学生肯定会关联到一个存在的班级，但来了一个转校生，还没有分班，他现在属于学生子表，但还没有关联到班级主表中的任何一条记录。
 
-t_class是父表，t_student是子表
-
 ​ **删除表**的顺序？ 先删子，再删父。
 
 ​ **创建表**的顺序？ 先创建父，再创建子。
@@ -960,6 +1014,211 @@ t_class是父表，t_student是子表
 
 ​ **插入数据**的顺序？先插入父，再插入子
 
-- 子表中的外键引用的父表中的某个字段，被引用的这个字段不一定是主键，但至少具有unique约束。
+- 子表中的外键引用的父表中的某个字段，**被引用字段不一定是主键，但至少具有unique约束**。
 
-# 
+## 存储引擎
+
+- 存储引擎是MySQL中特有的一个术语。（Oracle中有有类似概念，但名称不同）
+- 存储引擎是一个表存储/组织数据的方式。
+- 不同的存储引擎，表存储数据的方式不同。
+
+```sql
+show create table t_student;
+-- 可以在建表的时候给表指定存储引擎。
+CREATE TABLE `t_student` (
+    `no` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) DEFAULT NULL,
+    `cno` int(11) DEFAULT NULL,
+    PRIMARY KEY (`no`),
+    KEY `cno` (`cno`),
+    CONSTRAINT `t_student_ibfk_1` FOREIGN KEY (`cno`) REFERENCES `t_class` (`classno`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
+```
+
+在建表的时候可以在最后小括号的")"的右边使用：
+
+- ENGINE来指定存储引擎。 mysql默认的存储引擎是：**InnoDB**
+- CHARSET来指定这张表的字符编码方式。mysql默认的字符编码方式是：**utf8**
+
+### 9.1mysql支持的存储引擎
+
+- `show engines;` 查看mysql支持哪些存储引擎
+- mysql支持九大存储引擎，当前5.5.36支持8个。版本不同支持情况不同。
+
+![image-20210917183729616](https://gitee.com/yueliu2345/mysql/raw/master/MYSQL.assets/image-20210917183729616-16318750516641.png)
+
+### 9.2MyISAM存储引擎
+
+- 使用三个文件表示每个表：
+  
+  - 格式文件 — 存储表结构的定义（mytable.frm）
+  - 数据文件 — 存储表行的内容（mytable.MYD）
+  - 索引文件 — 存储表上索引（mytable.MYI）：索引是缩小扫描范围，提高查询效率的一种机制。
+
+- MyISAM存储引擎特点：
+  
+  - 优点：可被转换为压缩、只读表来节省空间。
+  - 缺点：MyISAM不支持事务机制，安全性低。
+
+### 9.3InnoDB存储引擎
+
+- 是mysql默认的存储引擎。
+
+- InnoDB支持事务，支持数据库崩溃后自动恢复机制。
+
+- InnoDB存储引擎最主要的特点是：非常安全。
+
+- 它管理的表具有下列主要特征：
+  
+  - 每个 InnoDB 表在数据库目录中以.frm 格式文件表示
+  - InnoDB 表空间 tablespace 被用于存储表的内容（表空间存储数据+索引。）
+  - 提供一组用来记录事务性活动的日志文件
+  - 用 COMMIT(提交)、SAVEPOINT 及ROLLBACK(回滚)支持事务处理
+  - 提供全 ACID 兼容
+  - 在 MySQL 服务器崩溃后提供自动恢复
+  - 多版本（MVCC）和行级锁定
+  - 支持外键及引用的完整性，包括级联删除和更新
+
+- InnoDB最大的特点
+  
+  - 优点：支持事务：以保证数据的安全。
+  
+  - 缺点：效率不是很高；不能压缩，不能转换为只读，不能很好的节省存储空间。
+
+### 9.4MEMORY存储引擎
+
+- 使用 MEMORY 存储引擎的表，其数据**存储在内存中**，且行的长度固定，这两个特点使得 MEMORY 存储引擎非常**快**。
+
+- MEMORY 存储引擎管理的表具有下列特征：
+  
+  - 在数据库目录内，每个表均以.frm 格式的文件表示。
+  - 表数据及索引被存储在内存中。（目的就是快，查询快！）
+  - 表级锁机制。
+  - 不能包含 TEXT 或 BLOB 字段。
+
+- MEMORY 存储引擎以前被称为HEAP 引擎。
+
+- MEMORY引擎特点
+  
+  - 优点：查询效率是最高的。不需要和硬盘交互。
+  
+  - 缺点：不安全，关机之后数据消失。因为数据和索引都是在内存当中。
+
+## 10.事务
+
+- 一个事务其实就是一个完整的业务逻辑。是一个最小的工作单元。不可再分。
+  
+  - 例如转账，从A账户向B账户中转账10000. 将A账户的钱减去10000（update语句） 将B账户的钱加上10000（update语句） 这就是一个完整的业务逻辑。
+
+- **insert**、**delete**、**update**只有以上的三个语句和事务有关系，其它都没有关系。
+
+- 事务：就是**批量的DML语句同时成功，或者同时失败。**
+
+### 10.1InnoDB实现事务
+
+- InnoDB存储引擎：提供一组用来记录事务性活动的日志文件
+
+- 在事务的执行过程中，每一条DML的操作都会记录到“事务性活动的日志文件”中。
+
+- 在事务的执行过程中，**我们可以提交事务，也可以回滚事务。**
+
+- **提交事务 `commit;` 语句**
+  
+  - 清空事务性活动的日志文件，将数据全部彻底持久化到数据库表中。
+  - **提交事务标志着事务的结束**。
+
+- **回滚事务`rollback;`语句**（回滚永远都是只能回滚到上一次的**提交点**）
+  
+  - 将之前所有的DML操作全部撤销，并且清空事务性活动的日志文件
+  - **回滚事务标志着事务的结束**。
+
+- 将mysql的**自动提交机制关闭 `start transaction;`**
+
+##### 回滚事务
+
+```sql
+select * from dept_bak;
+-- Empty set (0.00 sec)
+start transaction;
+-- Query OK, 0 rows affected (0.00 sec)
+insert into dept_bak values(10,'abc', 'tj');
+-- Query OK, 1 row affected (0.00 sec)
+insert into dept_bak values(10,'abc', 'tj');
+-- Query OK, 1 row affected (0.00 sec)
+select * from dept_bak;
+-- +--------+-------+------+
+-- | DEPTNO | DNAME | LOC |
+-- +--------+-------+------+
+-- | 10 | abc | tj |
+-- | 10 | abc | tj |
+-- +--------+-------+------+
+-- 2 rows in set (0.00 sec)
+rollback;
+-- Query OK, 0 rows affected (0.00 sec)
+select * from dept_bak;
+-- Empty set (0.00 sec)
+```
+
+### 10.2事物的四个特性
+
+**A：原子性** 说明事务是最小的工作单元。不可再分。
+
+**C：一致性** 所有事务要求，在同一个事务当中，所有操作必须同时成功，或者同时失败， 以保证数据的一致性。
+
+**I：隔离性** A事务和B事务之间具有一定的隔离。
+
+**D：持久性** 事务最终结束的一个保障。
+
+### 10.3事务的隔离性
+
+#### 10.3.1事务和事务之间四个隔离级别
+
+**读未提交：read uncommitted（最低的隔离级别）《没有提交就读到了》**
+
+- 事务A可以读取到事务B未提交的数据。
+- 这种隔离级别存在的问题就是：**脏读现象**！(Dirty Read)，称读到了脏数据。
+- 这种隔离级别一般都是理论上的，大多数的数据库隔离级别都是二档起步。
+
+**读已提交：read committed《提交之后才能读到》**
+
+- 事务A只能读取到事务B提交之后的数据。
+- 这种隔离级别解决了解决了脏读的现象。
+- 这种隔离级别**不可重复读取数据**。
+  - 在事务开启之后，第一次读到的数据是3条，当前事务还没有结束，可能第二次再读取的时候，读到的数据是4条，3不等于4称为不可重复读取。
+- 这种隔离级别是比较真实的数据，**每一次读到的数据是绝对的真实**。
+- oracle数据库默认的隔离级别是：read committed
+
+**可重复读：repeatable read《提交之后也读不到，永远读取的都是刚开启事务时的数据》**
+
+- 事务A开启之后，每次**在事务A中读取到的数据保持一致**。即使事务B将数据已经修改，并且提交了，事务A读取到的数据还是没有发生改变，这就是**可重复读**。
+
+- 可重复读可能会出现幻影读。每一次读取到的数据都是幻象。
+
+- 早晨9点开始开启了事务，只要事务不结束，到晚上9点，读到的数据还是那样！读到的是假象。不够绝对的真实。
+
+- mysql中默认的事务隔离级别。
+
+**序列化/串行化：serializable（最高的隔离级别）**
+
+- 这是最高隔离级别，效率最低。解决了所有的问题。
+- 这种隔离级别表示事务排队，不能并发！
+- synchronized，线程同步（事务同步）每一次读取到的数据都是最真实的，并且效率是最低的。
+
+#### 10.3.2验证各种隔离级别
+
+- mysql 5 查看隔离级别：`SELECT @@tx_isolation;`
+- mysql 8 查看隔离级别：`select @@transaction_isolation;`
+
+```sql
+-- 验证：read uncommited
+set global transaction isolation level read uncommitted;
+
+-- 验证：read commited
+set global transaction isolation level read committed;
+
+-- 验证：repeatable read
+set global transaction isolation level repeatable read;
+
+-- 验证：serializable
+set global transaction isolation level serializable;
+```

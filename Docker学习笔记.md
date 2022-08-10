@@ -86,10 +86,9 @@ then usage
      exit -1
 fi
 
-while getopts c:m:C:I:V:P: option
+while getopts c:m:C:I:V:P: option;
 do        
-
-case "$option"    in    
+case "$option" in    
     c) cmd=$OPTARG;;
     m) memory=$OPTARG;;
     C) container=$OPTARG;;
@@ -105,22 +104,7 @@ export cmd=$cmdexport memory=$memoryexport container=$containerexport image=$ima
 --uts ./container.sh
 ```
 
-### 1.Docker 是什么？
-
-- 是实现容器技术的一种工具
-- 是一个开源的应用容器引擎
-- 使用 C/S 架构模式，通过远程API 来管理
-- 可以打包一个应用及依赖包到一个轻量级、可移植的容器中
-
-### 2.容器是什么？
-
-- 对应用软件和依赖包进行标准打包
-- 应用或服务之间相互隔离，但又共享一个 OS
-- 可以打包运行在不同的系统上
-
-### 3.为什么会出现容器？
-
-为了解决单机部署应用和虚拟化的局限性而诞生
+### 
 
 ### 4.虚拟化是什么？
 

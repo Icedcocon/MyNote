@@ -144,12 +144,13 @@ docker run --restart=on-failure:10 nginx
 docker run --rm -it python /bin/bash
 #   -t, --tty                分配一个伪终端
 docker run -it --privileged  python /bin/bash
-#   -u, --user string        Username or UID (format: <name|uid>[:<group|gid>])
-#       --userns string      User namespace to use
-#       --uts string         UTS namespace to use
+#   -u, --user string        指定执行指令的用户名或ID
+#                            (格式: <name|uid>[:<group|gid>])
+#       --userns string      指定要是用的User namespace
+#       --uts string         指定要是用的UTS namespace
 #   -v, --volume list        Bind mount a volume
 #       --volumes-from list  Mount volumes from the specified container(s)
-#   -w, --workdir string     Working directory inside the containerrivate)
+#   -w, --workdir string     指定命令运行时的工作目录
 ```
 
 ### 前台模式
@@ -447,7 +448,7 @@ $ docker run -it --entrypoint="" mysql bash
 > 
 > **指定`--entrypoint`会清除镜像上的默认命令集（即`CMD`指定的指令）**。
 
-### EXPOSE（传入端口）
+##### EXPOSE（传入端口）
 
 ```bash
 --expose=[]: 指定容器内部要暴露给外部的端口，会覆盖Dockerfile中的EXPOSE设置。
@@ -475,7 +476,7 @@ $ docker run -it --entrypoint="" mysql bash
 
 - `docker port` 可以查看实际端口映射
 
-### ENV（环境变量）
+##### ENV（环境变量）
 
 - Docker 在创建 Linux 容器时会自动设置一些环境变量。
 
@@ -493,11 +494,11 @@ $ export today=Wednesday
 $ docker run -e "NAME=ruyi" -e NEWNAME --rm alpine env
 ```
 
-### VOLUME（共享文件系统）
+##### VOLUME（共享文件系统）
 
 ```bash
 -v, --volume=[host-src:]container-dest[:<options>]: 挂载一个volume。
-              
+
 The `nocopy` mode is used to disable automatically copying the requested volume
 path in the container to the volume storage location.
 For named volumes, `copy` is the default mode. Copy modes are not supported
@@ -508,30 +509,59 @@ for bind-mounted volumes.
 
 - `options` 可以是：
   
-  -  [rw|ro]
+  - [rw|ro]
   
-  -  [z|Z]
+  - [z|Z]
   
-  -  [[r]shared|[r]slave|[r]private]
+  - [[r]shared|[r]slave|[r]private]
   
-  -  [nocopy]
+  - [nocopy]
   
   - 如果不指定`rw`或`ro`则默认为read-write模式
 
 - `host-src`是一个宿主机上的绝对路径名
 
-
-
 - 开发者（Dockerfile）可以定义一个或多个volume挂载到一个容器，但只有用户（`run`）可以指定多个容器共享一个volume。
 
-### 用户
+##### 用户
 
 ```bash
--u="", --user="": Sets the username or UID used and optionally the groupname or GID for the specified command.
+-u="", --user="": 设置用户名/UID，也可以设置用户组名及GID
 
-The followings examples are all valid:
+以下各种形式都是合法的:
 --user=[ user | user:group | uid | uid:gid | user:gid | uid:group ]
 ```
+
+- 默认用户为root。
+
+- 开发镜像时可以创建其他用户或用户组。
+
+- 运行容器时可以指定用户或用户组。
+
+- Dockerfile 中的`USER`指令可以指定运行容器时的默认用户，而操作者可以使用`-u`命令修改所使用的用户。
+
+### Docker日志驱动 (--log-driver)
+
+- 在`docker run`命令后使用`--log-driver=VALUE`，可以配置日志驱动。
+
+- 可以使用以下配置：
+
+| 驱动           | 描述                                                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `none`       | 禁用容器的所有日志。此选项不能使用 `docker logs` 查看容器日志。                                                                                        |
+| `local`      | Logs are stored in a custom format designed for minimal overhead.                                                              |
+| `json-file`  | Docker的默认日志驱动。日志数据被写入JSON文件。 No logging options are supported for this driver.                                                 |
+| `syslog`     | 日志数据被写入syslog。                                                                                                                 |
+| `journald`   | 日志数据被写入`journald`。                                                                                                             |
+| `gelf`       | Graylog Extended Log Format (GELF) logging driver for Docker. Writes log messages to a GELF endpoint likeGraylog or Logstash.  |
+| `fluentd`    | Fluentd logging driver for Docker. Writes log messages to `fluentd` (forward input).                                           |
+| `awslogs`    | Amazon CloudWatch Logs logging driver for Docker. Writes log messages to Amazon CloudWatch Logs.                               |
+| `splunk`     | Splunk logging driver for Docker. Writes log messages to `splunk` using Event Http Collector.                                  |
+| `etwlogs`    | Event Tracing for Windows (ETW) events. Writes log messages as Event Tracing for Windows (ETW) events. Only Windows platforms. |
+| `gcplogs`    | Google Cloud Platform (GCP) Logging. Writes log messages to Google Cloud Platform (GCP) Logging.                               |
+| `logentries` | Rapid7 Logentries. Writes log messages to Rapid7 Logentries.                                                                   |
+
+-  `docker logs`命令只能在 `json-file` 个 `journald`两个日志驱动下使用。其他情况日志被输出到各自的引擎，`docker logs`无法读取。
 
 # docker history操作
 
@@ -657,6 +687,421 @@ If you request a field which is itself a structure containing other fields, by d
 
 ```bash
 $ docker inspect --format='{{json .Config}}' $INSTANCE_ID
+```
+
+# docker top操作
+
+- 查看容器内部运行进程
+
+### 用法
+
+```bash
+$ docker top CONTAINER [ps OPTIONS]
+```
+
+- ps OPTIONS**怎么用**？
+
+# docker stats操作
+
+- 实时显示容器内进程的统计信息
+
+### 用法
+
+```bash
+$ docker stats [OPTIONS] [CONTAINER...]
+```
+
+### 描述
+
+- 不指定容器或容器ID则显示所有容器的实时统计信息。
+
+- 可以用空格隔开容器ID， 输出多个容器的统计信息。
+
+### 选项
+
+| 名称，简写          | 默认  | 描述                      |
+| -------------- | --- | ----------------------- |
+| `--all` , `-a` |     | 显示所有容器数据（默认只显示running态） |
+| `--format`     |     | 使用Go模板格式化输出             |
+| `--no-stream`  |     | 禁用动态显示 只显示快照            |
+| `--no-trunc`   |     | 不要截断输出                  |
+
+### 例子
+
+- 不使用 `--format`，输出全部字段时，会显示以下列：
+
+| 列名                        | 描述               |
+| ------------------------- | ---------------- |
+| `CONTAINER ID` and `Name` | 容器 ID 和名字        |
+| `CPU %` and `MEM %`       | 宿主机的CPU和内存使用率    |
+| `MEM USAGE / LIMIT`       | 内存使用量及内存使用上限     |
+| `NET I/O`                 | 容器通过其网络接口收发数据量   |
+| `BLOCK I/O`               | 容器读写宿主机块存储设备的数据量 |
+| `PIDs`                    | 容器建立的进程或线程数      |
+
+- 使用 `docker stats` 显示多个容器的数据。
+
+```bash
+$ docker stats awesome_brattain 67b2525d8ad1
+```
+
+- 使用 `docker stats` 输出 `json` 格式信息。（**json输出的属性可用作go模板参数**）
+
+```bash
+$ docker stats nginx --no-stream --format "{{ json . }}"
+```
+
+使用 `docker stats` 输出格式化信息
+
+```bash
+$ docker stats --all --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" fervent_panini 5acfcb1b4fd1 drunk_visvesvaraya big_heisenberg
+```
+
+### 格式化
+
+- 合法占位符如下：
+
+| 占位符          | 描述                  |
+| ------------ | ------------------- |
+| `.Container` | 容器名称或ID             |
+| `.Name`      | 容器名称                |
+| `.ID`        | 容器 ID               |
+| `.CPUPerc`   | CPU 使用率             |
+| `.MemUsage`  | 内存使用率               |
+| `.NetIO`     | 网络 IO               |
+| `.BlockIO`   | 块存储设备 IO            |
+| `.MemPerc`   | 内存使用量 (Windows不可用)  |
+| `.PIDs`      | 进程/线程数 (Windows不可用) |
+
+- 使用格式化输出时不会显示列名，但可以在前面添加`table`关键词显示列名。
+
+```bash
+# 不显示列名
+$ docker stats --format "{{.Container}}: {{.CPUPerc}}"
+# 显示列名
+$ docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+```
+
+# docker exec操作
+
+- 在一个**running态**的容器中，以**开辟新进行/线程**的方式，执行指令。
+
+- 可以执行后台任务和交互式任务两种。
+
+### 用法
+
+```bash
+$ docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+```
+
+### 描述
+
+- 在容器中开启一个新进程/线程
+
+- 只在容器主进程(`PID 1`)运行时运行，容器**重启不会再次执行**。
+
+- 命令在容器默认工作路径下运行，镜像中如果通过`WORKDIR`指定，则在指定路径下运行。
+
+- 命令应当是可执行文件，链接或带引号的字符串命令不会执行。
+  
+  -  `docker exec -ti my_container "echo a && echo b"`不会执行；
+  
+  -  `docker exec -ti my_container sh -c "echo a && echo b"`可执行。
+
+### 选项
+
+| 名称，简写                  | 默认  | 描述                                                  |
+| ---------------------- | --- | --------------------------------------------------- |
+| `--detach` , `-d`      |     | 后台运行                                                |
+| `--detach-keys`        |     | Override the key sequence for detaching a container |
+| `--env` , `-e`         |     | 设置环境变量                                              |
+| `--env-file`           |     | 从文件中读取并设置环境变量                                       |
+| `--interactive` , `-i` |     | 保持STDIN开启                                           |
+| `--privileged`         |     | 授予容器特权                                              |
+| `--tty` , `-t`         |     | 分配TTY                                               |
+| `--user` , `-u`        |     | 用户名或UID (格式: <name\|uid>[:<group\|gid>])            |
+| `--workdir` , `-w`     |     | 指定命令的工作路径                                           |
+
+### 例子
+
+- 对一个running态的容器使用`docker exec`
+
+```bash
+$ docker run --name ubuntu_bash --rm -i -t ubuntu bash
+$ docker exec -d ubuntu_bash touch /tmp/execWorks
+```
+
+- 对一个paused态的容器使用`docker exec`
+  
+  - 如果容器处于paused态，会报错返回error
+
+# docker stop
+
+停止处于running态的容器
+
+### 用法
+
+```bash
+$ docker stop [OPTIONS] CONTAINER [CONTAINER...]
+```
+
+### 描述
+
+- 容器内的主进程会收到`SIGTERM`，并在grace period后收到`SIGKILL`。
+
+- 第一个发送的信号可以在Dockerfile中通过`STOPSIGNAL`修改，或在`docker run`后通过`--stop-signal`选项修改。
+
+- `docker kill`可以直接向容器发送`SIGKILL`信号
+
+### 选项
+
+| 名称，简写           | 默认   | 描述                |
+| --------------- | ---- | ----------------- |
+| `--time` , `-t` | `10` | 发送`SIGKILL`信号前的秒数 |
+
+### 例子
+
+```bash
+$ docker stop my_container
+```
+
+# docker kill操作
+
+- 杀死一个或多个处于running态的容器
+
+### 用法
+
+```bash
+$ docker kill [OPTIONS] CONTAINER [CONTAINER...]
+```
+
+### 描述
+
+- 默认发送`SIGKILL`信号
+
+- 可以通过名称或数字来指定要发送的信号
+
+- 信号的`SIG`前缀可以省略
+
+### 选项
+
+| 名称，简写             | 默认     | 描述        |
+| ----------------- | ------ | --------- |
+| `--signal` , `-s` | `KILL` | 要发送给容器的信号 |
+
+### 例子
+
+- 发送默认信号
+
+```bash
+$ docker kill my_container
+```
+
+- 向容器发送其他信号
+
+```bash
+$ docker kill --signal=SIGHUP  my_container
+```
+
+```bash
+$ docker kill --signal=SIGHUP my_container      # 指定信号名
+$ docker kill --signal=HUP my_container         # 省略前缀
+$ docker kill --signal=1 my_container           # 指定信号数字
+```
+
+# docker network
+
+- 管理Docker 网络
+
+### 子命令
+
+| 命令                        | 描述             |
+| ------------------------- | -------------- |
+| docker network connect    | 将容器连接到网络       |
+| docker network create     | 创建一个网络         |
+| docker network disconnect | 断开容器与网络的连接     |
+| docker network inspect    | 显示一个或多个网络的详细信息 |
+| docker network ls         | 列出网络           |
+| docker network prune      | 移除所有未使用网络      |
+| docker network rm         | 移除一个或多个网络      |
+
+### docker network create
+
+- 创建一个网络
+
+##### 用法
+
+```bash
+$ docker network create [OPTIONS] NETWORK
+```
+
+##### 描述
+
+- 默认创建 `bridge`网络，可以使用`--driver`选项指定`bridge`、`overlay`以及第三方网络驱动。
+
+- 安装Docker Engine后会自动创建一个`bridge`网络，即`docker0`网桥。
+
+- 所有新建容器默认自动连接`docker0`。
+
+- 该网桥不可删除，但可以通过`network create`创建新网桥。
+
+```bash
+$ docker network create -d bridge my-bridge-network
+```
+
+- 网桥网络适用于单引擎单主机的情况。
+
+- 多主机运行Docker Engine需要使用`overlay`网络，该网络需要预置条件如下：
+  
+  - 可以使用键值存储。引擎支持Consul、Etcd和ZooKeeper；
+  
+  - 主机集群与键值存储连接；
+  
+  - 在集群中正确配置引擎`daemon`；
+
+- `dockerd`选项支持的`overlay`网络如下：
+  
+  - `--cluster-store`
+  
+  - `--cluster-store-opt`
+  
+  - `--cluster-advertise`
+
+- 推荐使用Docker Swarm管理集群构建网络，在满足`overlay`网络前置条件后，在任意集群下执行以下命令即可创建网络：
+
+```bash
+$ docker network create -d overlay my-multihost-network
+```
+
+### Overlay 网络的限制
+
+- `overlay`网络应当使用默认的 `/24`作为子网掩码，虽然这会限制IP个数为256个。
+
+- 使用超过256个IP地址时，
+
+
+
+You should create overlay networks with `/24` blocks (the default), which limits you to 256 IP addresses, when you create networks using the default VIP-based endpoint-mode. This recommendation addresses [limitations with swarm mode](https://github.com/moby/moby/issues/30820). If you need more than 256 IP addresses, do not increase the IP block size. You can either use `dnsrr` endpoint mode with an external load balancer, or use multiple smaller overlay networks. See [Configure service discovery](https://docs.docker.com/engine/swarm/networking/#configure-service-discovery) for more information about different endpoint modes.
+
+For example uses of this command, refer to the [examples section](https://docs.docker.com/engine/reference/commandline/network_create/#examples) below.
+
+## Options[](https://docs.docker.com/engine/reference/commandline/network_create/#options)
+
+| Name, shorthand   | Default  | Description                                             |
+| ----------------- | -------- | ------------------------------------------------------- |
+| `--attachable`    |          | Enable manual container attachment                      |
+| `--aux-address`   |          | Auxiliary IPv4 or IPv6 addresses used by Network driver |
+| `--config-from`   |          | The network from which to copy the configuration        |
+| `--config-only`   |          | Create a configuration only network                     |
+| `--driver` , `-d` | `bridge` | Driver to manage the Network                            |
+| `--gateway`       |          | IPv4 or IPv6 Gateway for the master subnet              |
+| `--ingress`       |          | Create swarm routing-mesh network                       |
+| `--internal`      |          | Restrict external access to the network                 |
+| `--ip-range`      |          | Allocate container ip from a sub-range                  |
+| `--ipam-driver`   |          | IP Address Management Driver                            |
+| `--ipam-opt`      |          | Set IPAM driver specific options                        |
+| `--ipv6`          |          | Enable IPv6 networking                                  |
+| `--label`         |          | Set metadata on a network                               |
+| `--opt` , `-o`    |          | Set driver specific options                             |
+| `--scope`         |          | Control the network's scope                             |
+| `--subnet`        |          | Subnet in CIDR format that represents a network segment |
+
+## Examples[](https://docs.docker.com/engine/reference/commandline/network_create/#examples)
+
+### Connect containers[](https://docs.docker.com/engine/reference/commandline/network_create/#connect-containers)
+
+When you start a container, use the `--network` flag to connect it to a network. This example adds the `busybox` container to the `mynet` network:
+
+```
+$ docker run -itd --network=mynet busybox
+```
+
+If you want to add a container to a network after the container is already running, use the `docker network connect` subcommand.
+
+You can connect multiple containers to the same network. Once connected, the containers can communicate using only another container’s IP address or name. For `overlay` networks or custom plugins that support multi-host connectivity, containers connected to the same multi-host network but launched from different Engines can also communicate in this way.
+
+You can disconnect a container from a network using the `docker network disconnect` command.
+
+### Specify advanced options[](https://docs.docker.com/engine/reference/commandline/network_create/#specify-advanced-options)
+
+When you create a network, Engine creates a non-overlapping subnetwork for the network by default. This subnetwork is not a subdivision of an existing network. It is purely for ip-addressing purposes. You can override this default and specify subnetwork values directly using the `--subnet` option. On a `bridge` network you can only create a single subnet:
+
+```
+$ docker network create --driver=bridge --subnet=192.168.0.0/16 br0
+```
+
+Additionally, you also specify the `--gateway` `--ip-range` and `--aux-address` options.
+
+```
+$ docker network create \
+  --driver=bridge \
+  --subnet=172.28.0.0/16 \
+  --ip-range=172.28.5.0/24 \
+  --gateway=172.28.5.254 \
+  br0
+```
+
+If you omit the `--gateway` flag the Engine selects one for you from inside a preferred pool. For `overlay` networks and for network driver plugins that support it you can create multiple subnetworks. This example uses two `/25` subnet mask to adhere to the current guidance of not having more than 256 IPs in a single overlay network. Each of the subnetworks has 126 usable addresses.
+
+```
+$ docker network create -d overlay \
+  --subnet=192.168.10.0/25 \
+  --subnet=192.168.20.0/25 \
+  --gateway=192.168.10.100 \
+  --gateway=192.168.20.100 \
+  --aux-address="my-router=192.168.10.5" --aux-address="my-switch=192.168.10.6" \
+  --aux-address="my-printer=192.168.20.5" --aux-address="my-nas=192.168.20.6" \
+  my-multihost-network
+```
+
+Be sure that your subnetworks do not overlap. If they do, the network create fails and Engine returns an error.
+
+### Bridge driver options[](https://docs.docker.com/engine/reference/commandline/network_create/#bridge-driver-options)
+
+When creating a custom network, the default network driver (i.e. `bridge`) has additional options that can be passed. The following are those options and the equivalent docker daemon flags used for docker0 bridge:
+
+| Option                                           | Equivalent  | Description                                           |
+| ------------------------------------------------ | ----------- | ----------------------------------------------------- |
+| `com.docker.network.bridge.name`                 | -           | Bridge name to be used when creating the Linux bridge |
+| `com.docker.network.bridge.enable_ip_masquerade` | `--ip-masq` | Enable IP masquerading                                |
+| `com.docker.network.bridge.enable_icc`           | `--icc`     | Enable or Disable Inter Container Connectivity        |
+| `com.docker.network.bridge.host_binding_ipv4`    | `--ip`      | Default IP when binding container ports               |
+| `com.docker.network.driver.mtu`                  | `--mtu`     | Set the containers network MTU                        |
+| `com.docker.network.container_iface_prefix`      | -           | Set a custom prefix for container interfaces          |
+
+The following arguments can be passed to `docker network create` for any network driver, again with their approximate equivalents to `docker daemon`.
+
+| Argument     | Equivalent     | Description                                |
+| ------------ | -------------- | ------------------------------------------ |
+| `--gateway`  | -              | IPv4 or IPv6 Gateway for the master subnet |
+| `--ip-range` | `--fixed-cidr` | Allocate IPs from a range                  |
+| `--internal` | -              | Restrict external access to the network    |
+| `--ipv6`     | `--ipv6`       | Enable IPv6 networking                     |
+| `--subnet`   | `--bip`        | Subnet for network                         |
+
+For example, let’s use `-o` or `--opt` options to specify an IP address binding when publishing ports:
+
+```
+$ docker network create \
+    -o "com.docker.network.bridge.host_binding_ipv4"="172.19.0.1" \
+    simple-network
+```
+
+### Network internal mode[](https://docs.docker.com/engine/reference/commandline/network_create/#network-internal-mode)
+
+By default, when you connect a container to an `overlay` network, Docker also connects a bridge network to it to provide external connectivity. If you want to create an externally isolated `overlay` network, you can specify the `--internal` option.
+
+### Network ingress mode[](https://docs.docker.com/engine/reference/commandline/network_create/#network-ingress-mode)
+
+You can create the network which will be used to provide the routing-mesh in the swarm cluster. You do so by specifying `--ingress` when creating the network. Only one ingress network can be created at the time. The network can be removed only if no services depend on it. Any option available when creating an overlay network is also available when creating the ingress network, besides the `--attachable` option.
+
+```
+$ docker network create -d overlay \
+  --subnet=10.11.0.0/16 \
+  --ingress \
+  --opt com.docker.network.driver.mtu=9216 \
+  --opt encrypted=true \
+  my-ingress-network
 ```
 
 ### 镜像操作

@@ -59,6 +59,10 @@ sudo readlink /proc/$$/ns/uts
 
 - 默认情况下，子进程与父进程处于相同的namespace中。即，在新的uts namespace中创建一个子进程与父进程同属一个namespace。
 
+### docker.sh脚本
+
+- docker.sh用于收集用户输入、调用unshare创建namespace并执行container.sh脚本
+
 ```bash
 #!/bin/bash
 usage () 
@@ -100,8 +104,13 @@ case "$option" in
 esac
 done
 
-export cmd=$cmdexport memory=$memoryexport container=$containerexport image=$imageexport volume=$volumeexport program=$programunshare 
---uts ./container.sh
+export cmd=$cmd
+export memory=$memory
+export container=$container
+export image=$image
+export volume=$volume
+export program=$program
+unshare --uts ./container.sh 
 ```
 
 ### 

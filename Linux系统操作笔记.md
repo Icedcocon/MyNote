@@ -300,3 +300,189 @@ root     ALL=(ALL)                ALL
 %wheel     ALL=(ALL)                NOPASSWD:ALL
 %用户组     登录来源=（可切换的身份）    无需密码
 ```
+
+## BASH脚本
+
+### 基础
+
+##### bash中调用其他解释器
+
+- 在bash中使用python
+
+```bash
+#! /bin/bash
+/bin/python <<-EOF
+print('Hello world!')
+print('This is printd by Python.')
+EOF
+```
+
+- 将代码交给cat解释器执行
+
+```bash
+#! /bin/bash
+/usr/bin/cat <<-EOF
+Hello world!
+This is printd by cat.
+EOF
+```
+
+- 在起止标记前加上“-”可以让结尾的**结束标记不必顶格书写**，即允许结束标记前有tab。
+
+##### bash执行方式
+
+- 在sub shell 中执行bash脚本
+
+```bash
+bash scripts.sh
+./scripts.sh
+```
+
+- 在当前shell中执行
+  
+  - 当前shell需要使用bash中定义的环境变量时；
+
+```bash
+. scripts.sh
+source scripts.sh
+```
+
+##### bash支持的shell
+
+- 查询Linux支持的shell
+
+```bash
+$ cat /etc/shells
+/bin/sh
+/bin/bash
+/usr/bin/sh
+/usr/bin/bash
+/bin/tcsh
+/bin/csh
+/usr/bin/tmux
+```
+
+- login shell和nonlogin shell
+  
+  - `su`指令使用nonlogin shell；只执行以下文件：
+    
+    - `/etc/bashrc`
+    
+    - `~/.bashrc`
+  
+  - `su - `指令使用login shell;惠志兴以下文件：
+    
+    - `/etc/profile`
+    
+    - `/etc/bashrc`
+    
+    - `~/bash_profile`
+    
+    - `~/.bashrc`
+
+```bash
+# nonloin shell 
+$  root
+# login shell
+$ su - root
+```
+
+- bash退出时会执行的文件
+  
+  - `~/.bash_logout`
+  
+  - `~/.bash_history`中的内容会更新
+
+##### 查询bind软件包的配置文件
+
+```bash
+$ rpm -qc COMMAND
+```
+
+##### bash shell特点
+
+- 命合和文件自动补齐
+
+- 命合历史记忆功能
+  
+  - `上下键`：历史命令
+  
+  - `!number`：执行第number条历史命令
+  
+  - `!string`：找到最近一个以string开头的程序
+  
+  - `!$`：上一个命令的最后一个参数
+  
+  - `!!`：执行上一个命令
+  
+  - `^R`：搜索历史命令
+
+- 别名功能
+  
+  - `alias` ：别名
+  
+  - `unalias` ：取消别名 | `\COMMAND`：（跳过别名）
+
+- 快捷键
+  
+  - ^R：搜索历史命令
+  
+  - ^D
+  
+  - ^A：光标移到最前
+  
+  - ^E：光标移到最后
+  
+  - ^L
+  
+  - ^U：光标以前全部删除
+  
+  - ^K：光标以后全部删除
+  
+  - ^S
+  
+  - ^Q
+
+- 前后台作业控制
+  
+  - &
+  
+  - nohup
+  
+  - ^C
+  
+  - ^Z
+  
+  - bg %1
+  
+  - fg %1
+  
+  - kill %3
+  
+  - `screen`：可以保存上次回话
+
+- 输入输出重定向
+  
+  - 0,1,2
+  
+  - > 
+  
+  - > > 
+  
+  - 2>
+  
+  - 2>>
+  
+  - 2>&1
+  
+  - &>
+  
+  - `cat </etc/hosts`：cat无参时返回标准输入的内容，将**标准输入重定向为文件**。
+  
+  - `cat <<-EOF`：将标准输入重定向为连续字符串。
+  
+  - `cat >file1 <<EOF`：**cat输出重定向到文件**。
+
+- 管道
+
+- 

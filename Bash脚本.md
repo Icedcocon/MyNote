@@ -437,34 +437,250 @@ fi            # "false"为真.
 
 # case/select
 
-case/select依靠在代码块的顶部或底部的条件判断来决定程序的分支。
+- case/select依靠在代码块的顶部或底部的条件判断来决定程序的分支。
 
 ### case
 
-case它允许通过判断来选择代码块中多条路径中的一条。它的作用和多个if/then/else语句相同，是它们的简化结构，特别适用于创建目录。
+- case它允许通过判断来选择代码块中多条路径中的一条。
 
-> ```shell
-> case "$variable" in
->      "$condition1" )
->      command...     ;;
->      "$condition2" )
->      command...     ;; 
->      *)
->      other... ;;  
-> esac  
-> ```
+- 特别适用于创建目录。
+
+```shell
+case "$variable" in
+     "$condition1" )
+     command...     ;;
+     "$condition2" )
+     command...     ;; 
+     *)
+     other... ;;  
+esac  
+```
 
 - 对变量使用`""`并不是强制的，因为不会发生单词分离。
 - 每句测试行，都以右小括号`)`结尾。
 - 每个条件块都以两个分号结尾`;;`。
 - case块的结束以esac(case的反向拼写)结尾。
 
+# for/while
 
+- 重复一些命令的代码块,如果条件不满足就退出循环。
+- 通过**变量`$IFS`可以指定循环的分隔符**，取代`tab、空格`。如回车：`IFS=$'\n'`
 
+### for
 
+- 在循环的每次执行中，arg将顺序的存取list中列出的变量，基本的循环结构如下：
 
 ```bash
-
+for arg in [list]  
+do  
+    command(s)...  
+done
 ```
 
+- 每个`[list]`中的元素都可能包含多个参数
 
+- `set`命令来强制解析每个`[list]`中的元素，并且分配每个解析出来的部分到一个位置参数中。
+
+```shell
+for planet in Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune Pluto
+do
+  echo $planet  # 每个行星被单独打印在一行上.
+done
+```
+
+### while
+
+- 一个while循环可以有多个判断条件，但是只有最后一个才能决定是否退出循环。
+
+```bash
+while [condition]  
+do  
+    command...  
+done
+```
+
+- 简单的while循环
+
+```bash
+# 处理文件时常用结构
+while read line
+do
+    user=$(echo line | awk '{print $1}')
+    passwd=$(echo line | awk '{print $2}')
+    echo "user = $user    passwd=$passwd"
+done <$1                     # 对read进行重定向
+```
+
+- 多条件的while循环
+
+```shell
+var1=unset
+previous=$var1
+
+while echo "previous-variable = $previous"
+      echo
+      previous=$var1
+      [ "$var1" != end ] # 记录之前的$var1.
+      # 这个"while"循环中有4个条件, 但是只有最后一个能控制循环.
+      # 退出状态由第4个条件决定.
+do
+echo "Input variable #1 (end to exit) "
+  read var1  echo "variable #1 = $var1"
+done 
+exit 0
+```
+
+### until
+
+- 在循环的顶部判断条件，并且如果条件一直为false那就一直循环下去。(与while相反)。
+
+```bash
+until [condition-is-true]  
+do  
+    command...  
+done
+```
+
+1. until循环的判断在循环的顶部，这与某些编程语言是不同的。
+2. 与for循环一样，如果想把do和条件放在一行里，就使用";"。
+
+`until [condition-is-true] ; do`
+
+```shell
+END_CONDITION=end
+until [ "$var1" = "$END_CONDITION" ]
+# 在循环的顶部判断条件.
+do
+  echo "Input variable #1 "
+  echo "($END_CONDITION to exit)"
+  read var1  echo "variable #1 = $var1"
+done
+exit 0
+```
+
+### 嵌套循环
+
+- 嵌套循环就是在一个循环中还有一个循环，内部循环在外部循环体中。
+
+```shell
+outer=1             # 设置外部循环计数.
+# 开始外部循环.
+for a in 1 2 3 4 5
+do
+  echo "Pass $outer in outer loop."
+  echo "---------------------"
+  inner=1           # 重设内部循环的计数.
+
+  # ===============================================
+  # 开始内部循环.
+  for b in 1 2 3 4 5  do
+    echo "Pass $inner in inner loop."
+    let "inner+=1"  # 增加内部循环计数.
+  done
+  # 内部循环结束.
+  # ===============================================
+
+  let "outer+=1"    # 增加外部循环的计数.
+  echo              # 每次外部循环之间的间隔.
+done               
+# 外部循环结束.
+
+exit 0
+```
+
+### 循环控制
+
+- 影响循环行为的命令 `break`， `continue`
+
+- break命令将会跳出循环，continue命令将会跳过本次循环下边的语句，直接进入下次循环。
+
+##### continue
+
+- continue命令与break命令类似，但它不会跳出所有循环，仅仅跳出当前循环。
+
+```shell
+LIMIT=19  # 上限
+
+echo "Printing Numbers 1 through 20 (but not 3 and 11)."
+
+a=0
+
+while [ $a -le "$LIMIT" ]
+do
+  a=$(($a+1))
+  if [ "$a" -eq 3 ] || [ "$a" -eq 11 ]  # Excludes 3 and 11.
+  then
+    continue      # 跳过本次循环剩下的语句.
+  fi
+  echo -n "$a "   # 在$a等于3和11的时候,这句将不会执行.
+done 
+```
+
+##### break
+
+- break命令允许跳出所有循环（终止执行后面的所有循环）。
+
+```shell
+# 下面的例子中，脚本进入死循环直至用户输入数字大于5。要跳出这个循环，返回到shell提示符下，就要使用break命令。
+while :
+do
+    echo -n "Input a number between 1 to 5: "
+    read aNum    case $aNum in
+        1|2|3|4|5) echo "Your number is $aNum!"
+        ;;        *) echo "You do not select a number between 1 to 5, game is over!"
+            break
+        ;;    esac
+done
+```
+
+⚠️ 在嵌套循环中，break 命令后面还可以跟一个整数，表示跳出第几层循环。例如：
+
+```shell
+break n #表示跳出第 n 层循环。
+```
+
+# BASH并发
+
+### 用exec打开和关闭文件描述符
+
+##### 打开和关闭
+
+```bash
+$ exec 6<> ~/file # 打开6号文件描述符，并绑定到家目录下的file文件
+$ exec 6<&-       # 关闭6号文件描述符
+$ echo 123 >&6    # 使用6号文件描述符
+```
+
+- 当一个文件的FD未被释放，删除文件内容不会消失，可以通过`cp /proc/$$/fd/num`到指定位置进行数据恢复。
+
+### 管道
+
+##### 匿名管道
+
+##### 命名管道
+
+`mkfifo`
+
+# 常用结构
+
+##### 常见安装提示
+
+```bash
+#! /bin/bash
+read -p "You will install Apache [Y|n]" apache_install
+if [ ! ${apache_install:-"Y"} = "Y" ]; then
+        echo "Won't install!"
+        exit
+fi
+```
+
+##### 处理文件时常用结构
+
+```bash
+while read line
+do
+    user=$(echo line | awk '{print $1}')
+    passwd=$(echo line | awk '{print $2}')
+    echo "user = $user    passwd=$passwd"
+done <$1                     # 对read进行重定向
+```

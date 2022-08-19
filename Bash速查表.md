@@ -110,7 +110,7 @@ chgrp group {fn}    # 修改文件所属的用户组
 chown user1 {fn}    # 修改文件所有人为 user1, chown user1:group1 fn 可以修改组
 file {fn}           # 检测文件的类型和编码
 basename {fn}       # 查看文件的名字（不包括路径）
-dirname {fn}        # 查看文件的路径（不包括名字）
+dirname {fn}        # 查看文件的路径（不包括名字），（可通过cd跳转到脚本所在路径）
 grep {pat} {fn}     # 在文件中查找出现过 pat 的内容
 grep -r {pat} .     # 在当前目录下递归查找所有出现过 pat 的文件内容
 stat {fn}           # 显示文件的详细信息
@@ -821,6 +821,9 @@ ssh -CqTnN -D localhost:1080  user@202.115.8.1
 
 # 终端下正确设置 ALT 键和 BackSpace 键
 http://www.skywind.me/blog/archives/2021
+
+# 使用cat向文件输入内容
+cat > file <<-EOF ... EOF
 ```
 
 ```bash

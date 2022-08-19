@@ -979,8 +979,6 @@ $ docker network create -d overlay my-multihost-network
 
 - 使用超过256个IP地址时，
 
-
-
 You should create overlay networks with `/24` blocks (the default), which limits you to 256 IP addresses, when you create networks using the default VIP-based endpoint-mode. This recommendation addresses [limitations with swarm mode](https://github.com/moby/moby/issues/30820). If you need more than 256 IP addresses, do not increase the IP block size. You can either use `dnsrr` endpoint mode with an external load balancer, or use multiple smaller overlay networks. See [Configure service discovery](https://docs.docker.com/engine/swarm/networking/#configure-service-discovery) for more information about different endpoint modes.
 
 For example uses of this command, refer to the [examples section](https://docs.docker.com/engine/reference/commandline/network_create/#examples) below.

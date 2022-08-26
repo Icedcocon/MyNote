@@ -41,16 +41,25 @@ JavaScript速查表
 
 - 基本类型
   **最新的 ECMAScript 标准定义了 8 种数据类型,分别是**
+  
   - `string`
+  
   - `number`
+  
   - `bigint`
+  
   - `boolean`
+  
   - `null`
+  
   - `undefined`
+  
   - `symbol` (ECMAScript 2016新增)
     
     > 所有基本类型的值都是不可改变的。但需要注意的是，基本类型本身和一个赋值为基本类型的变量的区别。变量会被赋予一个新值，而原值不能像数组、对象以及函数那样被改变。
+
 - 引用类型
+  
   - `Object`（包含普通对象-Object，数组对象-Array，正则对象-RegExp，日期对象-Date，数学函数-Math，函数对象-Function）
 
 ```javascript
@@ -324,20 +333,18 @@ if (true) {
   function sayHi(name) {
     return ['How are you, ', name, '?'].join();
   }
-  ```
-
+  
   // good 可读性比上面更强
   function sayHi(name) {
     return `How are you, ${name}?`;
   }
+  ```
 
-```
 - 永远不要使用 `eval()`，该方法有太多漏洞。
-
 
 ### 变量
 
--  不要使用链式变量赋值
+- 不要使用链式变量赋值
 
 > 因为会产生隐式的全局变量
 
@@ -1187,6 +1194,12 @@ const val = parseInt(inputValue, 10);
 2147483647 >> 0 //=> 2147483647
 2147483648 >> 0 //=> -2147483648
 2147483649 >> 0 //=> -2147483647
+```
+
+## 方法
+
+```javascript
+
 ```
 
 ## 推荐资源

@@ -174,15 +174,17 @@ write {user/tty}    # 向某用户发送一句消息
 ##############################################################################
 
 ps                        # 查看当前会话进程
-ps ax                     # 查看所有进程，类似 ps -e
-ps aux                    # 查看所有进程详细信息，类似 ps -ef
-ps auxww                  # 查看所有进程，并且显示进程的完整启动命令
-ps -u {user}              # 查看某用户进程
-ps axjf                   # 列出进程树
-ps xjf -u {user}          # 列出某用户的进程树
-ps -eo pid,user,command   # 按用户指定的格式查看进程
+ps ax                     # 查看所有进程PID、TTY、状态、开始时间、CPU时间和CMD
+ps aux                    # 在ax基础上显示用户、CPU/内存占率、（虚拟）内存使用量
+ps auxww                  # 在aux基础上显示进程的完整启动命令
 ps aux | grep httpd       # 查看名为 httpd 的所有进程
+ps -ef                    # 查看所有进程PID、PPID、CPU占率、启动时间、tty、CPU时间和CMD
+ps -u {user}              # 列出某用户的进程
+ps -eo pid,user,command   # 按用户指定的格式查看进程
 ps --ppid {pid}           # 查看父进程为 pid 的所有进程
+
+ps axjf                   # 列出所有用户的进程树
+ps xjf -u {user}          # 列出某用户的进程树
 pstree                    # 树形列出所有进程，pstree 默认一般不带，需安装
 pstree {user}             # 进程树列出某用户的进程
 pstree -u                 # 树形列出所有进程以及所属用户

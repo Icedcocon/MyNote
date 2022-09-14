@@ -655,7 +655,8 @@ END{for(word in arr)\
 
 
 
-sed -rin                           # -r扩展正则；-i文件修改；-n仅输出模式空间内容
+sed -rin                           # -r扩展正则；-i文件修改(就地)；-n仅输出模式空间内容
+sed -e -e -f                       # -e允许多项编辑；-f指定sed脚本文件名
 sed 's/find/replace/' file         # 替换文件中首次出现的字符串并输出结果 
 sed '10s/find/replace/' file       # 替换文件第 10 行内容
 sed '10,20s/find/replace/' file    # 替换文件中 10-20 行内容
@@ -664,14 +665,25 @@ sed -i 's/find/replace/g' file     # 替换文件中所有出现的字符并且�
 sed -i '/find/i\newline' file      # 在文件的匹配文本前插入行
 sed -i '/find/a\newline' file      # 在文件的匹配文本后插入行
 sed '/line/s/find/replace/' file   # 先搜索行特征再执行替换
+sed -r '/find/,5d' file            # 删除有find的行到第5行
+sed -r '/find/,+5d' file           # 删除有find的行向后共计5行
+sed -r '/find/!d' file             # 删除不带find的行
 sed -e 's/f/r/' -e 's/f/r' file    # 执行多次替换
 sed 's#find#replace#' file         # 使用 # 替换 / 来避免 pattern 中有斜杆
 sed -i -r 's/^\s+//g' file         # 删除文件每行头部空格
 sed '/^$/d' file                   # 删除文件空行并打印
 sed -i 's/\s\+$//' file            # 删除文件每行末尾多余空格
-sed -n '2p' file                   # 打印文件第二行
+sed -n '2p' file                   # 打印文件第二行 -p打印
 sed -n '2,5p' file                 # 打印文件第二到第五行
 sed -n '=' file                    # 打印每一行的行号
+sed -r '1~2d' file                 # 从1开始每隔一行删除（删除奇数行）
+sed -r '0~2d' file                 # 从0开始每隔一行删除（删除偶数行）
+sed -r '3{h;d}' file               # 等价于'3h;3d'；对某几行执行多个命令
+sed -r 's/(.*)/#\1/g' file         # 在所有行前面加#号
+sed -r 's/(.*)/#&/g' file          # &表示前面查找的内容；在所有行前面加#号
+sed -r 's/(.)(.)(.*)/\1In\2\3/'file# 每行分为第1、2和剩下字母，字母2后插入In
+sed -r 's/(.)(.)(.*)/\1\2/g' file  # 只要前两个字母
+sed -r 's/r(oot)/RRRRRR\1/g' file  # 把root替换为RRRRRRoot
 ```
 
 ```bash

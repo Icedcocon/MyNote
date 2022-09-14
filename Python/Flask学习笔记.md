@@ -296,8 +296,8 @@ def set_cookie(name):
     # 更安全的做法是把密钥写进系统环境变量(在命令行中使用export或set命令)
     # 或是保存在.env文件中
     SECRET_KEY=secret string
-    
-    
+    ```
+
     import os
     app.secret_key = os.getenv ('SECRET KEY','secret string')
     # 可以在getenv()方法中添加第二个参数，作为没有获取到对应环境变量时使用的默认值

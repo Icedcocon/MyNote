@@ -1199,3 +1199,33 @@ docker system df
 | SYS_TTY_CONFIG     | Use vhangup(2); employ various privileged ioctl(2) operations on virtual terminals.                                       |
 | SYSLOG             | Perform privileged syslog(2) operations.                                                                                  |
 | WAKE_ALARM         | Trigger something that will wake up the system.                                                                           |
+
+Docker 网络
+
+- 网络实现的linux基础network namespace 
+  
+  - ip netns add
+  
+  - ip link add
+  
+  - ip netns exec
+  
+  - ip link set
+
+- 多容器复杂应用
+  
+  - 通过--link continer 和 -e ENV来避免暴露
+
+- 虚拟机迁移网络（VxLAN）
+  
+  <img title="" src="file:///D:/Cache/MarkText/VxLAN-data-format.jpg" alt="" data-align="center" width="482">
+  
+  - NVE（Network Virtualization Edge）：网络虚拟化边缘，也就是普通网络和vxlan网络的边界设备.
+  
+  - VTEP（VxLAN Tunnel EndPoint）：VXLAN隧道端点，NVE以VTEP进行标识。类似运行了ospf的设备用router id进行标识，运行了vxlan的设备使用vtep进行标识。Ospf的router id我们常常使用loopback地址，vxlan的vtep也是使用loopback地址。
+  
+  - BD（bridge domain）：桥域，做了vxlan后逻辑上的广播域
+  
+  - VNI（VXLAN Network Identifier）： VNI是VXLAN网络标识。类似每个VLAN有VLAN ID，每个VxLAN也有VNI，用于不同用户之间的隔离。和vlan不同的是，vlan只有4096个，而vni有1600万个，可以支持大规模云数据中心大量租户间的隔离。
+  
+  - VBDIF接口：VxLAN网关接口。类似于vlanif可以作为网关，实现不同vlan间的通信，vbdif也是用来做不同vxlan网络的网关，实现不同vxlan间的通信。

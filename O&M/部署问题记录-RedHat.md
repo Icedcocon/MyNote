@@ -223,3 +223,106 @@
   - 内网服务器可以ping通虚拟机，但是不能访问虚拟机端口，虚拟机内正常访问
   
   - 方案：关闭iptables
+
+# 0 VMware虚拟机配置
+
+### 虚拟机版本及安装
+
+- 在CentOS 7.7上请安装VMWare workstation 15.5.7 Pro，更高版本可能出现缺少modules的情况；
+- 最好使用root用户进行安装，否则设置Edit-Virtual Network Editor中的网关和网段时会提示缺少权限；
+- 使用root用户安装时，默认位置为/var/root/vmware，请注意该位置硬盘容量是否满足要求。
+
+```bash
+su - root
+./VMware-Workstation-Full-15.5.7-17171714.x86_64.bundle
+```
+
+<img title="" src="file:///D:/Cache/MarkText/2022-09-06-13-54-23-image.png" alt="" data-align="center" width="267">
+
+# 1 操作系统配置
+
+### 1.1 弱密码
+
+- RedHat 7.4 不允许设置弱密码，因此最好在虚拟机安装RedHat镜像时即设置密码为弱密码。
+
+- 附镜像下载地址：`http://calipso.linux.it.umich.edu/pulp/isos/UM/Library/content/dist/rhel/server/7/7Server/x86_64/iso/`
+
+### 1.2 更换yum源
+
+- RedHat 7.4系统自身的yum源需要注册后才能使用，因此需要替换为Centos 7的yum源，此外yum和rpm等软件也需要重新安装。
+
+```bash
+# 删除自带yum包
+rpm -qa | grep yum | xargs rpm -e --nodeps      # 不检查依赖，直接删除
+rpm -qa | grep python-urlgrabber | xargs rpm -e --nodeps
+
+# 下载并安装yum和rpm
+files=("python-urlgrabber-3.10-10.el7.noarch.rpm" \
+        "rpm-4.11.3-45.el7.x86_64.rpm" \
+        "yum-3.4.3-168.el7.centos.noarch.rpm" \
+        "yum-metadata-parser-1.1.4-10.el7.x86_64.rpm" \
+        "yum-plugin-fastestmirror-1.1.31-54.el7_8.noarch.rpm")
+mkdir "change-yum-source-packages" && cd "change-yum-source-packages"
+
+for file in ${files[@]}
+do
+        wget -a wget.log "http://mirrors.163.com/centos/7/os/x86_64/Packages/${file}"
+done
+
+rpm -ivh --force *.rpm
+
+# 下载并修改配置文件
+repo_path="/etc/yum.repos.d/"
+for i in `ls ${repo_path}`
+do
+        if [ `echo ${i} | awk -F '.' {print $NF}` != "bak"  ]
+        then
+                mv ${repo_path}${i} ${repo_path}${i}".bak"
+        fi
+done
+cp CentOS7-Base-163.repo ${repo_path}
+sed -ri 's/\$releasever/7/g' "${repo_path}CentOS7-Base-163.repo"
+
+# 更新
+yum clean all
+yum makecache
+```
+
+# 2 适配工作
+
+### 2.1 下载RPM包及其依赖
+
+- RedHat 7.4 通过指令`yum -y --downloadonly --downloaddir install ...`更新rpm包，需要更新的rpm包如下：
+  
+  - ./rpm/ntp
+  
+  - ./3rd/bind-dns/rpm
+  
+  - ./rpm/docker
+  
+  - ./rpm/nvidia-docker
+  
+  - ./3rd/nvidia-driver/gcc
+
+- docker-ce及nvidia-docker需要添加新的仓库下载
+
+```bash
+yum install -y yum-rhn-plugin
+yum install -y yum-utils
+
+# ===================== 下载docker-ce        =================
+mv rpm/docker rpm/docker.bak2
+yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+sed -ri 's/\$releasever/7/g' /etc/yum.repos.d/docker-ce.repo
+yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.3-3.1.el7.x86_64.rpm
+yum install docker-ce -y
+
+# ====================== 下载 nvidia-docker2  =================
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+   && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+yum-config-manager --enable libnvidia-container-experimental
+yum clean expire-cache
+yum install -y nvidia-docker2
+mv rpm/nvidia-docker rpm/nvidia-docker.bak
+yum install -y nvidia-docker2
+```

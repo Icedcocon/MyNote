@@ -188,9 +188,9 @@ pstree {user}             # 进程树列出某用户的进程
 pstree -u                 # 树形列出所有进程以及所属用户
 pgrep {procname}          # 搜索名字匹配的进程的 pid，比如 pgrep apache2
 
-kill {pid}                # 结束进程
-kill -9 {pid}             # 强制结束进程，9/SIGKILL 是强制不可捕获结束信号
-kill -KILL {pid}          # 强制执行进程，kill -9 的另外一种写法
+kill {pid}/{%jid}         # 结束进程
+kill -9 {pid}/{%jid}      # 强制结束进程，9/SIGKILL 是强制不可捕获结束信号
+kill -KILL {pid}/{%jid}   # 强制执行进程，kill -9 的另外一种写法
 kill -l                   # 查看所有信号
 kill -l TERM              # 查看 TERM 信号的编号
 killall {procname}        # 按名称结束所有进程
@@ -201,17 +201,17 @@ top -u {user}             # 查看某用户最活跃的进程
 
 any_command &             # 在后台运行某命令，也可用 CTRL+Z 将当前进程挂到后台
 jobs                      # 查看所有后台进程（jobs）
-bg                        # 查看后台进程，并切换过去
+bg                        # 运行后台进程
 fg                        # 切换后台进程到前台
 fg {job}                  # 切换特定后台进程到前台
+
+nohup {command}           # 长期运行某程序，在你退出登陆都保持它运行
+nohup {command} &         # 在后台长期运行某程序
+disown {PID|JID}          # 将进程从后台任务列表（jobs）移除，类似nohup
 
 trap cmd sig1 sig2        # 在脚本中设置信号处理命令
 trap "" sig1 sig2         # 在脚本中屏蔽某信号
 trap - sig1 sig2          # 恢复默认信号处理行为
-
-nohup {command}           # 长期运行某程序，在你退出登陆都保持它运行
-nohup {command} &         # 在后台长期运行某程序
-disown {PID|JID}          # 将进程从后台任务列表（jobs）移除
 
 wait                      # 等待所有后台进程任务结束
 ```
@@ -223,10 +223,10 @@ wait                      # 等待所有后台进程任务结束
 
 ssh user@host             # 以用户 user 登陆到远程主机 host
 ssh -p {port} user@host   # 指定端口登陆主机
-ssh-copy-id user@host     # 拷贝你的 ssh key 到远程主机，避免重复输入密码
+ssh-copy-id user@host     # 拷贝 ssh key 到远程主机，避免重复输入密码
 scp {fn} user@host:path   # 拷贝文件到远程主机
 scp user@host:path dest   # 从远程主机拷贝文件回来
-scp -P {port} ...         # 指定端口远程拷贝文件
+scp -P {port} ...         # 指定端口（与ssh相同）远程拷贝文件
 
 uname -a                  # 查看内核版本等信息
 man {help}                # 查看帮助

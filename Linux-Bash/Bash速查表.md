@@ -188,15 +188,17 @@ ps xjf -u {user}          # 列出某用户的进程树
 pstree                    # 树形列出所有进程，pstree 默认一般不带，需安装
 pstree {user}             # 进程树列出某用户的进程
 pstree -u                 # 树形列出所有进程以及所属用户
-pgrep {procname}          # 搜索名字匹配的进程的 pid，比如 pgrep apache2
+
+pgrep {procname}          # 搜索名字匹配的进程的 pid，比如 pgrep setup.sh
+pgrep -l/a {procname}     # -l 显示pid、名字； -a 显示pid及完整命令 -c 数量
 
 kill {pid}/{%jid}         # 结束进程
 kill -9 {pid}/{%jid}      # 强制结束进程，9/SIGKILL 是强制不可捕获结束信号
 kill -KILL {pid}/{%jid}   # 强制执行进程，kill -9 的另外一种写法
 kill -l                   # 查看所有信号
 kill -l TERM              # 查看 TERM 信号的编号
-killall {procname}        # 按名称结束所有进程
-pkill {procname}          # 按名称结束进程，除名称外还可以有其他参数
+killall {procname}        # 按（完整）名称结束所有进程
+pkill {procname}          # 按（部分）名称结束进程，除名称外还可以有其他参数
 
 top                       # 查看最活跃的进程
 top -u {user}             # 查看某用户最活跃的进程
@@ -225,34 +227,45 @@ wait                      # 等待所有后台进程任务结束
 
 ssh user@host             # 以用户 user 登陆到远程主机 host
 ssh -p {port} user@host   # 指定端口登陆主机
+ssh-keygen -t rsa -b 128  # 生成秘钥，-t 秘钥类型 -b 秘钥长度
 ssh-copy-id user@host     # 拷贝 ssh key 到远程主机，避免重复输入密码
+# 等价于将客户端$HOME/.ssh/id_rsa.pub >> 服务器$HOME/.ssh/authorized_keys
 scp {fn} user@host:path   # 拷贝文件到远程主机
 scp user@host:path dest   # 从远程主机拷贝文件回来
+scp -rq ...               # -r 递归复制整个目录， -q 不显示进度、警告等信息
 scp -P {port} ...         # 指定端口（与ssh相同）远程拷贝文件
 
-uname -a                  # 查看内核版本等信息
+
 man {help}                # 查看帮助
 man -k {keyword}          # 查看哪些帮助文档里包含了该关键字
 info {help}               # 查看 info pages，比 man 更强的帮助系统
-uptime                    # 查看系统启动时间
+
+uname -a                  # 查看内核版本等信息
+uname                     # 显示系统版本号
+hostname                  # 显示主机名称
+
 date                      # 显示日期
 cal                       # 显示日历
+uptime                    # 查看系统启动时间
+
 vmstat                    # 显示内存和 CPU 使用情况
 vmstat 10                 # 每 10 秒打印一行内存和 CPU情况，CTRL+C 退出
 free                      # 显示内存和交换区使用情况
 df                        # 显示磁盘使用情况
 du                        # 显示当前目录占用，du . --max-depth=2 可以指定深度
-uname                     # 显示系统版本号
-hostname                  # 显示主机名称
+
 showkey -a                # 查看终端发送的按键编码
 
 ping {host}               # ping 远程主机并显示结果，CTRL+C 退出
-ping -c N {host}          # ping 远程主机 N 次
-traceroute {host}         # 侦测路由连通情况
-mtr {host}                # 高级版本 traceroute
+ping -c N -i T {host}     # 每隔T秒ping 远程主机 N 次
+traceroute -nI {host}     # 侦测路由连通情况,-n 不映射hostname，-I 发送ICMP
+traceroute -m 255 {host} 5# -m 修改最大跳数（默认30） {host}后面跟发送字节数 
+mtr {host}                # 可实时观测路由连接情况
+
 host {domain}             # DNS 查询，{domain} 前面可加 -a 查看详细信息
 whois {domain}            # 取得域名 whois 信息
 dig {domain}              # 取得域名 dns 信息
+
 route -n                  # 查看路由表
 netstat -a                # 列出所有端口
 netstat -an               # 查看所有连接信息，不解析域名

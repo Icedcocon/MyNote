@@ -115,9 +115,9 @@ Default options are read from the following files in the given order:/etc/my.cnf
 
 | 文件名字                | 作用                                     |
 | ------------------- | -------------------------------------- |
-| /etc/my.cnf         | 全局配置                                   |
-| /etc/mysql/my.cnf   | 全局配置                                   |
-| SYSCONFDIR/my.cnf   | 全局配置                                   |
+| /etc/my.cnf         | 全局配置（CentOS）                           |
+| /etc/mysql/my.cnf   | 全局配置（Ubuntu）                           |
+| SYSCONFDIR/my.cnf   | 全局配置（无）                                |
 | $MYSQL_HOME/my.cnf  | Server-specific 服务器特定的选项 (仅适用于服务端)     |
 | defaults-extra-file | 如果有的话指定该文件`--defaults-extra-file=文件名字` |
 | ~/.my.cnf           | Server-specific 服务器特定的选项               |

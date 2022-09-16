@@ -104,7 +104,7 @@ ssh root@${ip} "dpkg -i $AIS_1001_BASE_PATH/deb/ntp/*.deb"
 # 改为
 ssh root@${ip} "apt-get clean"
 ssh root@${ip} "cp $AIS_1001_BASE_PATH/deb/ntp/*.deb /var/cache/apt/archives/"
-ssh root@${ip} "apt-get install -y ntp"
+ssh root@${ip} "apt-get install -y ntp="
 ssh root@${ip} "apt-get clean"
 ```
 
@@ -460,7 +460,118 @@ sed -ri 's/rpm -hiv \.\/rpm\/expect.*/dpkg -i \.\.\/\.\.\/deb\/expect\/\*\.deb/'
 
 # 7 MariaDB
 
-### 7.1 下载deb包并修改脚本
+### 7.1 下载deb包
+
+- 下载mariadb-server
+
+```bash
+deb-get mariadb-server=1:10.3.34-0ubuntu0.20.04.1
+```
+
+- MariaDB不能使用dpkg安装，会产生依赖问题，需要使用apt-get安装
+
+```bash
+sed -ri '/yum install.*/d' 3rd/mariadb/install/setup.sh
+sed -ri '/1\/8 install mariadb/a \
+apt-get clean \
+cp ../deb/mariadb/*.deb /var/cache/apt/archives/ \
+apt-get -y install mariadb-server=1:10.3.34-0ubuntu0.20.04.1 \
+apt-get clean' 3rd/mariadb/install/setup.sh
+
+sed -ri 's/rpm -hiv.*/dpkg -i \.\.\/deb\/expect\/\*\.deb/' 3rd/mariadb/install/setup.sh
+```
+
+### 7.2 部署脚本修改
+
+- MariaDB的配置文件位置在CentOS中为`/etc/my.cnf`；而在Ubuntu中为`/etc/mysql/my.cnf`
+
+```bash
+sed -ri 's/!includedir.*/!includedir \/etc\/mysql\/conf\.d\/\
+!includedir \/etc\/mysql\/mariadb\.conf\.d\//' 3rd/mariadb/install/mariadb-5.5.64-offline/my.cnf
+
+sed -ri 's/etc\/my\.cnf/etc\/mysql\/my\.cnf/' 3rd/mariadb/install/setup.sh
+sed -ri 's/.*mysql-clients.*/#&/' 3rd/mariadb/install/setup.sh
+sed -ri 's/.*client.cnf.*/#&/' 3rd/mariadb/install/setup.sh
+```
+
+# 8 LDAP
+
+### 8.1 下载安装包
+
+- 需要expect、openldap、phpldapadmin三个安装包
+
+```bash
+mkdir -p 3rd/openldap/deb/openldap
+cp -r deb/expect 3rd/openldap/deb
+cd 3rd/openldap/deb/openldap && deb-get slapd ldap-utils phpldapadmin
+```
+
+- 修改部署脚本的firewalld、selinux以及安装包目录
+
+```bash
+sed -ri 's/systemctl stop firewalld/systemctl stop ufw\.service/' 3rd/openldap/install/setup.sh
+sed -ri 's/systemctl disable firewalld/systemctl disable ufw\.service/' 3rd/openldap/install/setup.sh
+sed -ri 's/echo "2\/11 close selinux"/echo "2\/11 shutdown apparmor"/' 3rd/openldap/install/setup.sh
+sed -ri '/sed -i s\/SELINUX=enforcing/d' 3rd/openldap/install/setup.sh
+sed -ri '/setenforce 0/d' 3rd/openldap/install/setup.sh
+sed -ri 's/getenforce/systemctl stop apparmor.service/' 3rd/openldap/install/setup.sh
+
+sed -ri 's/yum install -y.*/dpkg -i \.\.\/deb\/openldap\/\*\.deb/' 3rd/openldap/install/setup.sh
+sed -ri 's/rpm -hiv.*/dpkg -i \.\.\/deb\/expect\/\*\.deb/' 3rd/openldap/install/setup.sh
+```
+
+### 8.2 Apache2配置文件路径修改
+
+- CentOS下的主要配置文件
+  
+  - `/etc/httpd.conf` 主配置文件
+
+- Ubuntu下主要配置文件
+  
+  - `/etc/apache2/apache2.conf`
+  
+  - `/etc/apache2/envvars` 需要的环境变量
+
+```bash
+# /etc/apache2/apache2.conf添加内容
+Listen HTTP_PORT
+ServerName LDAP_IP:HTTP_PORT
+
+# 替换
+<Directory />
+        Options FollowSymLinks
+        AllowOverride None
+        Require all denied
+</Directory>
+# 为
+<Directory />
+     Options Indexes FollowSymLinks
+     AllowOverride None
+     Order deny,allow
+     Allow from all
+</Directory>
+
+
+```
+
+### 8.3 slapd实现静默安装
+
+- 在ubuntu下安装slapd需要在安装过程中输入Administrator password等信息，且输入过程并非命令行而是存在界面，expect无法处理dpkg的操作。
+
+- 使用debconf
+  
+  - 安装slapd，并手动设置期望密码
+  
+  - 执行`debconf-show slapd`查看预配置项
+  
+  - 在脚本中添加
+  
+  ```bash
+  cat <<-EOF | debconf-set-selections
+  slapd slapd/password1 password admin
+  slapd slapd/password2 password admin
+  EOF
+  ```
 
 ### 安装包记录
 
@@ -473,8 +584,11 @@ sed -ri 's/rpm -hiv \.\/rpm\/expect.*/dpkg -i \.\.\/\.\.\/deb\/expect\/\*\.deb/'
 ./shell/ais-install.sh
 ./3rd/hadoop/setup.sh
 ./3rd/harbor/setup.sh
-./3rd/mariadb/rpm/expect/*
-./3rd/mariadb/rpm/mariadb/*
+./3rd/mariadb/deb/*
+./3rd/mariadb/install/mariadb-5.5.64-offline/my.cnf
+./3rd/mariadb/install/setup.sh
+./3rd/openldap/deb/*
+./3rd/openldap/install/setup.sh
 ```
 
 ### 问题记录

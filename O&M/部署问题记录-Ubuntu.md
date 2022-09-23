@@ -496,7 +496,72 @@ sed -ri 's/.*client.cnf.*/#&/' 3rd/mariadb/install/setup.sh
 
 # 8 LDAP
 
-### 8.1 下载安装包
+### 8.0 slapd实现静默安装
+
+- 在ubuntu下安装slapd需要在安装过程中输入Administrator password等信息，且输入过程并非命令行而是存在界面；（expect可能无法处理dpkg的操作。）
+
+- 使用debconf
+  
+  - 安装slapd，并dpkg-reconfigure手动设置期望密码
+  
+  - 执行`debconf-show slapd`查看预配置项
+  
+  - 在脚本中添加
+
+- 使用debconf-set-selections命令后，.ldif文件不再被需要，因此在setup.sh中删除
+
+```bash
+########################## 设置预配置项 ##########################
+# CN_NAME=admin
+# ADMIN_PASSWD=admin
+# LDAP_DOT_DOMAIN=ldap.inspur.com
+# LDAP_DOMAIN=dc=ldap,dc=inspur,dc=com
+# 添加cn的变量
+sed -ri '/ADMIN_USERNAME=`echo/a CN_NAME=`echo ${ADMIN_USERNAME#*=}`\
+CN_NAME=`echo ${CN_NAME%%,*}`\
+sed -ri s/AdminPasswd/$ADMIN_PASSWD/g debconf.conf\
+sed -ri s/LdapDotDomain/$LDAP_DOT_DOMAIN/g debconf.conf\
+sed -ri s/LdapDomain/$LDAP_DOMAIN/g debconf.conf\
+' 3rd/openldap/install/setup.sh
+# 
+cat > 3rd/openldap/install/debconf.conf <<-EOF
+slapd slapd/password1 password AdminPasswd
+slapd slapd/password2 password AdminPasswd
+slapd slapd/no_configuration select false
+slapd slapd/domain password LdapDotDomain
+slapd slapd/move_old_database select true
+slapd shared/organization password LdapDomain
+slapd slapd/purge_database select true
+EOF
+# 将配置替换为config/ais.cfg中的值
+sed -ri '/#3/a cat < debconf.conf | debconf-set-selections' 3rd/openldap/install/setup.sh
+# 注释执行.ldif的代码
+sed -ri 's/.*ldapadd.*/#&/g' 3rd/openldap/install/setup.sh
+sed -ri 's/.*ldapmodify.*/#&/g' 3rd/openldap/install/setup.sh
+########################## 查看预配置项 ##########################  
+#$ debconf-show slapd
+#  slapd/internal/generated_adminpw: (password omitted)
+#* slapd/password1: (password omitted)
+#  slapd/internal/adminpw: (password omitted)
+#* slapd/password2: (password omitted)
+#* slapd/no_configuration: false
+#* slapd/domain: ldap.inspur.com
+#  slapd/password_mismatch:
+#  slapd/upgrade_slapcat_failure:
+#* slapd/move_old_database: true
+#  slapd/dump_database: when needed
+#* shared/organization: dc=ldap,dc=inspur,dc=com
+#  slapd/unsafe_selfwrite_acl:
+#* slapd/purge_database: true
+#  slapd/ppolicy_schema_needs_update: abort installation
+#  slapd/invalid_config: true
+#  slapd/dump_database_destdir: /var/backups/slapd-VERSION
+
+# expect 通配符 转义
+#######################################################
+```
+
+### 8.1 下载安装包并修改setup.sh安装命令
 
 - 需要expect、openldap、phpldapadmin三个安装包
 
@@ -520,58 +585,317 @@ sed -ri 's/yum install -y.*/dpkg -i \.\.\/deb\/openldap\/\*\.deb/' 3rd/openldap/
 sed -ri 's/rpm -hiv.*/dpkg -i \.\.\/deb\/expect\/\*\.deb/' 3rd/openldap/install/setup.sh
 ```
 
-### 8.2 Apache2配置文件路径修改
+### 8.2 Apache2、phpldapadmin、ldap配置文件修改
 
-- CentOS下的主要配置文件
+- CentOS下的主要配置文件（需要关注的）
   
-  - `/etc/httpd.conf` 主配置文件
+  - apache2配置文件
+    - `/etc/httpd.conf` 主配置文件
+    - `/etc/httpd/conf/httpd.conf` 主配置文件另一个位置？
+  - phpldapadmin配置文件
+    - `/etc/httpd/conf.d/phpldapadmin.conf` phpldapadmin配置文件
+    - `/etc/phpldapadmin/config.php` phpldapadmin配置文件
+  - ldap 配置文件
+    - `/etc/openldap/ldap.conf`
+    - rootpwd.ldif
+    - domain.ldif
+    - basedomain.ldif
+  - 数据库文件
+    - `/var/lib/ldap/DB_CONFIG` 不确定
 
-- Ubuntu下主要配置文件
+- Ubuntu下主要配置文件（需要关注的）
   
-  - `/etc/apache2/apache2.conf`
+  - apache2配置文件
+    
+    - `/etc/apache2/apache2.conf`
+    
+    - `/etc/apache2/envvars` 需要的环境变量
   
-  - `/etc/apache2/envvars` 需要的环境变量
+  - phpldapadmin配置文件
+    
+    - `/etc/apache2/conf-enabled/phpldapadmin.conf` phpldapadmin配置文件
+    
+    - `/etc/phpldapadmin/config.php` phpldapadmin配置文件
+  
+  - ldap 配置文件
+    
+    - `/etc/ldap/ldap.conf`
+  
+  - 数据库文件
+    
+    - 无
+
+- 修改setup.sh中的路径名及配置
 
 ```bash
-# /etc/apache2/apache2.conf添加内容
-Listen HTTP_PORT
-ServerName LDAP_IP:HTTP_PORT
+# 修改apache2配置文件名及路径
+sed -ri 's/cp httpd.*/cp apache2\.conf \/etc\/apache2\/apache2\.conf/' 3rd/openldap/install/setup.sh
+sed -ri 's/httpd\/conf\/httpd\.conf/apache2\/apache2\.conf/g' 3rd/openldap/install/setup.sh
 
-# 替换
-<Directory />
-        Options FollowSymLinks
-        AllowOverride None
-        Require all denied
-</Directory>
-# 为
-<Directory />
-     Options Indexes FollowSymLinks
-     AllowOverride None
-     Order deny,allow
-     Allow from all
-</Directory>
+# phpldapadmin配置文件保持默认
+#sed -ri '/config phpldapadmin/a sed -ri "/<IfModule mod_alias\.c>/a  Alias /ldapadmin /usr/share/phpldapadmin/htdocs" /etc/apache2/conf-enabled/phpldapadmin.conf' 3rd/openldap/install/setup.sh
+sed -ri '/cp phpldapadmin\.conf.*/d' 3rd/openldap/install/setup.sh
+sed -ri '/cat \/etc\/httpd\/conf\.d\/phpldapadmin\.conf/d' 3rd/openldap/install/setup.sh
 
+# ubuntu不需要数据库文件进行配置，采用dpkg-reconfigure或者debconf
+sed -ri 's/.*DB_CONFIG.*/#&/g'  3rd/openldap/install/setup.sh
 
+# ldap.conf（以及rootpwd.ldif、domain.ldif、basedomain.ldif）配置文件路径修改
+sed -ri 's/\/etc\/openldap/\/etc\/ldap/'  3rd/openldap/install/setup.sh
 ```
 
-### 8.3 slapd实现静默安装
+- 将httpd.conf替换为以下apache2.conf
 
-- 在ubuntu下安装slapd需要在安装过程中输入Administrator password等信息，且输入过程并非命令行而是存在界面，expect无法处理dpkg的操作。
+```bash
+##################### /etc/apache2/apache2.conf #####################
+cat > 3rd/openldap/install/apache2.conf <<-EOF
+#ServerRoot "/etc/apache2"
+############## 添加内容 #############
+Listen HTTP_PORT                
+ServerName LDAP_IP:HTTP_PORT   
+###################################
+#Mutex file:\${APACHE_LOCK_DIR} default
+DefaultRuntimeDir \${APACHE_RUN_DIR}
+PidFile \${APACHE_PID_FILE}
+Timeout 300
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 5
+# These need to be set in /etc/apache2/envvars
+User \${APACHE_RUN_USER}
+Group \${APACHE_RUN_GROUP}
+HostnameLookups Off
+ErrorLog \${APACHE_LOG_DIR}/error.log
+LogLevel warn
+IncludeOptional mods-enabled/*.load
+IncludeOptional mods-enabled/*.conf
+Include ports.conf
 
-- 使用debconf
-  
-  - 安装slapd，并手动设置期望密码
-  
-  - 执行`debconf-show slapd`查看预配置项
-  
-  - 在脚本中添加
-  
-  ```bash
-  cat <<-EOF | debconf-set-selections
-  slapd slapd/password1 password admin
-  slapd slapd/password2 password admin
-  EOF
-  ```
+#</Directory>
+############### 修改内容 ###############
+<Directory />
+     Options Indexes FollowSymLinks    
+     AllowOverride None
+     Order deny,allow                         
+     Allow from all                    
+</Directory>
+######################################
+<Directory /usr/share>
+        AllowOverride None
+        Require all granted
+</Directory>
+<Directory /var/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+</Directory>
+AccessFileName .htaccess
+<FilesMatch "^\.ht">
+        Require all denied
+</FilesMatch>
+
+LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
+LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
+LogFormat "%h %l %u %t \"%r\" %>s %O" common
+LogFormat "%{Referer}i -> %U" referer
+LogFormat "%{User-agent}i" agent
+IncludeOptional conf-enabled/*.conf
+IncludeOptional sites-enabled/*.conf
+EOF
+```
+
+### 8.4 用户、用户组名称及服务名称修改修改
+
+- 在Centos中用户及用户组名称为ldap，在ubuntu中变为openldap
+- 在Centos中的httpd.service 变为 apache2.service
+
+```bash
+sed -ri 's/ldap:ldap/openldap:openldap/'  3rd/openldap/install/setup.sh
+sed -ri 's/ httpd/ apache2/g' 3rd/openldap/install/setup.sh
+```
+
+### 8.5 解决页面显示password_hash存在问题
+
+- 需要将`$servers->setValue('appearance','password_hash','');`注释掉
+
+```bash
+sed -ri 's/^\$servers.*password_hash.*/#&/' 3rd/openldap/install/config.php
+```
+
+- ubuntu默认配置与Centos配置对比
+
+```bash
+#################### ubuntu ##########################
+<?php
+$config->custom->commands['cmd'] = array(
+      'entry_internal_attributes_show' => true,
+      'entry_refresh' => true,
+      'oslinks' => true,
+      'switch_template' => true
+);
+$config->custom->commands['script'] = array(
+      'add_attr_form' => true,
+      'add_oclass_form' => true,
+      'add_value_form' => true,
+      'collapse' => true,
+      'compare' => true,
+      'compare_form' => true,
+      'copy' => true,
+      'copy_form' => true,
+      'create' => true,
+      'create_confirm' => true,
+      'delete' => true,
+      'delete_attr' => true,
+      'delete_form' => true,
+      'draw_tree_node' => true,
+      'expand' => true,
+      'export' => true,
+      'export_form' => true,
+      'import' => true,
+      'import_form' => true,
+      'login' => true,
+      'logout' => true,
+      'login_form' => true,
+      'mass_delete' => true,
+      'mass_edit' => true,
+      'mass_update' => true,
+      'modify_member_form' => true,
+      'monitor' => true,
+      'purge_cache' => true,
+      'query_engine' => true,
+      'rename' => true,
+      'rename_form' => true,
+      'rdelete' => true,
+      'refresh' => true,
+      'schema' => true,
+      'server_info' => true,
+      'show_cache' => true,
+      'template_engine' => true,
+      'update_confirm' => true,
+      'update' => true
+);
+$config->custom->appearance['friendly_attrs'] = array(
+      'facsimileTelephoneNumber' => 'Fax',
+      'gid'                      => 'Group',
+      'mail'                     => 'Email',
+      'telephoneNumber'          => 'Telephone',
+      'uid'                      => 'User Name',
+      'userPassword'             => 'Password'
+);
+$servers = new Datastore();
+$servers->newServer('ldap_pla');
+$servers->setValue('server','name','My LDAP Server');
+$servers->setValue('server','host','127.0.0.1');
+$servers->setValue('server','base',array('dc=example,dc=com'));
+$servers->setValue('login','auth_type','session');
+$servers->setValue('login','bind_id','cn=admin,dc=example,dc=com');
+?>
+
+
+####################### CentOS ###########################
+<?php
+$config->custom->session['blowfish'] = 'ae06e60c79b23490ae559baf66012ec6';  # Autogenerated for localhost.localdomain
+$config->custom->appearance['hide_template_warning'] = true;
+$config->custom->appearance['friendly_attrs'] = array(
+        'facsimileTelephoneNumber' => 'Fax',
+        'gid'                      => 'Group',
+        'mail'                     => 'Email',
+        'telephoneNumber'          => 'Telephone',
+        'uid'                      => 'User Name',
+        'userPassword'             => 'Password'
+);
+$servers = new Datastore();
+$servers->newServer('ldap_pla');
+$servers->setValue('server','name','Local LDAP Server');
+$servers->setValue('server','host','LDAP_IP');
+$servers->setValue('server','port',389);
+$servers->setValue('server','base',array('LDAP_DOMAIN'));
+$servers->setValue('login','auth_type','session');
+$servers->setValue('login','bind_id','ADMIN_USERNAME');
+$servers->setValue('login','bind_pass','ADMIN_PASSWD');
+$servers->setValue('appearance','password_hash','');
+$servers->setValue('login','attr','dn');
+?>
+```
+
+### 8.6 配置cert.sh
+
+- cert.sh与ldap认证有关，不执行并不影响主要功能
+
+```bash
+sed -ri 's/openldap/ldap/' 3rd/openldap/install/cert.sh
+sed -ri 's/.*rpm -hiv.*/dpkg -i \.\.\/deb\/expect\/\*\.deb/' 3rd/openldap/install/cert.sh
+sed -ri 's/ldap:ldap/openldap:openldap/' 3rd/openldap/install/cert.sh
+sed -ri 's/.*ldapadd.*/#&/g' 3rd/openldap/install/cert.sh
+sed -ri 's/.*ldapmodify.*/#&/g' 3rd/openldap/install/cert.sh
+
+mkdir -p /etc/pki/CA
+mkdir -p /etc/pki/CA/private
+mkdir -p /etc/pki/CA/newcerts
+mkdir -p /etc/openldap/certs
+sed -ri 's/\.\/demoCA/\/etc\/pki\/CA/g' /usr/lib/ssl/openssl.cnf
+```
+
+### 8.6 LDAP验证命令
+
+```bash
+ldapdelete -x -H ldap://172.16.72.129:389 -D "cn=admin,dc=ldap,dc=inspur,dc=com" -w admin "cn=12345678,cn=default,dc=ldap,dc=inspur,dc=com"
+ldapsearch -x -H ldap://172.16.72.129:389 -D "cn=admin,dc=ldap,dc=inspur,dc=com" -w admin cn=12345678
+ldapsearch -x -H ldap://172.16.72.129:389 -D "cn=admin,dc=example,dc=com" -w admin cn=12345678
+```
+
+# 9 iptables
+
+### 9.1 下载安装包并修改setup.sh安装命令
+
+- Centos为yum remove 应替换为apt-get purge
+
+- Ubuntu默认没有iptables配置文件，需通过iptables-save将规则dump下来，重定向输出到`/etc/network/iptables.up.rules`文件，改文件为iptables-apply指令默认指向文件，可以通过-w选项修改。
+
+- Ubuntu 没有重启iptables的命令，执行iptables-apply生效。
+
+- 默认Ubuntu iptables的规则会在重启服务器后清空，需要使用iptables-restore命令重新加载规则。因此可以在`/etc/network/interfaces`里写入以下指令，实现开机生效`pre-up iptables-restore < /etc/network/iptables.up.rules`
+
+```bash
+# 无需安装iptables
+sed -ri 's/.*yum.*/#&/g' 3rd/iptables/setup.sh
+
+# 修改配置文件路径
+sed -ri 's/sysconfig\/iptables/network\/iptables\.up\.rules/g' 3rd/iptables/setup.sh
+# iptables-save > /etc/network/iptables.up.rules
+sed -ri 's/systemctl status iptables/iptables -L/' 3rd/iptables/setup.sh
+
+# 修改路径名
+sed -ri 's/sysconfig\/iptables/network\/iptables\.up\.rules/g' 3rd/iptables/config_port_filter.sh
+# 
+sed -ri 's/.*systemctl restart iptables\.service/TMP_SCRIPT=tmp.sh\
+echo  "\#! \/usr\/bin\/expect">\$TMP_SCRIPT\
+echo  "spawn iptables-apply">>\$TMP_SCRIPT\
+echo  "expect \"\*establish NEW connections\*\"">>$TMP_SCRIPT\
+echo  \"send y\\r\">>\$TMP_SCRIPT\
+echo  "interact">>\$TMP_SCRIPT\
+chmod +x \$TMP_SCRIPT\
+\/usr\/bin\/expect \$TMP_SCRIPT\
+rm -rf \$TMP_SCRIPT/g'  3rd/iptables/config_port_filter.sh
+
+sed -ri 's/.*systemctl enable iptables\.service/cat > \/etc\/network\/interfaces <<-EOF\
+pre-up iptables-restore < \/etc\/network\/iptables\.up\.rules  #启动自动调用已存储的iptables\
+post-down iptables-save > \/etc\/network\/iptables\.up\.rules  #关机时，把当前iptables 储存\
+EOF/g'  3rd/iptables/config_port_filter.sh
+```
+
+# 10 Haproxy和KeepAlive
+
+### 10.1 更换安装包
+
+- 只需要下载安装包及修改安装指令即可
+
+```bash
+sed -ri 's/yum install -y/dpkg -i/' shell/ais-high-available.sh
+sed -ri 's/rpm\/keepalived.*/deb\/keepalived\/\*\.deb/' shell/ais-high-available.sh
+sed -ri 's/rpm -hiv/dpkg -i/' shell/ais-high-available.sh
+sed -ri 's/rpm\/haproxy.*/deb\/haproxy\/\*\.deb/' shell/ais-high-available.sh
+```
 
 ### 安装包记录
 
@@ -582,13 +906,14 @@ ServerName LDAP_IP:HTTP_PORT
 # ./3rd/bind-dns/setup.sh
 ./3rd/bind-dns/*
 ./shell/ais-install.sh
-./3rd/hadoop/setup.sh
+./3rd/hadoop/setup.shnh
 ./3rd/harbor/setup.sh
 ./3rd/mariadb/deb/*
 ./3rd/mariadb/install/mariadb-5.5.64-offline/my.cnf
 ./3rd/mariadb/install/setup.sh
 ./3rd/openldap/deb/*
 ./3rd/openldap/install/setup.sh
+./3rd/openldap/install/apache2.conf
 ```
 
 ### 问题记录

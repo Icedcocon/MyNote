@@ -258,16 +258,22 @@ showkey -a                # 查看终端发送的按键编码
 
 ping {host}               # ping 远程主机并显示结果，CTRL+C 退出
 ping -c N -i T {host}     # 每隔T秒ping 远程主机 N 次
+
 traceroute -nI {host}     # 侦测路由连通情况,-n 不映射hostname，-I 发送ICMP
 traceroute -m 255 {host} 5# -m 修改最大跳数（默认30） {host}后面跟发送字节数 
 mtr {host}                # 可实时观测路由连接情况
 
-host {domain}             # DNS 查询，{domain} 前面可加 -a 查看详细信息
-whois {domain}            # 取得域名 whois 信息
+host -a FQDN [server IP]  # DNS 查询,-a 查看详细信息, server指定DNS服务器
+host -l {domain} 127.0.0.1# -l 若domain设置允许allow-transfer，列出管理主机
+nslookup FQDN [server IP] # DNS 查询，只输入nslookup将进入查询功能
 dig {domain}              # 取得域名 dns 信息
+dig -t soa {domain}       # 获取域名的SOA信息
+dig -x IP                 # 查询反解信息
+whois {domain}            # 取得域名 whois 信息（注册domain的用户信息）
 
-route -n                  # 查看路由表
-netstat -a                # 列出所有端口
+route -n                  # 查看路由表(同下)
+netstat -rn               # -r 查看路由表 -n 不使用主机名与服务名，使用IP与port
+netstat -a                # 列出所有连接状态，包括tcp/udp/socket
 netstat -an               # 查看所有连接信息，不解析域名
 netstat -anp              # 查看所有连接信息，包含进程信息（需要 sudo）
 netstat -l                # 查看所有监听的端口
@@ -275,7 +281,6 @@ netstat -t                # 查看所有 TCP 链接
 netstat -lntu             # 显示所有正在监听的 TCP 和 UDP 信息
 netstat -lntup            # 显示所有正在监听的 socket 及进程信息
 netstat -i                # 显示网卡信息
-netstat -rn               # 显示当前系统路由表，同 route -n
 ss -an                    # 比 netstat -an 更快速更详细
 ss -s                     # 统计 TCP 的 established, wait 等
 
@@ -293,12 +298,14 @@ rz                        # 接收终端发送过来的文件
 ##############################################################################
 
 varname=value             # 定义变量
+export VARNAME=value      # 设置环境变量（将会影响到子进程）
 varname=value command     # 定义子进程变量并执行子进程
+
 echo $varname             # 查看变量内容
 echo $$                   # 查看当前 shell 的进程号
 echo $!                   # 查看最近调用的后台任务进程号
 echo $?                   # 查看最近一条命令的返回码
-export VARNAME=value      # 设置环境变量（将会影响到子进程）
+
 
 array[0]=valA             # 定义
 array[1]=valB
@@ -335,6 +342,9 @@ ${variable/pattern/str}   # 将变量中第一个匹配 pattern 的替换成 str
 ${variable//pattern/str}  # 将变量中所有匹配 pattern 的地方替换成 str 并返回
 
 ${#varname}               # 返回字符串长度
+expr length "$string"     # 同上，如果字符串中存在空格，必须加双引号
+expr index $str $sub      # 获取子串在字符串中的索引
+expr match $str sub       # 获取子串长度
 
 *(patternlist)            # 零次或者多次匹配
 +(patternlist)            # 一次或者多次匹配
@@ -349,29 +359,33 @@ text=$(IFS=/; echo "${array[*]}")  # 用斜杠链接数组并赋值给变量
 
 A=( foo bar "a  b c" 42 ) # 数组定义
 B=("${A[@]:1:2}")         # 数组切片：B=( bar "a  b c" )
+B=$(expr substr $str $pos $len)# 同上
 C=("${A[@]:1}")           # 数组切片：C=( bar "a  b c" 42 )
 echo "${B[@]}"            # bar a  b c
 echo "${B[1]}"            # a  b c
 echo "${C[@]}"            # bar a  b c 42
 echo "${C[@]: -2:2}"      # a  b c 42  减号前的空格是必须的
+echo "${C[@]:(-2):2}"     # a  b c 42  加括号后可以省略空格，括号内可正可负
 
 echo {0..10}              # 集合
 echo {0..100..5}          # 切片
 
 $(UNIX command)           # 运行命令，并将标准输出内容捕获并返回
 varname=$(id -u user)     # 将用户名为 user 的 uid 赋值给 varname 变量
+if ((1==2));then;fi       # C风格条件判断
 
 num=$(expr 1 + 2)         # 兼容 posix sh 的计算，使用 expr 命令计算结果
 num=$(expr $num + 1)      # 数字自增
 expr 2 \* \( 2 + 3 \)     # 兼容 posix sh 的复杂计算，输出 10
 
 num=$((1 + 2))            # 计算 1+2 赋值给 num，使用 bash 独有的 $((..)) 计算
+num=$[1+2]                # 同上
 num=$(($num + 1))         # 变量递增
 num=$((num + 1))          # 变量递增，双括号内的 $ 可以省略
 num=$((1 + (2 + 3) * 2))  # 复杂计算
 
 echo "scale=2;1/2" | bc   # 小数运算1,scale保留2位小数
-awk "BEGIN{1/2}"          # 小数运算2
+awk "BEGIN{1/2}"          # 小数运算2.
 ```
 
 ```bash

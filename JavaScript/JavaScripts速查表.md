@@ -1,87 +1,54 @@
 JavaScript速查表
 ===
 
-- 本手册绝大部分内容是从Airbnb JavaScript Style Guide精简整理，将开发者们都明确的操作去掉，目的为了就是更快的速查。
-  此处为[源地址](https://github.com/airbnb/javascript)。
-
-- 译制：[HaleNing](https://github.com/HaleNing)
-
-## 目录
-
-- [基础知识](#基础知识)
-  - [类型](#类型)
-  - [引用](#引用)
-  - [对象](#对象)
-  - [数组](#数组)
-  - [解构](#解构)
-  - [字符串](#字符串)
-  - [变量](#变量)
-  - [属性](#属性)
-  - [测试](#测试)
-- [公共约束](#公共约束)
-  - [注释](#注释)
-  - [分号](#分号)
-  - [命名规范](#命名规范)
-  - [标准库](#标准库)
-- [类与函数](#类与函数)
-  - [函数](#函数)
-  - [箭头函数](#箭头函数)
-  - [类与构造函数](#类与构造函数)
-  - [模块](#模块)
-  - [迭代器与生成器](#迭代器与生成器)
-  - [提升](#提升)
-  - [比较运算符与相等](#比较运算符与相等)
-  - [事件](#事件)
-  - [类型转换与强制转换](#类型转换与强制转换)
-- [推荐资源](#推荐资源)
-
-## 基础知识
-
-### 类型
-
-- 基本类型
-  **最新的 ECMAScript 标准定义了 8 种数据类型,分别是**
-  
-  - `string`
-  
-  - `number`
-  
-  - `bigint`
-  
-  - `boolean`
-  
-  - `null`
-  
-  - `undefined`
-  
-  - `symbol` (ECMAScript 2016新增)
-    
-    > 所有基本类型的值都是不可改变的。但需要注意的是，基本类型本身和一个赋值为基本类型的变量的区别。变量会被赋予一个新值，而原值不能像数组、对象以及函数那样被改变。
-
-- 引用类型
-  
-  - `Object`（包含普通对象-Object，数组对象-Array，正则对象-RegExp，日期对象-Date，数学函数-Math，函数对象-Function）
-
 ```javascript
-使用 typeof 运算符检查：
+// #############################################################
+// 类型
+// #############################################################
 
-undefined：typeof instance === "undefined"
-Boolean：typeof instance === "boolean"
-Number：typeof instance === "number"
-String：typeof instance === "string
-BigInt：typeof instance === "bigint"
-Symbol ：typeof instance === "symbol"
-null：typeof instance === "object"。
-Object：typeof instance === "object"
+// 基本类型:
+//（1）基本类型的值都是不可改变的；
+//（2）“基本类型本身”与“赋值为基本类型的变量”不同，变量可以被赋予一个新值
+(1) 'string'
+(2) 'number'
+(3) 'bigint'
+(4) 'boolean'
+(5) 'null'
+(6) 'undefined'
+(7) 'symbol'     //(ECMAScript 2016新增)
+
+// 引用类型
+(8) 'Object'
+// 包含
+// （1）普通对象-Object
+// （2）数组对象-Array
+// （3）正则对象-RegExp
+// （4）日期对象-Date
+// （5）数学函数-Math
+// （6）函数对象-Function
+
+//使用 typeof 运算符检查：
+'undefined'：typeof instance === "undefined"
+'Boolean'：  typeof instance === "boolean"
+'Number'：   typeof instance === "number"
+'String'：   typeof instance === "string"
+'BigInt'：   typeof instance === "bigint"
+'Symbol'：   typeof instance === "symbol"
+'null'：     typeof instance === "object"
+'Object'：   typeof instance === "object"
 ```
 
-### 引用
-
-推荐常量赋值都使用`const`, 值可能会发生改变的变量赋值都使用 `let`。
-
-> 为什么？`let`   `const` 都是块级作用域，而 `var`是函数级作用域
-
 ```javascript
+// #############################################################
+// 引用（赋值）
+// #############################################################
+
+// （1）基本类型赋[值]，引用类型赋[引用]；
+// （2）基本类型比较[值]是否相等，引用类型比较[引用是否指向相同对象]；
+// （3）函数中对形参操作不会影响实参，但在函数内对引用类型操作会影响；
+// （4）建议常量赋值用 const , 值易变的变量赋值用 let ，两者都是块级作用域
+// （5）var是函数级作用域
+
 // bad
 var count = 1;
 if (true) {
@@ -98,66 +65,63 @@ if (true) {
 
 ### 对象
 
-- 使用字面语法创建对象：
-  
-  ```javascript
-  // bad
-  const item = new Object();
-  
-  // good
-  const item = {};
-  ```
+```javascript
+// #############################################################
+// 对象
+// #############################################################
 
-- 在创建具有动态属性名称的对象时使用属性名称:
-  
-  ```javascript
-  function getKey(k) {
-    return `a key named ${k}`;
-  }
-  
-  // bad
-  const obj = {
-    id: 5,
-    name: 'San Francisco',
-  };
-  obj[getKey('enabled')] = true;
-  
-  // good
-  const obj = {
-    id: 5,
-    name: 'San Francisco',
-    [getKey('enabled')]: true,
-  };
-  ```
+// 对象的定义推荐使用字面量
+// （1）字面量（推荐）
+const item = {name:"MyName",fun:function(a,b){return a+b;}};
+// （2）构造函数+new （不推荐）
+const fun = function(){
+    this.name="MyName";
+    this.fun=function(a,b){return a+b;}
+}
+const item = new fun();
+// （3）Object.create()方法构建已存在对象的新实例
 
-- 属性值简写，并且推荐将缩写 写在前面 :
-  
-  ```javascript
-  const lukeSkywalker = 'Luke Skywalker';
-  //常量名就是你想设置的属性名
-  // bad
-  const obj = {
-    lukeSkywalker: lukeSkywalker,
-  };
-  
-  // good
-  const obj = {
-    lukeSkywalker,
-  };
-  
-  const anakinSkywalker = 'Anakin Skywalker';
-  const lukeSkywalker = 'Luke Skywalker';
-  
-  // good
-  const obj = {
-    lukeSkywalker,
-    anakinSkywalker,
-    episodeOne: 1,
-    twoJediWalkIntoACantina: 2,
-    episodeThree: 3,
-    mayTheFourth: 4,
-  };
-  ```
+// （4）调用可以返回对象的函数（如函数闭包）
+const item = (function (){
+    var val = 0;
+    return {
+        name:"MyName",
+        fun:function(a){return a+val;}
+    };
+}());
+
+// 在创建具有动态属性名称的对象时使用属性名称
+function getKey(k) {
+  return `a key named ${k}`;
+}
+
+// bad
+const obj = {
+  id: 5,
+  name: 'San Francisco',
+};
+obj[getKey('enabled')] = true;
+
+// good
+const obj = {
+  id: 5,
+  name: 'San Francisco',
+  [getKey('enabled')]: true,
+};
+
+// 属性值简写，并且推荐将缩写 写在前面
+const lukeSkywalker = 'Luke Skywalker';
+
+// bad
+const obj = {
+  lukeSkywalker: lukeSkywalker,
+};
+
+// good
+const obj = {
+  lukeSkywalker,
+};
+```
 
 - 不要直接调用 `Object.prototype`上的方法，如 `hasOwnProperty`、`propertyIsEnumerable`、`isPrototypeOf`
   

@@ -642,6 +642,9 @@ sed -ri 's/.*DB_CONFIG.*/#&/g'  3rd/openldap/install/setup.sh
 
 # ldap.conf（以及rootpwd.ldif、domain.ldif、basedomain.ldif）配置文件路径修改
 sed -ri 's/\/etc\/openldap/\/etc\/ldap/'  3rd/openldap/install/setup.sh
+sed -ri 's/\/etc\/openldap/\/etc\/ldap/'  ais.sh.ha
+sed -ri 's/\/etc\/openldap/\/etc\/ldap/'  ais.sh.single
+sed -ri 's/\/etc\/openldap/\/etc\/ldap/'  ais.sh
 ```
 
 - 将httpd.conf替换为以下apache2.conf
@@ -821,19 +824,22 @@ $servers->setValue('login','attr','dn');
 ### 8.6 配置cert.sh
 
 - cert.sh与ldap认证有关，不执行并不影响主要功能
+- slapd位于/etc/defalut/目录下，而非/etc/sysconfig/，在slapd中配置了`SLAPD_URLS`，而在/etc/defalut/slapd中存在类似选项`SLAPD_SERVICES`这里保持默认会导致636端口不能启动，因此将该步骤改为向/etc/defalut/slapd的SLAPD_SERVICES选项后添加 ldaps:///。
 
 ```bash
 sed -ri 's/openldap/ldap/' 3rd/openldap/install/cert.sh
 sed -ri 's/.*rpm -hiv.*/dpkg -i \.\.\/deb\/expect\/\*\.deb/' 3rd/openldap/install/cert.sh
 sed -ri 's/ldap:ldap/openldap:openldap/' 3rd/openldap/install/cert.sh
-sed -ri 's/.*ldapadd.*/#&/g' 3rd/openldap/install/cert.sh
-sed -ri 's/.*ldapmodify.*/#&/g' 3rd/openldap/install/cert.sh
+#sed -ri 's/.*ldapadd.*/#&/g' 3rd/openldap/install/cert.sh
+#sed -ri 's/.*ldapmodify.*/#&/g' 3rd/openldap/install/cert.sh
 
-mkdir -p /etc/pki/CA
-mkdir -p /etc/pki/CA/private
-mkdir -p /etc/pki/CA/newcerts
-mkdir -p /etc/openldap/certs
+sed -ri '/^TLS_REQCERT_VALUE/a mkdir -p /etc/pki/CA\
+mkdir -p /etc/pki/CA/private\
+mkdir -p /etc/pki/CA/newcerts\
+mkdir -p /etc/ldap/certs' 3rd/openldap/install/cert.sh
 sed -ri 's/\.\/demoCA/\/etc\/pki\/CA/g' /usr/lib/ssl/openssl.cnf
+# 不复制slapd，但修改/etc/defalut/slapd
+sed -ri 's/.*sysconfig.*/sed -ri "s#ldap:\/\/\/ ldapi:\/\/\/\\\"#ldap:\/\/\/ ldapi:\/\/\/\ ldaps:\/\/\/\\\"#" \/etc\/default\/slapd/' 3rd/openldap/install/cert.sh
 ```
 
 ### 8.6 LDAP验证命令
@@ -846,7 +852,7 @@ ldapsearch -x -H ldap://172.16.72.129:389 -D "cn=admin,dc=example,dc=com" -w adm
 
 # 9 iptables
 
-### 9.1 下载安装包并修改setup.sh安装命令
+### 9.1 修改setup.sh安装命令
 
 - Centos为yum remove 应替换为apt-get purge
 
@@ -877,12 +883,14 @@ echo  "interact">>\$TMP_SCRIPT\
 chmod +x \$TMP_SCRIPT\
 \/usr\/bin\/expect \$TMP_SCRIPT\
 rm -rf \$TMP_SCRIPT/g'  3rd/iptables/config_port_filter.sh
-
+# 开机自启 & 关机保存
 sed -ri 's/.*systemctl enable iptables\.service/cat > \/etc\/network\/interfaces <<-EOF\
 pre-up iptables-restore < \/etc\/network\/iptables\.up\.rules  #启动自动调用已存储的iptables\
 post-down iptables-save > \/etc\/network\/iptables\.up\.rules  #关机时，把当前iptables 储存\
 EOF/g'  3rd/iptables/config_port_filter.sh
 ```
+
+#### 9.2 iptables关闭
 
 # 10 Haproxy和KeepAlive
 
@@ -897,6 +905,17 @@ sed -ri 's/rpm -hiv/dpkg -i/' shell/ais-high-available.sh
 sed -ri 's/rpm\/haproxy.*/deb\/haproxy\/\*\.deb/' shell/ais-high-available.sh
 ```
 
+# 11 Nvidia-driver GCC
+
+### 11.1 替换gcc路径中的安装包
+
+- gcc中存在
+
+```bash
+sed -ri 's/yum localinstall -y.*/dpkg -i gcc\/\*\.deb/' 3rd/nvidia-driver/install-gpu-driver.sh
+sed -ri 's/yum localinstall -y.*/dpkg -i gcc\/\*\.deb/' 3rd/nvidia-driver/install-gpu-driver-mimimize.sh
+```
+
 ### 安装包记录
 
 ```bash
@@ -906,7 +925,7 @@ sed -ri 's/rpm\/haproxy.*/deb\/haproxy\/\*\.deb/' shell/ais-high-available.sh
 # ./3rd/bind-dns/setup.sh
 ./3rd/bind-dns/*
 ./shell/ais-install.sh
-./3rd/hadoop/setup.shnh
+./3rd/hadoop/setup.sh
 ./3rd/harbor/setup.sh
 ./3rd/mariadb/deb/*
 ./3rd/mariadb/install/mariadb-5.5.64-offline/my.cnf
@@ -914,6 +933,7 @@ sed -ri 's/rpm\/haproxy.*/deb\/haproxy\/\*\.deb/' shell/ais-high-available.sh
 ./3rd/openldap/deb/*
 ./3rd/openldap/install/setup.sh
 ./3rd/openldap/install/apache2.conf
+./3rd/nvidia-driver/gcc/*
 ```
 
 ### 问题记录

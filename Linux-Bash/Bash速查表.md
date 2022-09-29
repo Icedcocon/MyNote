@@ -273,23 +273,28 @@ whois {domain}            # 取得域名 whois 信息（注册domain的用户信
 
 route -n                  # 查看路由表(同下)
 netstat -rn               # -r 查看路由表 -n 不使用主机名与服务名，使用IP与port
-netstat -a                # 列出所有连接状态，包括tcp/udp/socket
-netstat -an               # 查看所有连接信息，不解析域名
-netstat -anp              # 查看所有连接信息，包含进程信息（需要 sudo）
-netstat -l                # 查看所有监听的端口
-netstat -t                # 查看所有 TCP 链接
-netstat -lntu             # 显示所有正在监听的 TCP 和 UDP 信息
-netstat -lntup            # 显示所有正在监听的 socket 及进程信息
-netstat -i                # 显示网卡信息
+netstat -a                # -a 列出所有连接状态，包括tcp/udp/socket
+netstat -anp              # 查看所有连接信息，-p 包含进程信息（需要 sudo）
+netstat -l                # -l 查看监听的端口 默认查看ESTABLISH端口 -a查看所有
+netstat -tuwx             # 查看 -t TCP链接、-u UDP链接、-w RAW、-x UNIX
+netstat -ntul             # 显示所有正在监听的 TCP 和 UDP 信息
+netstat -4                # 只显示IPv4信息
+netstat -i                # 显示网卡信息（不同）
+netstat -I=docker0        # 显示指定网卡信息（不同）
 ss -an                    # 比 netstat -an 更快速更详细
-ss -s                     # 统计 TCP 的 established, wait 等
+ss -ta                    # 只查看TCP sockets
+ss -ua                    # 只查看UDP sockets
+ss -wa                    # 只查看RAW sockets
+ss -xa                    # 只查看UNIX sockets
+ss -s                     # 统计 TCP 的 established, wait 等（不同）
+ss -e                     # 显示socket的细节信息
 
-wget {url}                # 下载文件，可加 --no-check-certificate 忽略 ssl 验证
-wget -qO- {url}           # 下载文件并输出到标准输出（不保存）
-curl -sL {url}            # 同 wget -qO- {url} 没有 wget 的时候使用
+wget {url}                # 下载文件，--no-check-certificate 忽略ssl 验证
+wget -qO- {url}           # -q 静默不显示进度 -O-输出到标准输出（不保存）
+curl -sL {url}            # 同 wget -qO- {url} -L 允许重定向 -s 静默
 
-sz {file}                 # 发送文件到终端，zmodem 协议
-rz                        # 接收终端发送过来的文件
+sz {file}                 # 本地Windows发送文件到终端，zmodem 协议
+rz                        # 本地Windows接收终端发送过来的文件
 ```
 
 ```bash
@@ -302,10 +307,14 @@ export VARNAME=value      # 设置环境变量（将会影响到子进程）
 varname=value command     # 定义子进程变量并执行子进程
 
 echo $varname             # 查看变量内容
+echo $0                   # 查看脚本名
+echo $1 $2 $3 ... {10}    # 查看脚本位置变量
+echo $*                   # 查看所有参数
+echo $@                   # 查看所有参数
+echo $3                   # 查看参数个数
 echo $$                   # 查看当前 shell 的进程号
 echo $!                   # 查看最近调用的后台任务进程号
 echo $?                   # 查看最近一条命令的返回码
-
 
 array[0]=valA             # 定义
 array[1]=valB

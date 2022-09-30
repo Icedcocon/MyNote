@@ -943,3 +943,7 @@ sed -ri 's/yum localinstall -y.*/dpkg -i gcc\/\*\.deb/' 3rd/nvidia-driver/instal
 - ntpdate在ubuntu中需要单独安装，检查下RedHat是否存在问题
 
 - hadoop的activating现象出现在各类系统中，RedHat也需要执行stop-all.sh
+
+```bash
+sed -ri 's/yum install.*/dpkg -i \*\.deb/' 3rd/ipmitool/install_ipmitool.sh
+```

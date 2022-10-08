@@ -308,10 +308,10 @@ varname=value command     # 定义子进程变量并执行子进程
 
 echo $varname             # 查看变量内容
 echo $0                   # 查看脚本名
-echo $1 $2 $3 ... {10}    # 查看脚本位置变量
+echo $1 $2 $3 ... ${10}    # 查看脚本位置变量
 echo $*                   # 查看所有参数
 echo $@                   # 查看所有参数
-echo $3                   # 查看参数个数
+echo $#                   # 查看参数个数
 echo $$                   # 查看当前 shell 的进程号
 echo $!                   # 查看最近调用的后台任务进程号
 echo $?                   # 查看最近一条命令的返回码
@@ -342,6 +342,7 @@ ${varname:=word}          # 如果变量不为空则返回变量，否则赋值�
 ${varname:?message}       # 如果变量不为空则返回变量，否则打印错误信息并退出
 ${varname:+word}          # 如果变量不为空则返回 word，否则返回 null
 ${varname:offset:len}     # 取得字符串的子字符串
+${varname: -5}            # 偏移为负需要空一个或使用括号包裹，ken可以省略
 
 ${variable#pattern}       # 如果变量头部匹配 pattern，则删除最小匹配部分返回剩下的
 ${variable##pattern}      # 如果变量头部匹配 pattern，则删除最大匹配部分返回剩下的
@@ -397,7 +398,7 @@ let num=num+2             # (4)第四种计算方式
 let num++                 # 自增
 
 echo "scale=2;1/2" | bc   # 小数运算1,scale保留2位小数
-awk "BEGIN{1/2}"          # 小数运算2.
+awk "BEGIN{print 1/2}"          # 小数运算2.
 
 #总结
 ()                        # 子shell中执行
@@ -435,7 +436,7 @@ $[]                       # 整数运算
 ##############################################################################
 
 # 定义一个新函数
-function myfunc() {
+function myfunc() {    # 方法1
     # $1 代表第一个参数，$N 代表第 N 个参数
     # $# 代表参数个数
     # $0 代表被调用者自身的名字
@@ -443,12 +444,24 @@ function myfunc() {
     # $* 空格链接起来的所有参数，类型是字符串
     {shell commands ...}
 }
+myfunc() {            # 方法2
+    {shell commands ...}
+}
+function myfunc{      # 方法3
+    {shell commands ...}
+}
 
-myfunc                    # 调用函数 myfunc 
+# 函数调用
+res=`myfunc`              # 调用函数 myfunc 并将结果赋值给res
 myfunc arg1 arg2 arg3     # 带参数的函数调用
 myfunc "$@"               # 将所有参数传递给函数
 myfunc "${array[@]}"      # 将一个数组当作多个参数传递给函数
 shift                     # 参数左移
+
+# 函数返回值及局部变量
+return                    # 只能返回0-255;可以通过$?获取
+echo                      # 可以返回字符串和列表
+{.. local varname=val ..} # 在函数内部定义局部变量;默认为全局变量
 
 unset -f myfunc           # 删除函数
 declare -f                # 列出函数定义
@@ -557,7 +570,6 @@ fi
 
 # 同样可以用 && 命令连接符来做和上面完全等价的事情
 [ \( $x -gt 10 \) -a \( $x -lt 20 \) ] && echo "yes, between 10 and 20"
-
 
 # 判断程序存在的话就执行
 [ -x /bin/ls ] && /bin/ls -l

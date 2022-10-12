@@ -477,13 +477,13 @@ statement1 || statement2  # or 操作符
 
 exp1 -a exp2              # exp1 和 exp2 同时为真时返回真（POSIX XSI扩展）
 exp1 -o exp2              # exp1 和 exp2 有一个为真就返回真（POSIX XSI扩展）
-( expression )            # 如果 expression 为真时返回真，输入注意括号前反斜杆
+\( expression \)          # 如果 expression 为真时返回真，输入注意括号前反斜杆
 ! expression              # 如果 expression 为假那返回真
 
 str1 = str2               # 判断字符串相等，如 [ "$x" = "$y" ] && echo yes
 str1 != str2              # 判断字符串不等，如 [ "$x" != "$y" ] && echo yes
-str1 < str2               # 字符串小于，如 [ "$x" \< "$y" ] && echo yes
-str2 > str2               # 字符串大于，注意 < 或 > 是字面量，输入时要加反斜杆
+str1 \< str2              # 字符串小于，如 [ "$x" \< "$y" ] && echo yes
+str2 \> str2              # 字符串大于，注意 < 或 > 是字面量，输入时要加反斜杆
 -n str1                   # 判断字符串不为空（长度大于零）
 -z str1                   # 判断字符串为空（长度等于零）
 
@@ -644,6 +644,9 @@ done
 
 command ls                         # 忽略 alias 直接执行程序或者内建命令 ls
 builtin cd                         # 忽略 alias 直接运行内建的 cd 命令
+\cp                                # 忽略 alias 直接执行程序
+
+type cmd                           # 区分内建命令和程序
 enable                             # 列出所有 bash 内置命令，或禁止某命令
 help {builtin_command}             # 查看内置命令的帮助（仅限 bash 内置命令）
 
@@ -660,16 +663,19 @@ cmd1 | cmd2                        # 管道，cmd1 的标准输出接到 cmd2 �
 > file                             # 将命令的标准输出重定向到文件，会覆盖文件
 >> file                            # 将命令的标准输出重定向到文件，追加不覆盖
 >| file                            # 强制输出到文件，即便设置过：set -o noclobber
-n>| file                           # 强制将文件描述符 n的输出重定向到文件
 <> file                            # 同时使用该文件作为标准输入和标准输出
+
+n>| file                           # 强制将文件描述符 n的输出重定向到文件
 n<> file                           # 同时使用文件作为文件描述符 n 的输出和输入
 n> file                            # 重定向文件描述符 n 的输出到文件
 n< file                            # 重定向文件描述符 n 的输入为文件内容
+
 n>&                                # 将标准输出 dup/合并 到文件描述符 n
 n<&                                # 将标准输入 dump/合并 定向为描述符 n
 n>&m                               # 文件描述符 n 被作为描述符 m 的副本，输出用
 n<&m                               # 文件描述符 n 被作为描述符 m 的副本，输入用
 &>file                             # 将标准输出和标准错误重定向到文件
+
 <&-                                # 关闭标准输入
 >&-                                # 关闭标准输出
 n>&-                               # 关闭作为输出的文件描述符 n
@@ -681,11 +687,11 @@ diff <(cmd1) <(cmd2)               # 比较两个命令的输出
 ##############################################################################
 # 文本处理 - cut
 ##############################################################################
-
-cut -c 1-16                        # 截取每行头16个字符
+cut -b                             # -b 以字节为分隔符
+cut -c 1-16                        # 截取每行头16个字符 -c 以字符为分隔符
 cut -c 1-16 file                   # 截取指定文件中每行头 16个字符
 cut -c3-                           # 截取每行从第三个字符开始到行末的内容
-cut -d':' -f5                      # 截取用冒号分隔的第五列内容
+cut -d':' -f5                      # 截取冒号分隔第五列内容 -d 指定分隔符(\t)
 cut -d';' -f2,10                   # 截取用分号分隔的第二和第十列内容
 cut -d' ' -f3-7                    # 截取空格分隔的三到七列
 echo "hello" | cut -c1-3           # 显示 hel
@@ -1054,4 +1060,20 @@ https://yq.aliyun.com/articles/68541
 
 #! /bin/bash        
 #! /bin/python
+```
+
+```bash
+率
+uptime
+top
+mpstat
+
+iostat
+netpmon
+ps
+vmstat
+sar
+topas
+truss
+svmon
 ```

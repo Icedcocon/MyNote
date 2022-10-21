@@ -106,7 +106,7 @@ where id = 2;
 -- 单表查询
 -- #############################################################
 
--- 基础条件查询
+-- 1.基础条件查询
 -- (0) 条件查询     select 字段1,字段2,字段3.... from 表名 where 条件;
 -- (1) = 等于
 select `name`,`sex` from t_student where `id`=2; 
@@ -133,7 +133,7 @@ select `name`,`sex` from t_student where `id` like '_';
 select distinct name from t_student; -- distinct只能出现在**所有字段的最前方
 select distinct name,sex from t_student; -- 两个字段联合起来去重
 
--- 排序
+-- 2.排序
 -- (1) asc默认升序**`select 字段 from 表名 order by 字段;`(ascend)
 -- (2) desc指定降序**`select 字段 from 表名 order by 字段 desc;`(descend)
 -- (3) 多个条件时，只有前面的条件都相等，才会启用后面的排序条件
@@ -141,13 +141,197 @@ select `name` from t_student order by `age`;
 select `name` from t_student order by `age` desc;
 select `name` from t_student order by `age` desc, `name` asc; -- 前等后排
 
--- 分页
+-- 3.分页
 -- (1) limit 分页查询             limit [startIndex], length;
 -- (2) 每页pageSize条，第pageNo页：limit (pageNo - 1) * pageSize , pageSize
 select name,sex from t_student order by id desc limit 5; -- 取id降序前5
 select name,sex from t_student order by id desc limit 3,2; -- 取id 4-5
 
--- Union
--- (1) 
--- (2) union all 则将所有的结果全部显示出来，即便重复
+-- 4.Union
+-- (1) union     将两条 select 语句结果合并显示，（select语句字段数量必须相同）
+-- (2) union all 将所有的结果全部显示出来，即便重复（字段顺序以首个select语句为准）
+```
+
+```sql
+-- #############################################################
+-- 函数
+-- #############################################################
+
+-- 单行处理函数(一个输入对应一个输出)
+-- (1) lower/upper 转换小写/大写
+select lower(name) as name from t_student;
+-- (2)substr( 被截取的字符串, 起始下标, 截取的长度); 取子串 
+select substr(name, 1, 1) as name from emp;
+select name from t_student where name like 'A%'; -- 名字首字母为A的学生
+select name from t_student where substr(ename,1,1) = 'A'; -- 同上
+-- (3) concat 字符串拼接
+select concat(name,'--',age) as 'name&age' from t_student;
+-- (4) length 返回字符串长度
+select length(name) namelength from t_student;
+-- (5) trim 去空格
+select trim(name),trim(age) from t_student where id='3';
+-- (6) str_to_date 将字符串转换成日期
+select STR_TO_DATE('2017-01-06 10:20:30','%H:%i:%s') AS result1;
+select STR_TO_DATE('2017-01-06 10:20:30','%Y-%m-%d') AS result2;
+-- (7) date_format 以不同格式显示时间数据
+date_format(NOW(),'%b %d %Y %h:%i %p')
+date_format(NOW(),'%m-%d-%Y')
+-- | %Y  | 年，4 位 |
+-- | %y  | 年，2 位 |
+-- | %M  | 月名  |
+-- | %m  | 月，数值(00-12) |
+-- | %b  | 缩写月名 |
+-- | %D  | 带有英文前缀的月中的天 |
+-- | %d  | 月的天，数值(00-31) |
+-- | %e  | 月的天，数值(0-31) |
+-- | %H  | 小时 (00-23) |
+-- | %h  | 小时 (01-12) |
+-- | %I  | 小时 (01-12) |
+-- | %k  | 小时 (0-23) |
+-- | %l  | 小时 (1-12) |
+-- | %i  | 分钟，数值(00-59) |
+-- | %S  | 秒(00-59) |
+-- | %s  | 秒(00-59) |
+-- | %p  | AM 或 PM |
+-- | %r  | 时间，12-小时（hh:mm:ss AM 或 PM） |
+-- | %T  | 时间, 24-小时 (hh:mm:ss) |
+-- (8) format(N,D,locale); 设置千分位(N 被格式化数字, D 小数位数, locale 分隔符)
+select format(14500.2018, 2); -- 保留两位小数
+select concat('￥',format(100*3, 0)); -- 不保留小数
+-- (9) round 保留小数
+select round(1236.567, 1) as result from t_student; -- 保留1个小数
+select round(1236.567, 2) as result from t_student; -- 保留2个小数
+select round(1236.567, -1) as result from t_student; -- 保留到十位。
+-- (10) rand 生成随机数
+select round(rand()*100,0) from t_student; -- 100以内的随机数
+-- (11) ifnull(表达式1,表达式2); 可以将 null 转换成一个具体值
+-- 表达式1不为NULL，则函数返回表达式1; 否则返回表达式2的结果。
+select name,IFNULL(email,'guest@163.com') email from t_student;
+-- (12) datediff(startdate,date2) 返回startdate和enddate间的间隔的天数
+SELECT datediff('2008-11-30','2008-11-29') AS DiffDate
+SELECT datediff('2008-11-29','2008-11-30') AS DiffDate
+
+-- 分组函数(输入多行，单行输出)
+-- (1) count 计数
+select count(name) from t_student;
+-- (2) sum 求和
+select sum(age) from t_student;
+-- (3) avg 平均值
+select avg(age) from t_student;
+-- (4) max 最大值
+select max(age) from t_student;
+-- (5) min 最小值
+select min(age) from t_student;
+-- (1) 先分组，默认一张表为一组
+-- (2) 分组函数自动忽略NULL
+-- (3) count(字段)：该字段不为NULL的元素数;count(*)：统计表中总行数。
+-- (4) 分组函数不能直接用于where子句中
+```
+
+```sql
+-- #############################################################
+-- 分组查询
+-- #############################################################
+
+-- (1) 分组查询：group by 存在时，select后面只能跟：参加分组的字段、分组函数
+select job,sum(sal) from emp group by job; -- 各部门最高薪资
+-- (2) 联合分组：多个字段作为1个字段
+select dep,job,max(sal) from emp group by dep,job; -- 各部门，不同岗最高薪资
+-- (3) having ①必须和group by联合使用;②对分组后的数据进行筛选;③优先用where
+select dep,avg(sal) from emp group by dep having avg(sal) > 2500;
+-- (4) 关键字书写顺序
+-- select --> from --> where --> group by --> having --> order by
+-- (5) 关键字执行顺序
+-- 1. 从某张表中查询数据。               （from）
+-- 2. 先经过where条件筛选出有价值的数据。  （where）
+-- 3. 对这些有价值的数据进行分组。        （group by）
+-- 4. 分组之后可以使用having继续筛选。    （having）
+-- 5. select查询出来。                 （select）
+-- 6. 最后排序输出。                    （order by）
+```
+
+```sql
+-- #############################################################
+-- 连表查询
+-- #############################################################
+
+-- (0) 笛卡尔积：无条件限制，查询条数为两张表条数之积
+select ename,dname from emp, dept;
+-- (1) 内连接-等值连接
+select e.ename,d.dname from emp e inner join dept d on e.deptno = d.deptno;
+-- (2) 内连接-非等值连接
+select e.ename, e.sal, s.grade -- 每个员工的薪资等级，要求显示员工名、薪资、薪资等级
+from emp e join salgrade s 
+on e.sal between s.losal and s.hisal; 
+-- (3) 内连接-自连接 
+select a.ename as '员工名', b.ename as '领导名'
+from emp a -- 查询员工的上级领导，要求显示员工名和对应的领导名
+join emp b
+on a.mgr = b.empno;
+-- (4) 外连接
+-- | inner join | 如果表中至少有一个匹配，就返回值      |
+-- | left join  | 会从左表中返回所有的值，即使右表中没有匹配 |
+-- | right join | 会从右表中返回所有的值，即使左表中没有匹配 |
+select e.ename,d.dname -- outer可省略。
+from emp e 
+right outer join dept d
+on e.deptno = d.deptno;
+
+select e.ename,d.dname 
+from dept d 
+left outer join emp e
+on e.deptno = d.deptno;
+-- (5) 多表连接
+-- 语法：
+    select     ...
+    from       a
+    join       b
+    on         a和b的连接条件
+    join       c
+    on         a和c的连接条件
+    right join d
+    on         a和d的连接条件
+-- 找出每个员工的部门名称以及工资等级，要求显示员工名、部门名、薪资、薪资等级？
+select e.ename,e.sal,d.dname,s.grade
+from emp e
+join dept d
+on e.deptno = d.deptno
+join salgrade s 
+on e.sal between s.losal and s.hisal;
+-- 找出每个员工的部门名称以及工资等级，还有上级领导，要求显示员工名、领导名、部门名、薪资、薪资等级？
+select e.ename,e.sal,d.dname,s.grade,l.ename
+from emp e
+join dept d
+on e.deptno = d.deptno
+join salgrade s
+on e.sal between s.losal and s.hisal
+left join emp l
+on e.mgr = l.empno;
+```
+
+```sql
+-- #############################################################
+-- 子查询
+-- #############################################################
+
+-- 子查询可以出现在 select、from、where 后面
+select ename,sal from emp where sal > (select min(sal) from emp);
+-- 找出每个岗位的平均工资的薪资等级。
+select t.*, s.grade -- 将子查询的查询结果当做一张临时表
+from (select job,avg(sal) as avgsal from emp group by job) t 
+join salgrade s
+on t.avgsal between s.losal and s.hisal;
+```
+
+```sql
+-- #############################################################
+-- 约束
+-- #############################################################
+
+-- (0) 约束类型
+-- 非空约束：not null
+-- 唯一性约束: unique
+-- 主键约束: primary key
+-- 外键约束：foreign key
+-- 检查约束：check（mysql不支持，oracle支持）
 ```

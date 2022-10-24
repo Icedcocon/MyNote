@@ -147,10 +147,45 @@ EOF
 ### 5. 初始化master节点
 
 ```bash
+# --apiserver-advertise-address  master节点IP
+# --image-repository             镜像源
+# --kubernetes-version           kubernetes版本
+# --pod-network-cidr             pod IP 范围
+# --service-cidr                 service IP范围
 kubeadm init \
 --apiserver-advertise-address=192.168.64.128 \
 --image-repository registry.aliyuncs.com/google_containers \
---kubernetes-version=v1.25.2 \
+--kubernetes-version=v1.23.12 \
 --pod-network-cidr=10.244.0.0/16 \
 --service-cidr=10.96.0.0/12 
+
+# 非root用户可执行以下指令完成初始化
+mkdir -p $HOME/.kube
+cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+### 6.Node节点加入集群
+
+```bash
+# node节点完成前4步后，执行以下指令加入集群
+kubeadm join 192.168.64.128:6443 --token dr9ivl.ahezszf9y4vl214o\
+--discovery-token-ca-cert-hash \
+sha256:2d0885b23aa34ba262d437d1928ea832fa90126652ae98e877fc83b34f3bcf98
+# 若在初始化完主节点时没有记录此命令，可在master节点执行以下命令获取
+kubeadm token create --print-join-command
+```
+
+### 7. 安装网络插件
+
+```bash
+# 安装完成后的kubernetes各个节点为NotReady状态，安装网络插件后转为Ready
+# 下载并导入flanneld
+curl -sL https://github.com/flannel-io/flannel/releases/download/\
+v0.20.0/flanneld-v0.20.0-amd64.docker > flanneld-v0.20.0-amd64.docker
+docker load < flanneld-v0.20.0-amd64.docker
+# 下载并执行yaml脚本（要修改spec.template.spec.containers.image为下载好的tag）
+curl -sL https://raw.githubusercontent.com/coreos/flannel/master/\
+Documentation/kube-flannel.yml > kube-flannel.yml
+kubectl apply -f kube-flannel.yml
 ```

@@ -91,11 +91,12 @@ from glob import glob
 <bool> = path.exists(<path>)        # 或: <Path>.exists()
 <bool> = path.isfile(<path>)        # 或: <DirEntry/Path>.is_file()
 <bool> = path.isdir(<path>)         # 或: <DirEntry/Path>.is_dir()
+                                    # follow_symlinks=false 链接为false
 <stat> = os.stat(<path>)            # 或: <DirEntry/Path>.stat()
 <real> = <stat>.st_mtime/st_size/...# 修改时间, 大小(bytes), …
 # 与listdir()不同，scandir()返回DirEntry对象
 # DirEntry对象缓存isfile、isdir和Windows上的stat信息，提高性能。
-<iter> = scandir(path='.')          # 返回指定path的DirEntry objects对象
+<iter> = scandir(path='.')          # 返回指定path的DirEntry对象
 <str>  = <DirEntry>.path            # 返回完整路径
 <str>  = <DirEntry>.name            # 返回文件名
 <file> = open(<DirEntry>)           # 打开并返回文件对象.

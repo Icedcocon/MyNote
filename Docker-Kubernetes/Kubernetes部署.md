@@ -1,5 +1,49 @@
 # CentOS7.7平台Kubernetes部署指南
 
+### 0.Vagrantfile
+
+```ruby
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+host_list = [
+  {
+    :name => "master",
+    :ip => "192.168.64.128"
+  },
+  {
+    :name => "node1",
+    :ip => "192.168.64.129"
+  },
+  {
+    :name => "node2",
+    :ip => "192.168.64.130"
+  }
+]
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos7"
+  host_list.each do |item|
+    config.vm.define item[:name] do |node|
+      # 硬件配置
+      node.vm.provider "virtualbox" do |vb|
+        vb.memory = "2048"
+        vb.cpus = 2
+      end
+      # 网络配置
+      node.vm.network "private_network", ip: item[:ip]
+      node.vm.hostname = item[:name]
+    end
+  end
+  # 预执行指令
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo sed -ri 's/#PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
+    sudo sed -ri 's/#PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+  SHELL
+end
+```
+
 ### 1.关闭firewall、selinux、swap
 
 ```bash
@@ -147,6 +191,10 @@ EOF
 ### 5. 初始化master节点
 
 ```bash
+# 执行kubeinit之前可以使用pull指令检验是否可以拉取镜像或采用list指令列出所需镜像
+kubeadm config images pull
+kubeadm config images list --config=init.default.yaml
+
 # --apiserver-advertise-address  master节点IP
 # --image-repository             镜像源
 # --kubernetes-version           kubernetes版本

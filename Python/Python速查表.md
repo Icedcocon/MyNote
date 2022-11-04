@@ -212,7 +212,7 @@ subprocess.run('bc', input='1 + 1\n', capture_output=True, text=True)
 from shlex import split
 os.popen('echo 1 + 1 > test.in')
 subprocess.run(split('bc -s'), stdin=open('test.in'), \
-stdout=open('test.out', 'w'))
+stdout=open('test.out', 'w'), check=True) # 设置check在出错后终止运行
 open('test.out').read()
 # (4) subprocess.Popen玩猜数字游戏
 process = subprocess.Popen(shlex.split('python3 guess.py'),\

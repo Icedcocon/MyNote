@@ -43,7 +43,9 @@ AIS_27_LDAP_IP=100.2.81.20
 
 - `/etc/named.rfc1912.zones`需要配置两个集群的域名，`/var/named/`路径下需要包含`ais.cluster20.zone`和`ais.cluster21.zone`两个文件
 
-- STEP5、7、11-13全部跳过
+- STEP6、7、11-13全部跳过
+
+- 
 
 # Nvidia-Docker升级
 
@@ -71,3 +73,9 @@ yum clean expire-cache
 yum install -y nvidia-docker2
 yum install -y 
 ```
+
+# showmount指令
+
+- 是nfs-common包的一部分
+
+- 

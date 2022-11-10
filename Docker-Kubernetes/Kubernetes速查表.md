@@ -244,13 +244,13 @@ spec:
 # (3) 未知：诊断失败，不会采取任何行动
 
 # 存活状态检测
-| spec.containers.livenessProbe                		  | Object
+| spec.containers.livenessProbe                       | Object
 # 存活探针
-| spec.containers.livenessProbe.exec           		  | Object
+| spec.containers.livenessProbe.exec                  | Object
 # 通过执行指令探测
-| spec.containers.livenessProbe.httpGet        		  | Object
+| spec.containers.livenessProbe.httpGet               | Object
 # 通过执行HTTP GET请求探测
-| spec.containers.livenessProbe.tcpSocket      		  | Object
+| spec.containers.livenessProbe.tcpSocket             | Object
 # TCPSocket指定涉及TCP端口的操作
 | spec.containers.livenessProbe.initialDelaySeconds   | Object
 # 设置多少秒后开始探测
@@ -276,22 +276,22 @@ spec:
           value: <string> -required-
         scheme: <string> 
       tcpSocket: <Object> 
-        port: <string> 	-required- # 容器暴露的端口
-        host: <string> 			   # 默认pod的IP
+        port: <string>     -required- # 容器暴露的端口
+        host: <string>                # 默认pod的IP
       initialDelaySeconds: <integer> 
       failureThreshold: <integer> 
       successThreshold: <integer> 
       timeoutSeconds: <integer> 
       periodSeconds: <integer> 
-      
+
 # 就绪状态检测
-| spec.containers.readinessProbe                	  | Object
+| spec.containers.readinessProbe                      | Object
 # # 就绪探针
-| spec.containers.readinessProbe.exec           	  | Object
+| spec.containers.readinessProbe.exec                 | Object
 # 通过执行指令探测
-| spec.containers.readinessProbe.httpGet        	  | Object
+| spec.containers.readinessProbe.httpGet              | Object
 # 通过执行HTTP GET请求探测
-| spec.containers.readinessProbe.tcpSocket      	  | Object
+| spec.containers.readinessProbe.tcpSocket            | Object
 # TCPSocket指定涉及TCP端口的操作
 | spec.containers.readinessProbe.initialDelaySeconds  | Object
 # 设置多少秒后开始探测
@@ -325,5 +325,193 @@ spec:
       timeoutSeconds: <integer>
       periodSeconds: <integer> 
 
+# kube-scheduler 对 pod 进行调度包含两步：
+# (1) predicate：将所有满足 Pod 调度需求的 Node 选出
+# (2) Priorities：根据启用的打分规则对可调度节点打分，选出最合适Node
+# predicate算法：
+# (1) PodFitsResources：节点上剩余的资源是否大于pod请求的资源
+# (2) PodFitsHost：如果pod指定了NodeName，坚持节点名称是否和NodeName匹配
+# (3) PodFitsHostPorts：节点上已经使用的port是否和pod申请的port冲突
+# (4) PodSelectorMatches：过滤掉和pod指定的label不匹配的节点
+# (5) NoDiskConflict：已经mount的volume和pod指定的volume不冲突，除非他们只是只读
+# priority优先级:由键值对组成，键是名称，值是权重
+# (1) LeastRequestedPriority：计算CPU和Memory的使用率，使用率越低权重越高
+# (2) BalancedResourceAllocation：CPU和Memory使用率接近，权重越高，与前者共用
+# (3) ImageLocalityPriority：倾向于已经有要使用镜像的节点，镜像越大，权重越高
 
+
+# 节点亲和性调度、
+# 规则说明
+# 同时指定nodeSelector和nodeAffinity，必须都满足，才能调度。
+# 指定多个与nodeAffinity类型关联的nodeSelectorTerms，只要一个满足就可以调度。
+# 指定多个与同一nodeSelectorTerms关联的matchExpressions，仅都满足时才能调度。
+pod.spec.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution
+# <Object> 硬限制，必须满足规则才能调度，IDE指Pod运行期间标签变更不影响运行
+pod.spec.nodeAffinity.rDSIDE.nodeSelectorTerms     | <[]Object> 
+# 定义规则
+pod.spec.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution
+# <[]Object> 软限制，调度器尝试调度Pod到Node，多个优先级规则可以设置权重
+pod.spec.nodeAffinity.pDSIDE.weight                | <integer> -required-
+# 值越高越先执行
+pod.spec.nodeAffinity.pDSIDE.preference            | <Object>  -required-
+# 定义规则
+spec:
+  affinity: <Object>
+    nodeAffinity: <Object>
+      requiredDuringSchedulingIgnoredDuringExecution: <Object>
+        nodeSelectorTerms: <[]Object> -required-
+        - matchExpressions: <[]Object>
+          - key: <string> -required-
+            operator: <string> -required- # 设置键值关系
+            values: <[]string>
+            - value1
+            - value2
+          matchFields: <[]Object> # 通过节点字段
+          - key: <string> -required-
+            operator: <string> -required- # 设置键值关系
+            values: <[]string>
+            - value1
+            - value2
+      preferredDuringSchedulingIgnoredDuringExecution: <[]Object>
+      - weight: <integer> -required-
+        preference: <Object> -required-
+          matchExpressions: <[]Object> # 通过节点标签
+          - key: <string> -required-
+            operator: <string> -required- # 设置键值关系
+            values: <[]string>
+            - value1
+            - value2
+          matchFields: <[]Object> # 通过节点字段
+          - key: <string> -required-
+            operator: <string> -required- # 设置键值关系
+            values: <[]string>
+            - value1
+            - value2
+
+
+# 键值运算关系
+# (1) In：            label 的值在某个列表中
+# (2) NotIn：         label 的值不在某个列表中
+# (3) Gt：            label 的值大于某个值
+# (4) Lt：            label 的值小于某个值
+# (5) Exists：        某个 label 存在
+# (6) DoesNotExist：  某个 label 不存在
+
+# Pod亲和性调度
+# (1) 基于已经运行在节点的Pod及其标签来约束新调度的Pod可以调度到的节点。
+# (2) 如果X上已运行一或多个满足规则Y的Pod，则新Pod应该/不应该运行在X上。
+#       X可以是节点、机架、拓扑域
+pod.spec.podAffinity.requiredDuringSchedulingIgnoredDuringExecution
+# <Object> 硬限制，必须满足规则才能调度，IDE指Pod运行期间标签变更不影响运行
+pod.spec.podAffinity.rDSIDE.namespaces      | <[]string> 
+# 指定labelSelector要匹配的命名空间列表 默认为Pod亲和性/反亲和性定义所在的命名空间
+pod.spec.podAffinity.rDSIDE.topologyKey     | <string> -required- 
+# 只有具备指定拓扑域的节点才能满足Pod的调度规则
+pod.spec.podAffinity.rDSIDE.labelSelector   | <string> -required- 
+# 选择要匹配的标签
+pod.spec.podAffinity.preferredDuringSchedulingIgnoredDuringExecution
+# <[]Object> 软限制，调度器尝试调度Pod到Node，多个优先级规则可以设置权重
+pod.spec.podAffinity.pDSIDE.weight                | <integer> -required-
+# 取值范围1-100，找到满足其他规则的节点后，调度器将节点满足的所有偏好weight求和。
+# 和与该节点其他优先级函数评分相加，调度器选择总分最高的Node作为最高优先级。
+pod.spec.podAffinity.pDSIDE.preference            | <Object>  -required-
+# 定义规则
+spec:
+  affinity: <Object>
+    podAffinity: <Object>
+      requiredDuringSchedulingIgnoredDuringExecution: <[]Object>
+        namespaces: <[]string>
+        topologyKey: <string> -required-
+        labelSelector: <Object>
+          matchLabels: <map[string]string>
+            key1: value1
+            key2: value2
+          matchExpressions:
+            key: <string> -required-
+            operator: <string> -required- # 设置键值关系
+            values: <[]string>
+            - value1
+            - value2
+      preferredDuringSchedulingIgnoredDuringExecution: <[]Object>
+      - weight: <integer> -required-
+        podAffinityTerm: <Object> -required-
+          namespaces: <[]string>
+          topologyKey: <string> -required-
+          labelSelector: <Object>
+            matchLabels: <map[string]string>
+              key1: value1
+              key2: value2
+            matchExpressions:
+              key: <string> -required-
+              operator: <string> -required- # 设置键值关系
+              values: <[]string>
+              - value1
+              - value2
+
+# Pod反亲和性调度
+spec:
+  affinity: <Object>
+    podAntiAffinity: <Object>
+      requiredDuringSchedulingIgnoredDuringExecution: <[]Object>
+        namespaces: <[]string>
+        topologyKey: <string> -required-
+        labelSelector: <Object>
+          matchLabels: <map[string]string>
+            key1: value1
+            key2: value2
+          matchExpressions:
+            key: <string> -required-
+            operator: <string> -required- # 设置键值关系
+            values: <[]string>
+            - value1
+            - value2
+      preferredDuringSchedulingIgnoredDuringExecution: <[]Object>
+      - weight: <integer> -required-
+        podAffinityTerm: <Object> -required-
+          namespaces: <[]string>
+          topologyKey: <string> -required-
+          labelSelector: <Object>
+            matchLabels: <map[string]string>
+              key1: value1
+              key2: value2
+            matchExpressions:
+              key: <string> -required-
+              operator: <string> -required- # 设置键值关系
+              values: <[]string>
+              - value1
+              - value2
+
+
+# topologyKey拓扑域
+# (1) topology指拓扑域，是一个范围如Node、机柜、地区等，本质是Node上的标签。
+# (2) topologyKey对应Node标签的Key（非Value）本质是用于筛选Node。
+# 使用k8s.io/hostname作为拓扑域的范围，则k8s.io/hostname对应的值不同就时不同拓扑域。
+#   Pod1在k8s.io/hostname=node1的Node上
+#   Pod2在k8s.io/hostname=node2的Node上
+#   Pod3在k8s.io/hostname=node1的Node上
+#   则Pod2和Pod1、3 不在同一个拓扑域，而Pod1和Pod3在同一个拓扑域。
+
+|     调度策略     |           操作符                    |         调度目标         |
+| --------------- | ---------------------------------- | -----------------------|
+| nodeAffinity    | In,NotIn,Exists,DoesNotExist,Gt,Lt | 指定主机                 |
+| podAffinity     | In,NotIn,Exists,DoesNotExist       | POD与指定POD同一拓扑域    |
+| podAnitAffinity | In,NotIn,Exists,DoesNotExist       | POD与指定POD不在同一拓扑域 |
+
+# (1) 容忍度（Tolerations）应用于Pod，允许Pod调度到带有与之匹配的污点的节点上。
+# (2) 污点和容忍度（Toleration）相互配合，可以用来避免 Pod 被分配到不合适的节点上
+# (3) 污点(Taint)Node上的污点排斥Pod，可以让Node拒绝Pod的调度执行，甚至将Pod驱逐
+# (4) 污点的组成：key=value:effect
+# (5) 污点包含key、value，value可以为空，effect 描述污点的作用。
+# (6) taint effect 支持如下三个选项：
+#     ①NoSchedule：不会将Pod调度到具有该污点的 Node 上
+#     ②PreferNoSchedule：避免将Pod调度到具有该污点的 Node 上
+#     ③NoExecute：不会将Pod调度到具有该污点的Node上，同时驱逐Node上已经存在的Pod
+
+spec:
+  tolerations: <[]Object>
+    effect: <string> # NoSchedule, PreferNoSchedule, NoExecute
+    key: <string>
+    value: <string>
+    operator: <string> # Exists, Equal
+    tolerationSeconds: <integer>
 ```

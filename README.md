@@ -59,3 +59,19 @@
   - 描述： yaml文件资源配置
   
   - 推荐阅读： 全部
+
+- Go程序设计
+  
+  - 网址： https://www.yuque.com/qyuhen/go
+  
+  - 描述： 简洁、例子多，适合做速记表
+  
+  - 推荐阅读：全部
+
+- Go语言圣经
+  
+  - 网址： https://gopl-zh.github.io/index.html
+  
+  - 描述： 最好的入门教程之一
+  
+  - 推荐阅读： 全部

@@ -66,6 +66,80 @@
 
 ```python
 #######################################################################
+# 2. Type
+#######################################################################
+# 2.1 Type
+# 一切皆对象
+# 对象有类型（type）
+# 类型就是类（class）
+# (1) 类型判断
+<type> = type(<el>)               # 或: <el>.__class__
+<bool> = isinstance(<el>, <type>) # 或: issubclass(type(<el>), <type>)
+type('a'), 'a'.__class__, str     # (<class 'str'>, <class 'str'>, ...)
+
+# (2) 部分类型没有内建名，需要被导入:
+from types import FunctionType, MethodType, LambdaType
+from types import GeneratorType, ModuleType
+
+# (3) 抽象基类
+# ①继承ABC的虚子类会被isinstance()和issubclass()函数识别为ABC的子类，却非如此
+# ②但利用这一特性，可以根据一个类实现哪些方法来判断该类是哪种ABC的子类
+# ③例如可迭代ABC需要iter()方法, 集合ABC需要iter(),contains()和len()方法
+from collections.abc import Iterable, Collection, Sequence
+isinstance([1, 2, 3], Iterable)         # True
+|                  | Iterable | Collection | Sequence |
+| ---------------- | -------- | ---------- | -------- |
+| list, range, str | check    | check      | check    |
+| dict, set        | check    | check      |          |
+| iter             | check    |            |          |
+from numbers import Number, Complex, Real, Rational, Integral
+isinstance(123, Number)                # True
+|                    | Number | Complex | Real  | Rational | Integral |
+| ------------------ | ------ | ------- | ----- | -------- | -------- |
+| int                | check  | check   | check | check    | check    |
+| fractions.Fraction | check  | check   | check | check    |          |
+| float              | check  | check   | check |          |          |
+| complex            | check  | check   |       |          |          |
+| decimal.Decimal    | check  |         |       |          |          |
+
+# 2.2 String
+# (1) 格式化方法
+<str>  = <str>.format(*args, **kwargs)       # 格式化
+<str>  = <str>.strip()                       # 字符串左右两侧去空白
+<str>  = <str>.strip('<chars>')              # 左右两侧去掉指定字符（多次匹配）
+<str>  = <str>.translate(<table>)            # 用str.maketrans()制作翻译表
+# (2) 分解与连接方法
+<list> = <str>.split()                       # 用空格分割字符串
+<list> = <str>.split(sep=None, maxsplit=-1)  # 指定'sep'分割字符串指定次
+<list> = <str>.splitlines(keepends=False)    # 在换行符处分割字符串，默认不保留
+<str>  = <str>.join(<coll_of_strings>)       # 在每个元素间插入<str>字符串
+<str>  = <str>.replace(old, new [, count])   # 将old替换为new最多count次
+# (3) 搜索方法
+<bool> = <sub_str> in <str>                  # 检查<str>中是否包含<sub_str>
+<bool> = <str>.startswith(<sub_str>)         # 从前检测子串和起止点是否匹配
+<bool> = <str>.endswith(<sub_str>)           # 从后检测子串和起止点是否匹配
+<int>  = <str>.find(<sub_str>)               # 返回第一次出现sub的偏移值或-1
+<int>  = <str>.index(<sub_str>)              # 类似但失败返回ValueError
+# (4) 其他
+<str>  = chr(<int>)                          # int转为Unicode字符
+<int>  = ord(<str>)                          # Unicode字符转为int
+# 还包括: 'lstrip()', 'rstrip()' and 'rsplit()'.
+# 还包括: 'lower()', 'upper()', 'capitalize()' and 'title()'.
+# (5) 属性方法
+|               | [ !#$%…] | [a-zA-Z] | [¼½¾] | [²³¹] | [0-9] |
+| ------------- | -------- | -------- | ----- | ----- | ----- |
+| isprintable() | check    | check    | check | check | check |
+| isalnum()     |          | check    | check | check | check |
+| isnumeric()   |          |          | check | check | check |
+| isdigit()     |          |          |       | check | check |
+| isdecimal()   |          |          |       |       |       |
+# 还包括: isspace()检测'[ \t\n\r\f\v\x1c-\x1f\x85\u2000…]'等空格
+```
+
+
+
+```python
+#######################################################################
 # 4. System
 #######################################################################
 

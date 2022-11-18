@@ -73,13 +73,85 @@
 # 对象有类型（type）
 # 类型就是类（class）
 # (1) 类型判断
+# type() 不会认为子类是一种父类类型，不考虑继承关系。
 <type> = type(<el>)               # 或: <el>.__class__
 <bool> = isinstance(<el>, <type>) # 或: issubclass(type(<el>), <type>)
+# isinstance() 会认为子类是一种父类类型，考虑继承关系
 type('a'), 'a'.__class__, str     # (<class 'str'>, <class 'str'>, ...)
+
+import time
+import collections
+# 1) 基本数据类型
+print(type(1))                # (1)<class 'int'>
+print(type(3.14))             # (2)<class 'float'>
+print(type("hello"))          # (3)<class 'str'>
+print(type([1, 2]))           # (4)<class 'list'>
+print(type((1, "a")))         # (5)<class 'tuple'>
+print(type({"name": "tom"}))  # (6)<class 'dict'>
+print(type(False))            # (7)<class 'bool'>
+# 2) <class 'module'>
+print(type(time))
+# 3) <class 'type'>
+print(type(type))
+print(type(int))
+print(type(float))
+print(type(bool))
+print(type(str))
+print(type(dict))
+print(type(list))
+print(type(tuple))
+print(type(set))
+# 4) 自定义的类型：<class '__main__.XXX'>
+class A:
+    x = 111
+    def __init__(self):
+        self.x = 1
+    def run(self):
+        pass
+a = A()
+print(type(A))  # <class 'type'>
+print(type(object))  # <class 'type'>
+print(type(a))  # <class '__main__.A'>
+# 5) <class 'NoneType'>
+print(type(a.__init__()))
+print(type(a.run()))
+print(type(None))
+# 6) <class 'builtin_function_or_method'>
+print(type(bin))
+print(type(len))
+print(type(min))
+print(type(dir))
+# 7) <class 'collections.XXX'>
+data = "message"
+result = collections.Counter(data)
+dict1 = collections.OrderedDict({"name": "Tom", "age": 25, "address": "CN"})
+deq1 = collections.deque("abc")
+print(type(result))  # <class 'collections.Counter'>
+print(type(dict1))   # <class 'collections.OrderedDict'>
+print(type(deq1))    # <class 'collections.deque'>
 
 # (2) 部分类型没有内建名，需要被导入:
 from types import FunctionType, MethodType, LambdaType
 from types import GeneratorType, ModuleType
+
+test1 = lambda x: x + 1
+# 1) 判定是否是lambda类型。lambda就是函数类型，本质是一样的
+print(type(test1) == LambdaType)  # True
+# 2) 判定是否是函数类型
+print(type(test1) == FunctionType)  # True
+# 3) 判定是否是内置函数类型
+print(type(bin) == BuiltinFunctionType)  # True
+class Test2:
+    def run(self):
+        pass
+test2 = Test2()
+# 4) 判定是否是方法
+print(type(test2.run) == MethodType)
+# 5) 判定生成器类型
+a = (x * x for x in range(1, 10))
+print(type(a) == GeneratorType)
+# 6) 判定模块类型
+print(isinstance(time, ModuleType)
 
 # (3) 抽象基类
 # ①继承ABC的虚子类会被isinstance()和issubclass()函数识别为ABC的子类，却非如此
@@ -135,8 +207,6 @@ isinstance(123, Number)                # True
 | isdecimal()   |          |          |       |       |       |
 # 还包括: isspace()检测'[ \t\n\r\f\v\x1c-\x1f\x85\u2000…]'等空格
 ```
-
-
 
 ```python
 #######################################################################

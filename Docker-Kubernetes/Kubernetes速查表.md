@@ -340,11 +340,11 @@ spec:
 # (3) ImageLocalityPriority：倾向于已经有要使用镜像的节点，镜像越大，权重越高
 
 
-# 节点亲和性调度、
+# 节点亲和性调度
 # 规则说明
-# 同时指定nodeSelector和nodeAffinity，必须都满足，才能调度。
-# 指定多个与nodeAffinity类型关联的nodeSelectorTerms，只要一个满足就可以调度。
-# 指定多个与同一nodeSelectorTerms关联的matchExpressions，仅都满足时才能调度。
+# (1) nodeName、nodeSelector和nodeAffinity 必须同时满足才能调度。
+# (2) 同一nodeSelectorTerms下多个matchExpressions 只要一个满足就可以调度。
+# (3) 同一matchExpressions下多个keys，必须同时满足时才能调度。
 pod.spec.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution
 # <Object> 硬限制，必须满足规则才能调度，IDE指Pod运行期间标签变更不影响运行
 pod.spec.nodeAffinity.rDSIDE.nodeSelectorTerms     | <[]Object> 
@@ -514,4 +514,129 @@ spec:
     value: <string>
     operator: <string> # Exists, Equal
     tolerationSeconds: <integer>
+```
+
+```yaml
+spec:
+  affinity: <Object>
+    nodeAffinity: <Object>
+      requiredDuringSchedulingIgnoredDuringExecution: <Object>
+        nodeSelectorTerms: <[]Object> -required-
+      preferredDuringSchedulingIgnoredDuringExecution: <[]Object>
+      - weight: <integer> -required-
+        preference: <Object> -required-
+    podAffinity: <Object>
+      requiredDuringSchedulingIgnoredDuringExecution: <[]Object>
+        namespaces: <[]string>
+        topologyKey: <string> -required-
+        labelSelector: <Object>
+      preferredDuringSchedulingIgnoredDuringExecution: <[]Object>
+      - weight: <integer> -required-
+        podAffinityTerm: <Object> -required-
+          namespaces: <[]string>
+          topologyKey: <string> -required-
+          labelSelector: <Object>
+```
+
+```yaml
+#######################################################################
+# Service
+#######################################################################
+# 概念
+# (1) Service 定义一种抽象：通过Selector，能够被Service访问的，逻辑上的一组Pod
+# (2) 访问svc时通过Round Robin（轮询算法）访问所属Pod，有且只有此算法。
+# (3) Service只提供4层负载均衡，ingress提供7层负载均衡
+
+# 类型(ServiceTypes)
+# (1) ClusterIp：自动分配一个仅Cluster内部可以访问的virtual IP    （默认）
+# (2) NodePort：在(1)基础上为Service在各Node绑定一端口，用<NodeIP>:NodePort访问
+# (3) LoadBalancer：在(2)的基础上，创建外部负载均衡器，将请求转发到对应NodePort
+# (4) ExternalName：将集群外服务引入内部，并在内部使用，需k8s 1.7以上的kube-dns
+
+# clusterIP
+# (1) 在每个node节点用iptables将发向clusterIP对应端口的数据转发到kube-proxy中。
+# (2) kube-proxy查询该service对应pod地址和端口，内部负载均衡方法转发数据到对应pod
+# (3) 所需组件
+   1) apiserver
+        用户通过kubectl命令向apiserver发送创建service的命令
+        apiserver接收到请求后将数据存储到etcd中
+   2) kube-proxy
+        kubernetes各节点中都有一个kube-porxy的进程
+        kube-porxy感知service和pod的变化，并将变化信息写入本地iptables规则
+   3) iptables
+        使用NAT等技术将virtual IP的流量转至endpoint中
+spec:  
+    type: ClusterIP
+    selector:    
+        app: myapp
+    ports:  
+      - port: 80
+
+# Headless Service
+# (1) 不需要负载均衡和独立的Service IP时
+# (2) 指定spec.clusterIP的值为 “None” 来创建 Headless Service
+# (3) 这类Service不会分配Cluster IP; kube-proxy不会处理; 平台也不会为其负载均衡
+spec:
+  selector:
+    app: myapp
+  clusterIP: "None"
+  ports:
+    - port: 80
+
+# NodePort
+# (1) 在node上开启静态端口，将访问该端口的流量导入到 kube-proxy
+# (2) kube-proxy将数据转发给对应pod
+# (3) 访问<Node IP>: <Node Port>对<Pod IP>: <target Port>访问
+spec:
+  type: NodePort
+  selector:
+    app: myapp
+  ports:
+    - port: 80
+
+# LoadBalancer
+# (0) 来自外部负载均衡器的流量将直接重定向到后端 Pod 上
+# (1) loadBalancer在nodePort基础上改用cloud-controller-manager组件
+# (2) 配置外部负载均衡器，将流量转发到对应Node的端口。
+spec:
+  selector:
+    app: myapp
+  ports:
+    - port: 80
+  clusterIP: 10.0.171.239
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - ip: 192.0.2.127
+
+# ExternalName
+# (1) 该类型将服务映射到域名（即externalName字段的值），而非selector对应pods
+# (2) IPv4地址不能被CoreDNS或ingress-nginx解析，externalName只能使用域名（可含数字）
+# (3) 集群DNS服务会返回CNAME记录，本类Service的重定向发生在 DNS 级别，而非proxy或转发
+spec:
+  type: ExternalName
+  externalName: my.database.example.com
+
+# Service资源配置（svc）
+apiVersion: v1
+kind: Service
+metadata:
+spec:
+  clusterIP: <string>
+  externalIPs: <[]string>
+  externalName: <string>
+  externalTrafficPolicy: <string>
+  healthCheckNodePort: <integer>
+  loadBalancerIP: <string>
+  loadBalancerSourceRanges: <[]string>
+  ports: <[]Object>
+  publishNotReadyAddresses: <boolean>
+  selector: <map[string]string>
+    key: value
+  sessionAffinity: <string>
+  sessionAffinityConfig: <Object>
+    clientIP: <Object>
+      timeoutSeconds: <integer>
+  type: <string> # ExternalName, ClusterIP, NodePort, LoadBalancer
 ```

@@ -89,6 +89,7 @@ print(type([1, 2]))           # (4)<class 'list'>
 print(type((1, "a")))         # (5)<class 'tuple'>
 print(type({"name": "tom"}))  # (6)<class 'dict'>
 print(type(False))            # (7)<class 'bool'>
+print(type(set())             # (8)<class 'set'>
 # 2) <class 'module'>
 print(type(time))
 # 3) <class 'type'>

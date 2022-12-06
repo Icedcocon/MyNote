@@ -111,3 +111,66 @@ yum install -y
 - 因为函数变量在定以后仅当前终端有效，因此函数的定义与执行必须在同一条ssh指令中
 
 - `ssh IP "$(typeset -f <funcName>); <funcName> \"<params>\"`
+
+# 网络配置修改
+
+- `/etc/resolv.conf`修改后未能生效，这是由于gateway 容器中的配置从宿主机复制后独立于宿主机。
+
+- 需要重新执行第11步，重启网关
+
+# 修改集群域名
+
+`kubectl get cm -A`
+
+`kubectl edit config-domain -n knative-serving`
+
+MySQL -> database(domainName) -> table(cluster_manager) -> set domain = newDomain
+
+`update tableName set colName='newDomain' where id = num`
+
+yaml/gpusharing-> controller 17571?修改域名
+
+`kubectl edit cm inferenceservice-config -n knative` 修改域名
+
+yaml/kserve/kserve-graph.yaml 修改域名 
+
+yaml/aistaion 替换所有域名
+
+pgrep -r 'domainName' .
+
+sed -r 's////' . | grep 'newDomain'
+
+# 旧集群镜像迁移
+
+- 旧集群中镜像的`tag`由 模型服务-镜像管理 中的右侧模块处获取（显示不全可以用页面缩放）。
+
+- 将镜像`tag`复制后，执行以下代码`bash XXX.sh tag`
+  
+  - save的镜像名称中不能带 ‘:‘
+
+```bash
+#! /bin/bash
+cd $(dirname $0)
+
+for item in $@; do
+  docker pull $item
+  img_name=${item##*/}
+  img_name=${img_name/:/_}
+  docker save $item | gzip > ${img_name}.tar.gz
+  sshpass -p k8s scp ${img_name}.tar.gz root@10.23.177.143:/home/
+done
+```
+
+- 复制到新平台后执行`docker load < ${img_name}.tar.gz`
+
+# V2.2 HTTPS支持
+
+
+
+# 网关错误查询
+
+- 页面存在 500 报错
+  
+  - `docker logs -f cluster_manager --tail 1000 > gateway.logs`
+  
+  - 在日志中搜索Exceptions

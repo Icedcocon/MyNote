@@ -165,7 +165,7 @@ done
 
 # V2.2 HTTPS支持
 
-
+# UI及ISTIO的证书更换
 
 # 网关错误查询
 
@@ -174,3 +174,22 @@ done
   - `docker logs -f cluster_manager --tail 1000 > gateway.logs`
   
   - 在日志中搜索Exceptions
+
+# 修改集群名称
+
+- 进入数据库 表 cluster_manager 修改 name 字段
+
+# CentOS7换源
+
+```bash
+# 确认系统发行版本
+cat /etc/redhat-release
+hostnamectl
+# 备份repo
+mv /etc/yum.repos.d/CentOS-Base.repo !#:1.bak
+# 从阿里源下载repo
+curl -sL /etc/yum.repos.d/CentOS-Base.repo > \
+https://mirrors.aliyun.com/repo/Centos-7.repo
+# 替换$releaserver
+sed -ri 's#\$releaserver#7#' /etc/yum.repos.d/CentOS-Base.repo
+```

@@ -1,4 +1,60 @@
 ```bash
+# fork公司/开源项目的代码仓库  ==》 得到 个人远端仓库
+git fork https://github.com/${Co.}/${repo}.git（主仓库的URL）
+# 将个人远端仓库clone到本地服务器  ==》 得到 本地代码仓库
+git clone git@github.com:${Own}/${repo}.git(个人仓库URL)
+# 进入项目路径下(该目录下有.git目录) ==》 设置 用于拉取和上传的远端仓库地址
+git remote add upstream https://github.com/${Co.}/${repo}.git（主仓库的URL）
+# 禁止 向远端主仓库进行代码提交
+git remote set-url --push upstream no_push
+# 查看 本地关联的代码库
+git remote -v
+# checkout  ==》 切换 开发分支
+git checkout ${origin/RemoteBranch}
+# 在${Branch}分支上建立自己的分支
+git checkout -b ${LocalBranch}
+# 查看当前分支
+git branch
+# 开发
+*****************
+
+#查看那些文件修改了
+git status
+#提交好修改的文件大本地仓库
+git add filename1 filename2
+#提交comit 信息（这个是作为代码提交的检查的 符合你们公司的开发规范）
+git commit --amend (git commit -m "公司的规范")
+#推送到本地同时提交PR
+git push -f origin ${LocalBranch}(本地分支):${RemoteBranch}(远端分支)
+```
+
+```bash
+# 拉取远端主仓库
+git fetch upstream
+# 进行合并操作(可以使用rebase 和merege两种操作)
+# 在本地项目路径下 将${origin/Branch}(最新的)合并到${OwnBranch}(当前本地分支)
+git rebase ${OwnBranch}(本地的分支) 
+
+#这个时候就会出现有conflict问题
+*****************************
+#查看有哪些文件有冲突
+git diff
+#解决好冲突
+******************************
+#重新提交刚刚解决冲突的文件
+git add filename1 filename2
+#提交commit 信息 记得这几是需要需改符合你公司的要求或者是开源社区的要求
+git commit --amend
+#推送到本地同时提交PR 
+git push -f origin topic/jiale_xiong/data/vxp568(本地分支):vxrail-cr（个人远端分支）
+```
+
+```bash
+# fetch 远端仓库代码（在你的本地建立与远端的仓库的分支同时取名为分支名）
+git fetch upstram 分支名：分支名
+```
+
+```bash
 # 查看全局配置
 git config --global --list     #文件不存在时，可以任意设置一个全局配置生成文件
 

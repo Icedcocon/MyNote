@@ -485,6 +485,11 @@ spec:
               - value1
               - value2
 
+# matchExpressions的上层字段
+# (1) nodeSelectorTerm
+# (2) preference
+# (3) labelSelector
+# (4) podAffinityTerm.labelSelector
 
 # topologyKey拓扑域
 # (1) topology指拓扑域，是一个范围如Node、机柜、地区等，本质是Node上的标签。
@@ -1145,12 +1150,13 @@ status:  <Object>
 ObjectMeta
 metadata:  <Object>
   annotations: <map[string]string> # 非结构化键值对 不用于查询和匹配 仅添加信息
-  clusterName  <string>     
   generateName:  <string> # 可选前缀 由服务器使用 未提供name时生成唯一名称 
-  generation:    <integer> # 表示期望状态的特定生成的序列号 由系统填充 只读
   labels: <map[string]string> # 组织/分类(确定范围/选择)对象的 键值对
   name:          <string> # name 在命名空间内必须是唯一的。
   namespace:     <string> # 一个值空间内部名称唯一，非NS作用域对象该值为空
+# 系统字段
+  finalizers: <[]string> # 从注册表中删除对象之前该字段必须为空。
+  managedFields: <[]Object> # 用于内部管理
   ownerReferences: <[]Object> # 所依赖的对象列表 为空则本对象被回收 
     apiVersion: <string> -required- # 被引用资源的 API 版本。
     blockOwnerDeletion: <boolean> # 删除此引用前无法从键值存储中删除属主(false)
@@ -1158,15 +1164,37 @@ metadata:  <Object>
     kind: <string> -required- # 被引用资源的类别
     name: <string> -required- # 被引用资源的名称
     uid:  <string> -required- # 被引用资源的 uid
-# 系统字段
-  finalizers: <[]string> # 从注册表中删除对象之前该字段必须为空。
-  managedFields: <[]Object> # 用于内部管理
 # 只读字段
   creationTimestamp: <string> # (只读)建此对象时的服务器时间
   deletionGracePeriodSeconds: <integer> # （只读）对象被删除前允许正常终止的秒数
   deletionTimestamp: <string> # (只读) 删除此资源的RFC3339日期和时间
+  generation:    <integer> # 表示期望状态的特定生成的序列号 由系统填充 只读
   resourceVersion: <string> # 对象的内部版本 系统填充 只读 应将值视为不透明
   uid: <string> # 该对象在时间和空间上的唯一值 由服务器在成功创建资源时生成
+# 其他
+  clusterName: <string> # 所属集群名 区分有相同名称和NS但属于不同集群的Pod(被忽略)
+
+# (1) kubernetes垃圾收集
+#   1) 垃圾收集器用ownerReferences标识属主和附属，属主资源删除，附属资源辉自动被回收
+#   2) Kubernetes会自动设置ownerReference，如创建控制器时，也可以手动设置指定关系
+#   3) 删除时可指定是否该删除其附属 自动删除附属级联删除(Cascading Deletion) 
+#   4) Kubernetes有两种级联删除模式：后台(Background)模式和前台(Foreground)模式
+#   5) 删除对象时，不自动删除它的附属，这些附属被称作 孤立对象（Orphaned）。
+# (2) 前台级联删除
+#     根对象进入deletion in progress状态：
+#   1) 对象仍然可以通过REST API可见
+#   2) 对象的deletionTimestamp字段被设置。
+#   3) 对象的metadata.finalizers字段包含值foregroundDeletion
+#   4) 开始删除附属并在删除所有有阻塞能力的附属后删除属主对象
+#      有阻塞能力:ownerReference.blockOwnerDeletion=true
+# (3) 后台级联删除
+#       Kubernetes会立即删除属主对象，随后垃圾收集器在后台删除其附属对象：
+# (4) 级联删除策略
+#      设置属主对象deleteOptions.propagationPolicy字段控制级联删除策略
+#       通过指令`kubectl get pods N -o yaml`可查看该字段
+#      1.20以后可以通过`kubectl delete deployment N --cascade=foreground`
+#      可能的取值包括：Orphan、Foreground 或者 Background
+
 
 
 # Pod容器
@@ -1195,7 +1223,7 @@ spec:
       name: <string> -required- # 必须与Volume名称匹配
       readOnly: <boolean> # 为true则以只读方式挂载(False)
       subPath: <string>   # 指定所引用的卷内的子路径，而不是其根路径。
-      subPathExpr: <string> # 卷内的扩展路径，类似subPath但互斥
+      subPathExpr: <string> # 指定${XXX}环境变量获取，与subPath互斥
     volumeDevices: <[]Object> # 容器要使用的块设备列表 描述容器原始块设备映射
       devicePath: <string> -required- # 设备将被映射到的容器内的路径
       name: <string> -required- # 必须与Pod中persistentVolumeClaim名称匹配
@@ -1213,9 +1241,9 @@ spec:
 #        因此只有特权 securityContext: privileged: true 容器在允许使用它。
 #       等同于Linux内核文档中描述的rshared安装传播。
 # subPath用途及与subPathExpr区别：
-# 一个共享卷, 挂载多个路径。
-# ConfigMap或Secret挂载到特定目录的特定路径, 且该目录下已有文件且不希望被覆盖掉。
-# 使用subPathExpr字段可以基于downward API环境变量来构造subPath目录名
+# (1) 一个共享卷, 挂载多个路径。
+# (2) ConfigMap或Secret挂载到特定目录的特定路径, 且该目录下已有文件且不希望被覆盖掉。
+# (1) subPath直接指定子目录的名字，subPathExpr则指定${XXX}，通过环境变量获取
 
 # 容器-资源
 # 容器-生命周期
@@ -1225,27 +1253,27 @@ spec:
 
 ```yaml
 #######################################################################
-# Volume
+# 存储
 #######################################################################
-# Volume 简介
-# (1) 容器磁盘缺点：容器被kubelet重启后，容器内文件丢失（仅保留镜像中的内容）
-# (2) 需求：Pod运行多个容器时，容器之间共享文件
-# (3) Volume寿命：与封装它的Pod相同，容器重启数据仍然保存
-# (4) k8s支持多种类型Volume Pod可以同时使用任意数量Volume
+# 存储类型：
+# (1) kubernetes资源对象映射为目录或文件: 
+#     ConfigMap            (应用配置)
+#     Secret               (加密数据)
+#     DownwardAPI          (Pod或Container的元数据信息)
+#     ServiceAccountToken  (Service Account中的Token数据)
+#     Projected Volume     (将一个或多个上述资源挂载到容器内同一个目录下)
+# (2) kubernetes管理的宿主机本地存储：
+#     emptyDir             (临时存储)
+#     hostPath             (宿主机目录)
+# (3) 持久化存储PV和网络存储
+#     NFS                  (网络文件系统)
+#     Local                (本地化持久存储)
+# (4) 存储厂商提供的存储卷
+#     ScaleIO Volumes、StorageOS
+# (5) 公有云提供的存储卷
+#     AWSElasticBlockStore、AzureDisk
 
-# Volume 类型
-cephfs
-csi
-downwardAPI
-emptyDir
-glusterfs
-hostPath
-local
-nfs
-persistentVolumeClaim
-secret
-
-# emptyDir
+# emptyDir简介
 # (1) Pod调度到节点后先创建emptyDir，只要Pod在该节点上运行，该卷就会存在。
 # (2) emptyDir最初是空的。
 # (3) Pod中容器可以读写emptyDir卷中的相同文件，尽管该卷在每个容器中挂在路径不同。
@@ -1255,11 +1283,468 @@ secret
 #         2) 用作长时间计算崩溃恢复时的检查点
 #         3) Web服务器容器提供数据时，保存内容管理器容器提取的文件
 
+kind: Pod
+spec:
+  volumes:
+    name: <string> -required- # 卷名 Pod内唯一
+# 持久化存储
+    persistentVolumeClaim: <Object> # 引用同一NS中的PVC 绑定PV并挂载
+      claimName: <string> -required- # PVC名称
+      readOnly:  <boolean> # 是否只读(False)
+# 资源对象映射
+spec:
+  volumes:
+    name: <string> -required- # 卷名 Pod内唯一
+    configMap: <Object> # 将data中内容以文件形式放在卷中 键名为文件名
+      defaultMode: <integer> # 文件权限 0000到0777之间
+      items: <[]Object>     # 未指定时data每个字段一个文件，
+        key: <string> -required- # 将键映射到路径 不指定不显示 指定不存在报错
+        mode: <integer>             # 文件权限 0000到0777之间
+        path: <string> -required-# 相对路径 但不能包含'..'也不能以此开头
+      name: <string>         # 被引用资源的名称
+      optional: <boolean>   # 指定是否所引用的ConfigMap或其键必须已经被定义
+spec:
+  volumes:
+    name: <string> -required- # 卷名 Pod内唯一
+    secret: <Object>
+      defaultMode: <integer>  # 文件权限 0000到0777之间 默认0644
+      items: <[]Object>
+        key: <string> -required- # 将键映射到路径 不指定不显示 指定不存在报错
+        mode: <integer>             # 文件权限 0000到0777之间
+        path: <string> -required-# 相对路径 但不能包含'..'也不能以此开头
+      optional: <boolean>     # 是否 Secret 或其键必须已经定义
+      secretName: <string>    # 与Pod相同NS的Secret的名称
+spec:
+  volumes:
+    name: <string> -required- # 卷名 Pod内唯一
+    downwardAPI: <Object>
+      defaultMode: <integer> # 文件权限 0000到0777之间 默认0644
+      items: <[]Object>         # 卷文件的列表
+        fieldRef: <Object>   # 选择Pod的字段：支持注解、标签、名称和NS、uid
+          apiVersion: <string> # Pod的API版本 默认v1
+          fieldPath: <string> -required- # 以'metadata.'、'status.'开头
+        mode: <integer>         # 文件权限 0000到0777之间
+        path: <string> -required- # 相对路径 但不能包含'..'也不能以此开头
+        resourceFieldRef: <Object> # 选择容器的资源
+          containerName: <string>       # 容器名称
+          divisor: <string>             # 指定输出格式 默认为 "1"
+          resource: <string> -required- # 资源类型
+        # 仅支持limits.cpu、limits.memory、requests.cpu、requests.memory
+spec:
+  volumes:
+    name: <string> -required- # 卷名 Pod内唯一
+    projected: <Object> # 投射卷 可以将多种资源映射到同一个目录下
+      defaultMode: <integer>  # 文件权限 0000到0777之间
+      sources: <[]Object>   # 投射卷列表
+        configMap: <Object> # 
+          items: <[]Object>
+            key: <string> -required- # 将键映射到路径
+            mode: <integer>          # 文件权限 0000到0777之间
+            path: <string> -required-# 相对路径 但不能包含'..'也不能以此开头
+          name: <string>       # 与Pod相同NS的Secret的名称
+          optional: <boolean>  # 是否 Secret 或其键必须已经定义
+        downwardAPI: <Object>
+          items: <[]Object>         # 卷文件的列表
+            fieldRef: <Object>   # 选择Pod的字段：仅注解、标签、名称和NS、uid
+            mode: <integer>         # 文件权限 0000到0777之间
+            path: <string> -required- # 相对路径 但不能包含'..'也不能以此开头
+            resourceFieldRef: <Object> # 选择容器的资源
+        secret: <Object>
+          items: <[]Object>
+            key: <string> -required- # 将键映射到路径
+            mode: <integer>             # 文件权限 0000到0777之间
+            path: <string> -required-# 相对路径 但不能包含'..'也不能以此开头
+          name: <string>       # 与Pod相同NS的Secret的名称
+          optional: <boolean>  # 是否 Secret 或其键必须已经定义
+        serviceAccountToken: <Object> # 服务账号令牌数据
+          audience: <string> # 令牌的目标受众 默认为apiserver 
+          expirationSeconds: <integer> # 请求的服务账号令牌的有效期 默认1h
+          path: <string> -required- # 相对目标文件挂载点的路径
+
+# 宿主机本地存储
+spec:
+  volumes:
+    name: <string> -required- # 卷名 Pod内唯一
+    emptyDir: <Object> # 空目录卷支持所有权管理和SELinux重新打标签
+      medium:    <string> # 目录的存储介质 空字符串""(默认)或Memory
+      sizeLimit: <string> # 卷所需的本地存储总量 默认nil未定义
+spec:
+  volumes:
+    name: <string> -required- # 卷名 Pod内唯一
+    hostPath: <Object> # 主机目录暴露给容器 用于系统代理或需要主机数据的特权操作
+      path: <string> -required- # 目录在宿主机上的路径 符号链接会转为真实路径
+      type: <string> # 卷的类型，默认为 ""
+
+# emptyDir
+# (1) 在Pod分配到Node上时被创建
+# (2) 在Node上自动分配一个目录，无需指定宿主机Node上对应的目录文件
+# (3) 这个目录的初始内容为空
+# (4) Pod从Node上移除时，emptyDir中的数据会被永久删除
+# (5) 容器的crashing事件并不会导致emptyDir中的数据被删除
+# (6) emptyDir可以在以下几种场景下使用：
+#      1) 临时空间，例如基于磁盘的合并排序
+#      2) 设置检查点以从崩溃事件中恢复未执行完毕的长计算
+#      3) 保存内容管理器容器从Web服务器容器提供数据时所获取的文件
+
+# (1) hostPath 的一些用法有：
+#     1) 运行需要访问Docker配置文件的容器，挂载 /var/lib/docker
+#     2) 在容器中运行cAdvisor，以hostPath方式挂载/sys
+# (2) 注意事项
+#      1) 同配置pod(如template创建)在不同Node由于映射文件不同可能上表现不同
+#      2) 设置资源敏感的调度器时，hostPath使用的资源不会被调度器统计在内
+#      3) 宿主机创建的目录仅root有写权限 因此要privileged 或修改宿主机文件权限
+# (3) hostPath.type取值
+# ""                   向后兼容 安装hostPath卷前不执行检查(默认)
+# DirectoryOrCreate    路径不存在则创建空目录,权限0755,kubelet相同组和属主信息
+# Directory            在给定路径上必须存在的目录
+# FileOrCreate         文件不存在则创建空文件 权限0644,kubelet相同组和所有权
+# File                 在给定路径上必须存在的文件
+# Socket               在给定路径上必须存在的UNIX套接字
+# CharDevice           在给定路径上必须存在的字符设备
+# BlockDevice          在给定路径上必须存在的块设备
 
 
-apiVersion:<string>
-kind:       <string>
-metadata:  <Object>
-spec:      <Object>
-status:    <Object>
+# 持久卷
+  cephfs: <Object>
+    monitors: <[]string> -required- # Ceph监测的集合
+    path: <string>          # 挂载的根而非Ceph 树 默认"/"
+    readOnly: <boolean>     # 是否只读 默认false
+    secretFile: <string>    # User对应的密钥环路径 默认/etc/ceph/user.secret
+    secretRef: <Object>        # 对用户身份认证Secret的引用 默认为空
+    user <string>            # rados用户名 默认为 admin
+  csi  <Object>
+    driver: <string> -required- # 处理此卷的 CSI 驱动的名称
+    fsType: <string>    # 要挂载的fsType 如ext4、xfs、ntfs等
+    nodePublishSecretRef: <Object> # Secret的引用 传递到CSI驱动以完成发布
+    readOnly: <boolean>               # 是否只读 默认false
+    volumeAttributes: <map[string]string> # 存储传递给CSI驱动的属性
+  nfs  <Object>
+
+
+# ConfigMap字段列表
+apiVersion: <string> # v1
+kind: <string> # ConfigMap
+metadata: <Object>
+binaryData: <map[string]string> # 二进制数据 键仅由[alnum-_.]组成 值任意
+data: <map[string]string>         # 配置数据 键名不能重复也不能与binaryData重复
+immutable: <boolean>            # 为true则不会更新ConfigMap中存储的数据
+
+# ConfigMap限制条件
+# (1) ConfigMap必须在Pod之前创建，Pod才能引用它
+# (2) 如果Pod使用envFrom基于ConfigMap定义环境变量，则无效的环境变量名称被忽略
+#      并在事件中被记录为InvalidVariableNames
+# (3) ConfigMap受命名空间限制，只有处于相同命名空间中的Pod才能引用
+# (4) ConfigMap无法用于静态Pod
+
+# Secret字段列表
+apiVersion: <string>
+kind:<string>
+metadata: <Object>
+data: <map[string]string>    # 含保密数据 键仅由[alnum-_.]组成
+immutable: <boolean>         # 为true则不会更新Secret中存储的数据
+stringData: <map[string]string> # 字符串数据 但写入时并入data字段并加密覆盖原字段
+type <string>:                  
+# Secret.type类型
+# Opaque                                用户定义的任意数据
+# kubernetes.io/service-account-token   服务账号令牌
+# kubernetes.io/dockercfg               ~/.dockercfg文件的序列化形式
+# kubernetes.io/dockerconfigjson        ~/.docker/config.json文件的序列化形式
+# kubernetes.io/basic-auth              用于基本身份认证的凭据
+# kubernetes.io/ssh-auth                用于SSH身份认证的凭据
+# kubernetes.io/tls                     用于TLS客户端或者服务器端的数据
+# bootstrap.kubernetes.io/token         启动引导令牌数据
+
+
+# PersistentVolume 和 PersistentVolumeClaim概念
+# (1) PV是由管理员设置的存储，是群集一部分，是集群中的资源。 
+# (2) PV独立于使用PV的Pod 的生命周期，即使Pod被删除PV依然保留
+# (1) PVC是用户存储的请求
+# (2) 与Pod相似
+#        Pod消耗Node资源，PVC消耗PV资源
+#        Pod请求指定数量资源(CPU、内存)。PVC可以请求指定PV大小和访问模式
+
+# PersistentVolume字段列表
+apiVersion: <string>    # v1
+kind:         <string>  # PersistentVolume
+metadata:     <Object>
+spec:         <Object>
+  accessModes: <[]string>       # 访问模式 挂载卷的方式
+  capacity: <map[string]string> # 卷的资源和容量
+    storage: <string>
+  claimRef: <Object>            # 所绑定PVC的信息
+    apiVersion: <string>    # 被引用者的 API 版本
+    fieldPath: <string>     # spec.containers[2] spec.containers{name}
+    kind: <string>          # 被引用者的类别
+    name: <string>          # 被引用对象的名称
+    namespace: <string>     # 被引用对象的名字空间
+    resourceVersion: <string> # 被引用对象的特定资源版本
+    uid: <string>           # 被引用对象的UID
+  mountOptions: <[]string>  # 挂载选项列表["ro","soft"]无合法性检查 无效只失败
+  nodeAffinity: <Object>
+    required: <Object>
+      nodeSelectorTerms: <[]Object> -required-
+        matchExpressions: <[]Object>
+        matchFields: <[]Object>
+  persistentVolumeReclaimPolicy: <string> # 释放持久卷时的操作 Retain/Delete
+  storageClassName: <string> # 持久卷所属于的StorageClass的名称
+  volumeMode: <string> # 文件系统还是块设备 spec不含该字段则取值为Filesystem
+# Local
+  hostPath: <Object> # 主机上的目录 仅用于单节点开发和测试
+    path: <string> -required- # 目录在主机上的路径
+    type: <string>              # 默认为 ""
+  local: <Object>     # 具有节点亲和性的直连式存储 （Beta 特性）
+    fsType: <string>           # 要挂载的文件系统类型
+    path: <string> -required-  # 节点上卷的完整路径 可以是一个目录或块设备
+# 持久卷
+  cephfs: <Object>
+  csi:    <Object>
+  nfs:    <Object>
+    path:     <string> -required- # 由NFS服务器允许访问的路径
+    readOnly: <boolean>           # 是否只读
+    server:   <string> -required- # NFS服务器IP
+status: <Object>
+
+
+# accessModes 访问模式
+# (1) 种类
+# 1) ReadWriteOnce    该卷可被单个节点以读/写模式挂载(可以被同一节点多个Pod访问)
+# 2) ReadOnlyMany     该卷可被多个节点以只读模式挂载
+# 3) ReadWriteMany    该卷可被多个节点以读/写模式挂载
+# 4) ReadWriteOncePod 该卷可被单个节点以读/写模式挂载(确保集群仅1个Pod可读写该PVC)
+# (2) 命令行接口（CLI）中的缩写
+# 1) RWO - ReadWriteOnce
+# 2) ROX - ReadOnlyMany
+# 3) RWX - ReadWriteMany
+# 4) RWOP - ReadWriteOncePod
+# (3) 说明：
+# 1) 卷的访问模式用来匹配PVC和PV
+# 2) 卷访问模式会限制PV的挂载位置
+# 3) 卷访问模式并不会在存储已经被挂载的情况下为其实施写保护
+# 4) 每个卷同一时刻只能以一种访问模式挂载(到多个节点或pod)，即使该卷能支持多种访问模式
+
+
+# persistentVolumeReclaimPolicy 回收策略
+# Retain (保留)       不清理,保留Volume (需要手动清理)
+# Recycle(回收)       删除数据，即rm -rf *     (废弃)
+# Delete (删除)       删除存储资源
+# 仅NFS和HostPath支持回收策略。AWS EBS、GCE PD、Azure Disk和Cinder卷支持删除策略
+
+# PV的状态
+# (1) Available        可用
+# (2) Bound            已经分配给PVC
+# (3) Released        PVC解绑但还未执行回收策略
+# (4) Failed        发生错误
+
+# 静态：集群管理员创建
+# 动态：静态PV与PVC均不匹配时，群集尝试为PVC动态配置卷。
+#      此配置基于StorageClasses：PVC必须请求存储类管理员必须已创建并配置该类
+#      集群管理员需要启用API Server上的DefaultStorageClass[准入控制器]。
+#      如确保DefaultStorageClass位于API Server组件的--admission-control列表中
+# 绑定：PVC 跟 PV 绑定是一对一的映射 若没有匹配的PV，PVC将无限期地保持未绑定状态。
+# PVC保护：确保pod使用中的PVC不会从系统中移除，否则可能导致数据丢失
+#         pod为Pending且pod已调度到节点或pod为Running时 PVC处于活动状态
+#         开启PVC保护 删除使用中的PVC，PVC的删除将被推迟 直到PVC不再被任何pod使用
+
+# PVC
+apiVersion: <string> # v1
+kind:         <string> # PersistentVolumeClaim
+metadata:     <Object>
+spec:         <Object>
+  accessModes: <[]string> # 预期的访问模式
+  resources: <Object>     # 卷应拥有的最小资源
+    limits:   <map[string]string> # 允许的最大计算资源量
+    requests: <map[string]string> # 所需的最小计算资源量
+  selector: <Object>      # 绑定时对卷进行选择所执行的标签查询
+    matchExpressions: <[]Object>
+    matchLabels:      <map[string]string>
+  storageClassName: <string> # 绑定所用的SC名称
+  volumeMode: <string>       # Volume的类别 默认Filesystem
+  volumeName: <string>      # 所绑定PV的名称
+# Beta
+  dataSource: <Object> # VolumeSnapshot 还是 PVC
+  dataSourceRef: <Object>
+status:     <Object>
+
+# PV和PVC生命周期
+# (1) Provisioning 配置阶段。PV有静态和动态两种提供方式
+#     1) 静态提供是K8s管理员创建多个PV，存储空间等属性确定，和存储设备完成关联
+#     2) 动态提供需要StorageClass支持，K8s尝试为PVC动态创建PV。
+#        优点：避免 低需求PVC绑定大容量PV、多个低容量PV不能满足一个大需求PVC
+# (2) Binding PVC与PV绑定的过程
+#        若PV都不能满足PVC需求，则PVC无法被创建，相应Pod也不会被创建
+# (3) Using 绑定后Pod对存储空间的使用过程
+# (4) Releasing Pod删除或不再使用PV后，K8s删除PVC对象并回收PV资源时的状态
+#         但此时PV还要处理完Pod在该卷存储的信息后才能够被使用
+# (5) Reclaiming PV的回收策略对被释放的PV的处理过程。
+# (6) Recycling 根据配置，有时PV会删除掉空间中所有信息被再次使用
+
+# storageClass
+apiVersion:  <string> # storage.k8s.io/v1
+kind:         <string> # StorageClass
+metadata:     <Object>
+provisioner: <string> -required- # PV制造者(制备器)的类别
+allowVolumeExpansion: <boolean>  # 存储类是否允许卷扩充
+allowedTopologies:   <[]Object>  # 限制可以动态制备卷的节点拓扑
+  matchLabelExpressions: <[]Object>
+    key: <string> -required-
+    values: <[]string> -required-
+mountOptions: <[]string>  # 挂载选项如 ["ro", "soft"]
+parameters: <map[string]string>  # 创建此存储类卷的制备器的参数
+reclaimPolicy:    <string>       # 回收策略默认delete
+volumeBindingMode: <string>      # 绑定模式 默认VolumeBindingImmediate
 ```
+
+```yaml
+######################################################################
+# 集群安全
+######################################################################
+# API Server的安全策略
+# (1) 认证（Authentication）
+# (2) 鉴权（Authorization）
+# (3) 准入控制（Admission Control）
+
+# 认证（Authentication）
+# (1) HTTP Token认证: 通过Token来识别合法用户
+#  1) Token是复杂字符串，对应一个用户名。
+#  2) 客户端发起API调用请求时，需要在HTTP Header里放入Token
+# (2) HTTP Base认证 : 通过 用户名+密码 的方式认证
+#  1) 格式为 用户名:密码 
+#  2) BASE64算法编码的字符串放在HTTP Request中的Heather Authorization域里
+# (3) HTTPS 证书认证 : 双向认证
+
+# 认证组件的两种类型：
+# (1) Kubenetes组件对API Server的访问：
+#     kubectl、Controller Manager、Scheduler、kubelet、kubeproxy
+# (2) Kubernetes管理的Pod对容器的访问：
+#     Pod（dashborad 也是以 Pod 形式运行）
+
+# 端口访问说明
+# Controller Manager、Scheduler为本机组件与API Server在同一node用非安全端口访问
+# 1) 默认为端口 8080，使用 --insecure-port 进行更改
+# 2) 默认 IP 为 localhost，使用 --insecure-bind-address 进行更改
+# 3) 请求 绕过 身份认证和鉴权模块 由准入控制模块处理的请求
+# kubectl、kubelet、kube-proxy 为远程组件访问API Server要证书进行HTTPS双向认证
+# 1) 默认端口 6443，使用 --secure-port 更改
+# 2) 默认 IP 是第一个非本地网络接口，使用 --bind-address 更改
+# 3) 请求须经身份认证和鉴权组件处理 请求须经准入控制模块处理
+
+# 证书颁发的两种方式
+# (1) 手动签发：通过k8s集群的根ca进行签发HTTPS证书
+# (2) 自动签发：kubelet首次访问API Server时，使用token做认证，通过后
+#               Controller Manager会为kubelet生成一个证书后续访问以此认证
+
+# kubeconfig（一个文件类型）
+# (0) 包含了怎么访问服务的信息以及认证信息
+# (1) 集群参数（CA证书、API Server地址）
+# (2) 客户端参数（上面生成的证书和私钥）
+# (3) 集群 context 信息（集群名称、用户名）
+# (e) Kubenetes组件通过启动时指定不同的kubeconfig文件可以切换到不同的集群
+
+
+# ServiceAccount要解决的问题
+# Pod中容器访问API Server的问题：因为Pod的创建、销毁是动态的，难以手动生成证书
+# 解决方案：Kubenetes使用Service Account解决Pod访问API Server的认证问题
+
+# ServiceAccount（SA）（给Pod颁发证书）
+# (1) 默认 每个NS都会有一个ServiceAccount，Pod创建时未指定SA则使用NS的SA
+# (2) SA自动创建自动挂载到Pod的/run/secrets/kubernetes.io/serviceaccount
+# (3) ServiceAccount 中包含三个部分：
+#  1) Token:  使用API Server私钥签名的JWT 用于访问API Server时Server 端认证
+#  2) ca.crt: 根证书 用于Client端验证API Server发送的证书
+#  3) namespace: 标识这个service-account-token的作用域名空间
+# (4) Secret 与 SA 的关系
+#     Secret对象的类型有保存用户自定义保密信息的Opaque和ServiceAccountToken等
+
+# Json web token (JWT)
+# Json web token (JWT)是为了在网络应用环境间传递声明而执行的一种基于JSON的开放标准
+# 该token被设计为紧凑且安全的，特别适用于分布式站点的单点登录（SSO）场景。
+# JWT的声明一般用于在身份提供者和服务提供者间传递被认证的用户身份信息，以便于获取资源
+# 也可以增加一些额外的其它业务逻辑所必须的声明信息， token也可直接被用于认证，可被加密
+
+
+
+# 授权（Authorization）
+# 认证确认通信的双方可信可以通信 鉴权确定请求方有哪些资源的权限
+# API Server支持以下几种授权策略 通过API Server启动参数--authorization-mode设置
+# (1) AlwaysDeny： 表示拒绝所有的请求，一般用于测试
+# (2) AlwaysAllow：允许接收所有请求，如果集群不需要授权流程，则可以采用该策略
+# (3) ABAC（Attribute-Based Access Control）：基于属性的访问控制
+#      表示使用用户配置的授权规则对用户请求进行匹配和控制
+# (4) Webbook：通过调用外部 REST 服务对用户进行授权
+# (5) RBAC（Role-Based Access Control）（默认）：基于角色的访问控制
+
+# RBAC（Role-Based Access Control）基于角色的访问控制
+# RBAC优势及概述：
+# (1) 对集群中的资源和非资源均拥有完整的覆盖
+#  1) RBAC由几个API对象实现，可用kubectl或API操作、可运行时调整无需重启API Server
+#  2) RBAC引入4个资源对象：Role、ClusterRole、RoleBinding、ClusterRoleBinding
+#  3) Role和RoleBinding是名称空间级别资源
+#        ClusterRole 和 ClusterRoleBinding 是集群级别资源
+#  4) Role指定一些角色，不同角色对资源的权限不同
+#      RoleBinding将这些角色赋予给用户、组和SA 
+
+# k8s不会提供用户管理，那么User、Group、ServiceAccount 指定的用户又是从哪里来的呢？ 
+# k8s组件(kubectl、kube-proxy)或自定义的用户向CA申请证书时，需要提供证书请求文件：
+{
+  "CN": "admin",    # Common Name(CN)，公用名，一般是主机名+网站域名
+  "hosts": [],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",        # Country Code(C)：国家，只能是两个字母的国家码
+      "ST": "HangZhou",            # State or Province(S)，省名或者州名
+      "L": "XS",                # Locality(L)，城市名
+      "O": "system:masters",    # Organization Name(O)，单位名称
+      "OU": "System"    # Organization Unit(OU)，部门
+    }
+  ]
+}
+# (1) API Server会把客户端证书的CN字段作为User把names.O字段作为Group
+# (2) kubelet使用TLS Bootstaping认证时，API Server可用Bootstrap Tokens或者
+#     Token authentication file验证=token，k8s为token绑定默认的User和Group
+# (3) Pod使用ServiceAccount认证时，service-account-token中的JWT会保存User信息
+#     再创建一对 角色/角色绑定（集群角色/集群角色绑定）资源对象，就可以完成权限绑定了
+
+
+# 准入控制
+# 准入控制概念
+# 准入控制是API Server的插件集合，通过添加不同的插件，实现额外的准入控制规则
+# API Server的一些主要的功能都需要通过Admission Controllers实现，比如SA
+
+# 几个插件的功能：
+# (1) NamespaceLifecycle： 防止在不存在的namespace上创建对象防止删除系统预置
+# 	  namespace，删除 namespace 时，连带删除它的所有资源对象。
+# (2) LimitRanger：确保请求资源不超过资源所在Namespace的LimitRange的限制。
+# (3) ServiceAccount：实现了自动化添加 ServiceAccount。
+# (4) ResourceQuota：确保请求的资源不会超过资源的 ResourceQuota 限制。
+
+# 准入控制的操作
+# (1) 启用 NamespaceLifecycle 和 LimitRanger 准入控制插件：
+kube-apiserver --enable-admission-plugins=NamespaceLifecycle,LimitRanger
+# (2) 禁用插件
+kube-apiserver --disable-admission-plugins=PodNodeSelector,AlwaysDeny ...
+# (3) 查看默认启用的插件
+kube-apiserver -h | grep enable-admission-plugins
+```
+
+```bash
+######################################################################
+# kubectl常用指令
+#######################################################################
+
+source <(kubectl completion bash) # 指令补全
+cat > ~/.vimrc <<-EOF              # 自定义vim
+set expandtab
+set ts=2            # tabstop的缩写
+set shiftwidth=2    # 每级缩进
+set autoindent         # 自动缩进
+EOF
+```
+
+### 参考资料
+
+https://jimmysong.io/kubernetes-handbook/guide/using-kubectl.html
+https://lib.jimmysong.io/

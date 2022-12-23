@@ -1716,7 +1716,7 @@ volumeBindingMode: <string>      # 绑定模式 默认VolumeBindingImmediate
 
 # 几个插件的功能：
 # (1) NamespaceLifecycle： 防止在不存在的namespace上创建对象防止删除系统预置
-# 	  namespace，删除 namespace 时，连带删除它的所有资源对象。
+#       namespace，删除 namespace 时，连带删除它的所有资源对象。
 # (2) LimitRanger：确保请求资源不超过资源所在Namespace的LimitRange的限制。
 # (3) ServiceAccount：实现了自动化添加 ServiceAccount。
 # (4) ResourceQuota：确保请求的资源不会超过资源的 ResourceQuota 限制。

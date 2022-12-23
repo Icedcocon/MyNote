@@ -33,19 +33,45 @@ sed -ri 's/cn\.archive\.ubuntu\.com/mirrors\.aliyun\.com/g' /etc/apt/sources.lis
 - ubuntu默认会开启IPV4 DHCP服务获取IP地址，因此每次通过VMware开启虚拟机IP地址都会发生改变。
 
 ```bash
+# Ubuntu20.04/18.04配置
 cp /etc/netplan/*.yaml /etc/netplan/$(basename /etc/netplan/*.yaml).bak
 cat > /etc/netplan/$(basename /etc/netplan/*.yaml) <<-EOF
 # This is the network config written by 'subiquity'
 network:
   ethernets:
+    # 这里要改对应的网卡名
     ens33:
       dhcp4: False
       dhcp6: False
       addresses:
-              - 172.16.72.129/24
+      - 172.16.72.129/24
       gateway4: 172.16.72.2
       nameservers:
-              addresses: [114.114.114.114, 8.8.8.8]
+        addresses: [114.114.114.114, 8.8.8.8]
+  version: 2
+EOF
+
+netplan try
+```
+
+```bash
+# Ubuntu22.04配置
+cp /etc/netplan/*.yaml /etc/netplan/$(basename /etc/netplan/*.yaml).bak
+cat > /etc/netplan/$(basename /etc/netplan/*.yaml) <<-EOF
+# This is the network config written by 'subiquity'
+network:
+  ethernets:
+    # 这里要改对应的网卡名
+    ens33:
+      dhcp4: False
+      dhcp6: False
+      addresses:
+      - 192.168.160.100/20
+      routes:
+      - to: default
+        via: 192.168.160.1
+      nameservers:
+        addresses: [114.114.114.114, 8.8.8.8]
   version: 2
 EOF
 

@@ -211,6 +211,169 @@ isinstance(123, Number)                # True
 
 ```python
 #######################################################################
+# 3. Syntax
+#######################################################################
+# 3.4 Class
+# 3.4.1 __repr__和__str__
+class <name>:
+    def __init__(self, a):
+        self.a = a
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        return f'{class_name}({self.a!r})'
+    def __str__(self):
+        return str(self.a)
+# (1) repr()返回值应明确且无歧义 str()返回值应适合人类阅读
+# (2) 只定义repr()未定义str()时 调用str()执行的是repr()
+# (3) 调用str()的场合
+print(<el>)
+f'{<el>}'
+logging.warning(<el>)
+csv.writer(<file>).writerow([<el>])
+raise Exception(<el>)
+# (4) 调用repr()的场合
+print/str/repr([<el>])
+f'{<el>!r}'
+Z = dataclasses.make_dataclass('Z', ['a']); print/str/repr(Z(<el>))
+>>> <el>
+
+# 3.4.2 @staticmethod和@classmethod
+class <name>:
+    def __init__(self, a):
+        self.a = a
+    @classmethod
+    def get_class_name(cls):
+        print cls.__name__
+        res = cls()
+        return res
+    @classmethod
+    def singleton(cls):
+        if not cls.__instance:
+            cls.__instance = cls('duoduo', [])
+        return cls.__instance
+# (0) Python支持的类相关方法
+#  1) 实例方法：第一个参数为self实例对象（默认）
+#  2) 静态方法：不传入额外对象（通过@staticmethod）
+#  3) 类方法 ：第一个参数为cls类对象（通过@classmethod，元类中默认）
+# (1) 共同：
+#  1) "@staticmethod"或"@classmethod"可以不实例化直接以类名.方法名()调用
+# (2) 不同： 
+#  1) "@staticmethod"修饰的方法不接受"self"或"cls"而"@classmethod"接受"cls"
+#     两者都可以调用类属性/方法 而"@classmethod"还能调用对象方法/属性
+#  2) "@classmethod"可以区分自己被基类还是子类调用 可在子类中新增功能而不改基类
+# (3) 用途
+#  1) "@staticmethod"用于需要简单函数但仅为类服务的场合，可以节省创建对象的开支
+#  2) "@classmethod"可以实现单例模式、工厂模式;可用于对象数据的预处理(子类新功能) 
+
+# 3.4.3 构造函数重载（拦截内置的构造函数操作，并调用自定义方法，__init__是一个入口）
+class <name>:
+    def __init__(self, a=None):
+        self.a = a
+    def __new__(cls):
+      return super().__new__(cls)
+# (1) 实例创建过程中__new__方法先被调用,创建并返回新实例对象,后传入__init__初始化
+# (2) 类实例化前先调用__new__方法创建实例，是类方法
+# (3) 实例对象创建后调用__init__方法初始化实例,是实例对象的方法,设置实例对象的初始值
+
+# 3.4.4 继承及类接口技术
+# (0)继承概念:obj.attr运算会触发继承，Python自底向上搜索命名空间树，下层定义屏蔽上层
+#    属性树构造:1.实例属性(self.a=v)2.类属性(class A:b=v)3.父类连接(class B(A))
+# (1) Super:    定义一个method函数以及一个delegate函数
+class Super:
+    def method(self):
+        print('in Super.method')
+    def delegate(self):        
+        self.action()          # 未被定义 （也可用@abstractmethod修饰）
+# (2) Inheritor:没有提供任何新的变量名，因此会获得Super中定义的一切内容
+class Inheritor(Super):
+    pass
+# (3) Replacer: 用自己的版本授盖Super的method
+class Replacer(Super):
+    def method(self):       # 完全代替
+        print("in Replacer.method")
+# (4) EXtender: 覆盖并回调默认method，从而定制Super的method
+class Extender(Super):
+    def method(self):      # 方法扩展
+        print('starting Extender.method')
+        Super.method(self)
+        print('ending Extender.method')
+# (5) Providel: 实现Super的delegate方法预期的action方法。
+class Provider(Super):
+    def action(self):                       # 补充所需方法
+
+
+# 3.4.5 多重继承
+class A: pass
+class B: pass
+class C(A, B): pass
+# MRO决定命名空间树的搜索顺序
+>>> C.mro()
+[<class 'C'>, <class 'A'>, <class 'B'>, <class 'object'>]
+
+# 3.4.6 @property @name.setter @name.deleter
+class Person:
+# (1) property时内置装饰器函数 将类的方法伪装成属性并且不能再被()调用
+# (2) 被property装饰后的方法，不能带除了self外的任何参数
+# (3) 通常用于将私有属性隐藏，防止其被修改
+    @property
+    def name(self):
+        return ' '.join(self._name)c
+# (1) @name.setter中的name并不一定与函数名相同,调用时以函数名为准
+# (2) 可作为__getattr__和__setattr__重载的代替
+    @name.setter
+    def na(self, value):
+        self._name = value.split()
+# (1) @property 表示 只读
+# (2) @property 和 @name.setter 表示 可读可写 
+# (3) @property 和 @name.setter 和 @name.deleter 表示可读可写可删除
+    @name.deleter
+    def name(self):
+        del self._name
+>>> person = Person()
+>>> person.na = '\t Guido  van Rossum \n'
+>>> person.name
+'Guido van Rossum'
+
+# 3.4.7 Dataclass（自动生成init()、repr()和eq()）
+from dataclasses import dataclass, field
+@dataclass(init=True, repr=True, eq=True, order=False, frozen=False)
+class <class_name>:
+    <attr_name_1>: <type>
+    <attr_name_2>: <type> = <default_value>
+    <attr_name_3>: list/dict/set = field(default_factory=list/dict/set)
+# 对象可以使用'order=True'进行排序 用'frozen=True'使数据类不可变
+# 若让对象hashable，必须保证所有属性hashable且'frozen=True'
+# <attr_name>: list = []'所有实例共享一个list, 用field()可以解决这个问题
+# 对于任意类型的属性使用'typing.Any'类型
+from dataclasses import make_dataclass
+<class> = make_dataclass('<class_name>', <coll_of_attribute_names>)
+<class> = make_dataclass('<class_name>', <coll_of_tuples>)
+<tuple> = ('<attr_name>', <type> [, <default_value>])
+# 其余类型的注解 (CPython解释器会忽略这些类型):
+def func(<arg_name>: <type> [= <obj>]) -> <type>: ...
+<var_name>: typing.List/Set/Iterable/Sequence/Optional[<type>]
+<var_name>: typing.Dict/Tuple/Union[<type>, ...]
+
+# 3.4.8 Slots
+# 需要将属性字符串顺序赋值给__slot__属性，
+# 仅__slot__列表内的名称可赋值为实例属性，可以不赋值但不赋值不能被使用
+# 显著减少内存占用，优化速度，但与Python的灵活性相背离
+class MyClassWithSlots:
+    __slots__ = ['a']
+    def __init__(self):
+        self.a = 1
+        
+# 3.4.9 Copy
+from copy import copy, deepcopy
+# 赋值操作并不clone对象，仅创建引用并绑定到原对象，原对象的一切改变都将反映到赋值对象上
+# copy操作clone第一层引用对象
+# deepcopy操作递归clone对象
+<object> = copy(<object>)
+<object> = deepcopy(<object>)
+```
+
+```python
+#######################################################################
 # 4. System
 #######################################################################
 

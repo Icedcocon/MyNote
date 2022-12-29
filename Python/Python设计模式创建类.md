@@ -156,16 +156,13 @@ GoF的23种设计模式中，创建型模式讨论的是高效创建对象的问
 
 ## 案例实现
 
-- [《大话设计模式》C++版](https://github.com/yogykwan/design-patterns-cpp)
-- [《大话设计模式》Python版](https://github.com/yogykwan/design-patterns-py)
+### 简单工厂模式
 
-# 简单工厂模式
-
-### 内容
+##### 内容
 
  不直接向客户端暴露对象创建的实现细节，而是通过一个工厂类来负责创建产品类的实
 
-### 角色
+##### 角色
 
 - 工厂角色(Creator)
 
@@ -173,7 +170,7 @@ GoF的23种设计模式中，创建型模式讨论的是高效创建对象的问
 
 - 具体产品角色(Concrete Product)
 
-### 优缺点
+##### 优缺点
 
 - 优点：
   
@@ -183,11 +180,11 @@ GoF的23种设计模式中，创建型模式讨论的是高效创建对象的问
 
 - 缺点：
   
-  - 违反了单一职责原则，将创建逻辑几种到一个工厂类里
+  - 违反了单一职责原则，将创建逻辑集中到一个工厂类里
   
   - 当添加新产品时，需要修改工厂类代码，违反了开闭原则
 
-### 特点
+##### 特点
 
 - 判断位于工厂类内，但工厂类并不实现功能
 
@@ -195,11 +192,28 @@ GoF的23种设计模式中，创建型模式讨论的是高效创建对象的问
 
 - 简单工厂模式的最大优点在于工厂类中包含了必要的逻辑判断，根据客户端的选择条件动态实例化相关的类，对于客户端来说，去除了与具体产品的依赖。
 
-### UML
+##### UML
 
-<img title="" src="file:///D:/Cache/MarkText/2022-08-01-17-33-51-image.png" alt="" width="480" data-align="center">
+```mermaid
+classDiagram
+    OperationFactory --> Opertaion
+    Opertaion <|-- OperationPlus
+    Opertaion <|-- OperationMinus
+    Opertaion : +double numberA
+    Opertaion : +double numberB
+    Opertaion : +double getResult()
+    class OperationPlus{
+        +double getResult()
+    }
+    class OperationMinus{
+        +double getResult()
+    }
+    class OperationFactory{
+        +Opertaion createOperation()
+    }
+```
 
-### 代码
+##### 代码
 
 ```python
 #!/usr/bin/env python
@@ -240,15 +254,13 @@ if __name__ == '__main__':
     print(op.getResult())
 ```
 
-# 工厂方法模式
-
 ### 工厂方法模式
 
-### 内容
+##### 内容
 
  定义一个用于创建对象的接口，让子类决定实例化哪个类。**工厂方法模式让一个类的实例化延迟到其子类。**
 
-### 角色
+##### 角色
 
 - 抽象工厂角色(Creator)
 
@@ -258,7 +270,7 @@ if __name__ == '__main__':
 
 - 具体产品角色(Concrete Product)
 
-### 优缺点
+##### 优缺点
 
 - 优点：
   
@@ -270,7 +282,7 @@ if __name__ == '__main__':
   
   - 每增加一个具体产品类，就必须增加一个相应的具体工厂类
 
-### 特点
+##### 特点
 
 - 工厂方法模式就是简单工厂模式的进一步抽像。工厂方法模式中，核心的工厂被提升为一个抽象类，将具体的创建工作交给他的子类完成。这个**抽象的工厂类仅规定具体工厂实现的接口**，而不明确指出如何实例化一个产品类，这使得工厂方法模式允许系统在不修改原有产品结构的情况下轻松的引进新产品。
 
@@ -278,11 +290,11 @@ if __name__ == '__main__':
 
 - 简单工厂模式违背了开放-封闭原则，工厂方法模式借助多态，克服了该缺点，却保持了封装对象创建过程的优点。
 
-### UML
+##### UML
 
 <img title="" src="file:///D:/Cache/MarkText/2022-08-01-17-38-01-image.png" alt="" data-align="center" width="578">
 
-### 代码
+##### 代码
 
 ```python
 from abc import ABCMeta, abstractmethod

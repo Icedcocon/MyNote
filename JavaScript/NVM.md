@@ -51,4 +51,6 @@ nvm ls-remote
 nvm install v7.6.0
 # 切换node.js版本
 nvm use v7.6.0
+# 卸载node.js
+nvm uninstall v7.6.0
 ```

@@ -161,7 +161,32 @@ for item in $@; do
 done
 ```
 
-- 复制到新平台后执行`docker load < ${img_name}.tar.gz`
+- 复制到新平台后执行
+
+```bash
+#! /bin/bash
+cd $(dirname $0)
+
+for item in $@; do
+  docker pull $item
+
+  img_name=${item##*/}
+  tag_name=${img_name%:*}
+  img_name=${img_name/:/_}
+  img_name=${img_name%-*}
+
+  docker load < ${img_name}.tar.gz
+
+  img_version_num=${item##*:}
+  img_version=${img_version_num%-*}
+  src="$(docker images | grep $tag_name  | grep ' '$img_version' ' | grep -v ' '${img_version_num}' ' | cut -d ' ' -f1)"
+  dst="$(docker images | grep $tag_name  | grep ' '$img_version_num' ' | grep 'harbor-infp.com' | cut -d ' ' -f1)"
+  # echo ${src}:${img_version}
+  # echo ${dst}:${img_version_num}
+  docker tag  ${src}:${img_version} ${dst}:${img_version_num}
+  docker push ${dst}:${img_version_num}
+done
+```
 
 # V2.2 HTTPS支持
 

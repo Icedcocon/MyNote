@@ -18,40 +18,53 @@ git branch
 # 开发
 *****************
 
-#查看那些文件修改了
+# 查看那些文件修改了
 git status
-#提交好修改的文件大本地仓库
+# 提交好修改的文件大本地仓库
 git add filename1 filename2
-#提交comit 信息（这个是作为代码提交的检查的 符合你们公司的开发规范）
+# 提交commit 信息（代码提交的检索信息 符合公司开发规范）
 git commit --amend (git commit -m "公司的规范")
-#推送到本地同时提交PR
+# 推送到本地同时提交PR
 git push -f origin ${LocalBranch}(本地分支):${RemoteBranch}(远端分支)
 ```
 
 ```bash
-# 拉取远端主仓库
-git fetch upstream
+# 拉取远端仓库代码（在本地建立与远端的仓库的分支同时取名为分支名）
+git fetch upstram
+git fetch upstram ${RemoteBranch}(远端分支):${LocalBranch}(本地分支)
 # 进行合并操作(可以使用rebase 和merege两种操作)
-# 在本地项目路径下 将${origin/Branch}(最新的)合并到${OwnBranch}(当前本地分支)
-git rebase ${OwnBranch}(本地的分支) 
+# 在本地项目路径下 将${LocalBranch}(最新的)合并到master分支(当前本地分支)
+git checkout master
+git rebase ${LocalBranch}(本地分支) 
+git merge ${LocalBranch}(本地分支) 
 
-#这个时候就会出现有conflict问题
+# 出现conflict问题
 *****************************
-#查看有哪些文件有冲突
+# 查看有哪些文件有冲突
 git diff
-#解决好冲突
+# 解决冲突
 ******************************
-#重新提交刚刚解决冲突的文件
+# 重新提交刚刚解决冲突的文件
 git add filename1 filename2
-#提交commit 信息 记得这几是需要需改符合你公司的要求或者是开源社区的要求
+# 提交commit 信息（代码提交的检索信息 符合公司开发规范）
 git commit --amend
-#推送到本地同时提交PR 
-git push -f origin topic/jiale_xiong/data/vxp568(本地分支):vxrail-cr（个人远端分支）
+# 推送到本地同时提交PR 
+git push -f origin ${LocalBranch}(本地分支):${RemoteBranch}（远端分支）
 ```
 
 ```bash
-# fetch 远端仓库代码（在你的本地建立与远端的仓库的分支同时取名为分支名）
-git fetch upstram 分支名：分支名
+# 查看历史commit id及信息
+git log
+# 版本回退并丢弃后面的修改内容
+git reset --hard ${commitID}
+# 因为版本比origin更旧因此需要使用push -f强制更新
+git push -f origin ${LocalBranch}(本地分支):${RemoteBranch}（远端分支）
+# 版本回退并保留之后的修改
+git revert -n ${commitID}
+# 提交commit 信息（代码提交的检索信息 符合公司开发规范）
+git commit --amend
+# 推送到本地同时提交PR 
+git push origin ${LocalBranch}(本地分支):${RemoteBranch}（远端分支）
 ```
 
 ```bash
@@ -80,4 +93,28 @@ git add README.md    # git add . 添加所有文件
 git commit -m "init commit"
 git remote add origin http://XXXXXX:11000/GogsAdmin/demo-server.git # 添加并推送已创建的仓库至远程仓库
 git push -u origin master
+```
+
+```bash
+# 切换到A分支
+git checkout A
+# 获取A分支最新代码
+git pull
+# 切换到B分支
+git checkout B
+# 获取B分支最新代码
+git pull
+# 合并分支
+git merge A
+
+# 切换到A分支
+git checkout A
+# 获取A分支最新代码
+git pull
+# 切换到B分支
+git checkout B
+# 获取B分支最新代码
+git pull
+# 合并指定文件或者文件夹到分支
+git checkout A README.md
 ```

@@ -1197,7 +1197,7 @@ metadata:  <Object>
 
 
 
-# Pod容器
+# Pod.spec-容器相关字段列表
 spec:
   containers: <[]Object> -required- # 容器列表 至少有一个容器 无法更新(增删)
   enableServiceLinks: <boolean> # 是否将服务信息注入Pod环境变量中(True)
@@ -1209,12 +1209,36 @@ spec:
 # kubectl debug podName -ti --image=imageName
 # kubectl debug node nodeName -it --image=imageName
 
-# 容器-镜像
-# 容器-Entrypoint
-# 容器-端口
-# 容器-环境变量
+# Pod.spec.containers-镜像相关字段列表
+# Pod.spec.containers-Entrypoint相关字段列表
+# Pod.spec.containers-端口相关字段列表
+# Pod.spec.containers-环境变量相关字段列表
+spec:
+  env: <[]Object>    # 在容器中设置的环境变量列表
+    name:         <string> -required- # 环境变量的名称
+    value:        <string> # 引用容器已有变量$(VAR)扩展 不能解析则变量不替换
+    valueFrom:    <Object> # 环境变量值的来源
+      configMapKeyRef:    <Object>  # 选择ConfigMap的一个主键
+        key:      <string> -required- # configMap.data中key的名称
+        name:     <string>            # configMap资源对象的名称
+        optional: <boolean>           # 指定ConfigMap或其主键是否必须已经定义
+      fieldRef:            <Object>   # Pod字段信息
+        apiVersion: <string>
+        fieldPath:  <string> -required-  # 支持以下字段
+        # metadata.name、metadata.namespace、metadata.labels['<KEY>']
+        # metadata.annotations['<KEY>']、spec.nodeName
+        # spec.serviceAccountName、status.hostIP status.podIP
+        # status.podIPs
+      resourceFieldRef: <Object>
+        containerName: <string>
+        divisor:       <string>
+        resource:       <string> -required-
+      secretKeyRef:        <Object>
+        key:      <string> -required-
+        name:      <string>
+        optional: <boolean>
 
-# 容器-卷
+# Pod.spec.containers-卷相关字段列表
 spec:
   containers:
     volumeMounts: <[]Object> 
@@ -1245,10 +1269,10 @@ spec:
 # (2) ConfigMap或Secret挂载到特定目录的特定路径, 且该目录下已有文件且不希望被覆盖掉。
 # (1) subPath直接指定子目录的名字，subPathExpr则指定${XXX}，通过环境变量获取
 
-# 容器-资源
-# 容器-生命周期
-# 容器-安全上下文
-# 容器-调试
+# Pod.spec.containers-资源相关字段列表
+# Pod.spec.containers-生命周期相关字段列表
+# Pod.spec.containers-安全上下文相关字段列表
+# Pod.spec.containers-调试相关字段列表
 ```
 
 ```yaml
@@ -1728,6 +1752,10 @@ kube-apiserver --enable-admission-plugins=NamespaceLifecycle,LimitRanger
 kube-apiserver --disable-admission-plugins=PodNodeSelector,AlwaysDeny ...
 # (3) 查看默认启用的插件
 kube-apiserver -h | grep enable-admission-plugins
+
+
+https://blog.csdn.net/rendongxingzhe/article/details/124682560
+https://zhuanlan.zhihu.com/p/456089100
 ```
 
 ```bash

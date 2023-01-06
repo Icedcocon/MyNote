@@ -1238,7 +1238,7 @@ spec:
         name:      <string>
         optional: <boolean>
 
-# Pod.spec.containers-卷相关字段列表
+# Pod.spec.containers-挂载相关字段列表
 spec:
   containers:
     volumeMounts: <[]Object> 
@@ -1756,6 +1756,9 @@ kube-apiserver -h | grep enable-admission-plugins
 
 https://blog.csdn.net/rendongxingzhe/article/details/124682560
 https://zhuanlan.zhihu.com/p/456089100
+******************************************
+https://www.cnblogs.com/LiuChang-blog/p/15203855.html
+******************************************
 ```
 
 ```bash

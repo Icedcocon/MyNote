@@ -9,11 +9,13 @@
   - Enumerate
   - Iterator
   - Generator
+  - Collections
 '2. Types':
   - Type
   - String
   - Regular_Exp
-  - Format, Numbers
+  - Format
+  - Numbers
   - Combinatorics
   - Datetime
 '3. Syntax':
@@ -62,6 +64,57 @@
   - Audio
   - Games
   - Data
+```
+
+```python
+#######################################################################
+# 1. Collections
+#######################################################################
+
+# 1.9 Collections-Collections
+# 1.9.1 Collections-Collections-常见类型
+# collections时Python内建集合模块，实现多种特殊容器数据类型，是内置容器的替代方案
+# (1)namedtuple   用于创建具有命名字段的 tuple 子类的 factory 函数 (具名元组)
+# (2)deque        类似 list 的容器，两端都能实现快速 append 和 pop (双端队列)
+# (3)ChainMap     类似 dict 的类，用于创建多个映射的单视图
+# (4)Counter      用于计算 hashable 对象的 dict 子类 (可哈希对象计数)
+# (5)OrderedDict  记住元素添加顺序的 dict 子类 (有序字典)
+# (6)defaultdict  dict 子类调用 factory 函数来提供缺失值
+# (7)UserDict     包装 dict 对象以便于 dict 的子类化
+# (8)UserList     包装 list 对象以便于 list 的子类化
+# (9)UserString   包装 string 对象以便于 string 的子类化
+
+# 1.9.2 Collections-Collections-namedtuple
+# (1) 内建普通元组tuple存在不能为元素命名的局限，因此表达意义不明显
+# (2) 引入工厂函数collections.namedtuple,构造带字段名的具名元组 
+# (3) 两者实例消耗内存相同 (因字段名被保存在对应类中) 但更易理解(即自文档)和维护
+# (4) 具名元组不用命名空间字典__dict__ 存放/维护实例属性，更加轻量和快速
+# (5) 具名元组namedtuple继承自tuple,属性均不可变
+collections.namedtuple(typename, \        # 具名元组名称
+                       field_names, \     # 字段名称['x','y']或'x y'或'x,y'
+                       *, \
+                       verbose=False, \
+                       rename=False, \
+                       module=None)
+# 返回一个tuple子类
+from collections import namedtuple
+Point = namedtuple("Point", ['x', 'y']) # 初始化一个具名元组 Point
+Point                                   # <class '__main__.Point'> 自定义
+p1 = Point(2, 3)                        # 实例化Point对象p1
+p1                                      # Point(x=2, y=3) 调用__repr__
+p1.x                                    # 2 通过字段名获取元素值/字段值
+p1[0]                                   # 2 通过索引获取元素值/字段值
+for i in p1:                            # 2 3 通过迭代获取元素值/字段值
+    print(i)
+a, b = p1                               # 能够像普通tuple一样unpack
+# 类属性_fields: 获取所有字段名构成的元组
+p1._fields              # ('x','y') 获取所有字段名构成的 tuple
+# 类方法_make(iterable): 用序列sequence/可迭代对象iterable创建新实例
+p2 = p1._make([5, 6])   # Point(x=5, y=6) 实例化一个新Point对象
+# 实例方法_replace(**kwargs): 基于实例修改、替换元素生成新实例
+p3 = p1._replace(y=4.5) # Point(x=2, y=4.5) 实例化一个新Point对象
+# 实例方法_asdict(): 转为collections.OrdereDict对象,用于友好地展示信息
+p1._asdict()              # 将namedtuple对象转换为OrderedDict对象
 ```
 
 ```python
@@ -207,12 +260,123 @@ isinstance(123, Number)                # True
 | isdigit()     |          |          |       | check | check |
 | isdecimal()   |          |          |       |       |       |
 # 还包括: isspace()检测'[ \t\n\r\f\v\x1c-\x1f\x85\u2000…]'等空格
+
+
+# 2.4 Types-Format
+# 2.4.0 Types-Format-格式化方法及r、u、f、b
+<str> = f'{<el_1>}, {<el_2>}'               # f''中大括号含变量名可变量替换
+<str> = '{}, {}'.format(<el_1>, <el_2>)     # 等价（上）
+<str> = '{0}, {a}'.format(<el_1>, a=<el_2>) # 等价（下）
+<str> = '%s, %s' % (<el_1>, <el_2>)         # 冗余的C风格格式化
+# r""字符串保留转义字符,\n\t等不进行转义,常用于正则表达式; 
+# u""字符串使用unicode编码,防止源码存储格式导致乱码,常用于中文字符前; 
+# f""字符串的大括号内支持python表达式，常用于变量替换; 
+# b""字符串使用byte类型，常用于网络编程中的数据收发，send()、resv()使用byte类型
+
+# 2.4.1 Types-Format-Attributes
+collections.namedtuple('Person', 'name height')
+person = Person('Jean-Luc', 187)
+f'{person.height}'                # 187 等价
+'{p.height}'.format(p=person)     # 187 等价
+
+# 2.4.2 Types-Format-对齐
+{<el>:<10}                               # '<el>      '
+{<el>:^10}                               # '   <el>   '
+{<el>:>10}                               # '      <el>'
+{<el>:.<10}                              # '<el>......'
+{<el>:0}                                 # '<el>'
+# (1) 可以动态生成对其配置: f'{<el>:{<str/int>}[…]}'
+# (2) 冒号前添加'!r'在调用repr()时将打印字符串而非对象
+
+# 2.4.3 Types-Format-Strings
+{'abcde':10}                             # 'abcde     '
+{'abcde':10.3}                           # 'abc       '
+{'abcde':.3}                             # 'abc'
+{'abcde'!r:10}                           # "'abcde'   "
+
+# 2.4.4 Types-Format-Numbers
+{123456:10}                              # '    123456'
+{123456:10,}                             # '   123,456'
+{123456:10_}                             # '   123_456'
+{123456:+10}                             # '   +123456'
+{123456:=+10}                            # '+   123456'
+{123456: }                               # ' 123456'
+{-123456: }                              # '-123456'
+
+# 2.4.5 Types-Format-Floats
+{1.23456:10.3}                           # '      1.23'
+{1.23456:10.3f}                          # '     1.235'
+{1.23456:10.3e}                          # ' 1.235e+00'
+{1.23456:10.3%}                          # '  123.456%'
+
+# 2.4.5 Types-Format-Floats(进位补充)
+round(number[, ndigits])        # 等价于f'{number:.ndigitsf}'
+# (1) ndigits不为0的情况:
+#     1) 保留位数后一位小于等于4,则舍去，如 round(5.214,2) = 5.21
+#     2) 保留位数后一位等于5,且该位数后无数字,不进位,如round(5.215,2)=5.21
+#     3) 保留位数后一位等于5,且该位数后有数字,则进位,如round(5.2151,2)=5.22
+#     4) 保留位数后一位大于等于6,则进位。如 round(5.216,2) = 5.22
+#     5) 规则2有例外,如round(0.645,2)=0.65,因为浮点数二进制表示是近似值
+# (2) 再说下ndigits为0或None的情况：
+#     1) 保留位数后一位小于等于4,则舍去,如round(1.4) = 1
+#     2) 保留位数后一位等于5,且后无数字,则取最近偶数,如round(1.5)=2,round(2.5)=2
+#     3) 保留位数后一位等于5,且后有数字,则近位,如round(2.51)=3
+#     4) 保留位数后一位大于等于6 ,则进位,如 round(1.6) = 2
+# (3) 实现四舍五入
+import decimal
+decimal.getcontext().rounding = "ROUND_HALF_UP"              # 设置舍入方式
+x = "0.645"
+x1 = decimal.Decimal(x).quantize(decimal.Decimal("0.00")) # x1 = '0.65'
+y = "2.5"
+y1 = decimal.Decimal(y).quantize(decimal.Decimal("0"))      # y1 = '2'
+
+# 2.4.6 Types-Format-Ints
+{90:c}                                   # 'Z'
+{90:b}                                   # '1011010'
+{90:X}                                   # '5A'
 ```
 
 ```python
 #######################################################################
 # 3. Syntax
 #######################################################################
+# 3.1 Syntax-Arguments
+# 3.1.1 Syntax-Arguments-函数调用、函数定义、可变对象做默认值
+# (1) 函数调用
+func(<positional_args>)                           # func(0, 0)
+func(<keyword_args>)                              # func(x=0, y=0)
+func(<positional_args>, <keyword_args>)           # func(0, y=0)
+# (2) 函数定义
+def func(<nondefault_args>): ...                  # def func(x, y): ...
+def func(<default_args>): ...                     # def func(x=0, y=0): ...
+def func(<nondefault_args>, <default_args>): ...  # def func(x, y=0): ...
+# (3) 注意
+# def语句会创建函数对象并初始化，默认值指向的可变对象内存地址仅在初始化时设置一次
+# 每次调用函数会在局部作用域内创建默认值变量，并将变量指向可变对象内存地址
+# 若默认值是可变对象(如list)则每次调用函数对可变对象的修改都将传递到下一次调用
+def func(data=[]):
+    data.append('end')
+    print(data)
+func()        # ['end']
+func()        # ['end', 'end']
+# 建议默认值设为None并在函数内部判断
+def func(data = None):
+    if data is None:
+        data = ['end']          # data指向新开辟并初始化的list内存地址
+    else:
+        data.append('end')      # 防御可变参数 data = list(data)
+    print(data)
+func()        # ['end']-
+func()        # ['end', 'end']
+
+# 3.1.1 Syntax-Arguments-Scope
+# (1) 外围模块是全局作用域,相对当前模块导入模块的变量变成导入模块的属性
+# (2) 全局作用域的作用范围仅限于单个文件
+# (3) 赋值的变量名除非被声明为global或nonlocal,否则均为局部变量
+#     global修改或创建全局变量;nonlocal修改但不能创建外层
+# (4) 函数未定义的变量名被假定为外层函数的局部变量、全局变量或内置变量
+# (5) 函数的每次调用都会创建一个新的局部作用域,函数间的局部变量相互独立
+
 # 3.4 Class
 # 3.4.1 __repr__和__str__
 class <name>:
@@ -235,7 +399,7 @@ raise Exception(<el>)
 print/str/repr([<el>])
 f'{<el>!r}'
 Z = dataclasses.make_dataclass('Z', ['a']); print/str/repr(Z(<el>))
->>> <el>
+<el>
 
 # 3.4.2 @staticmethod和@classmethod
 class <name>:
@@ -362,7 +526,7 @@ class MyClassWithSlots:
     __slots__ = ['a']
     def __init__(self):
         self.a = 1
-        
+
 # 3.4.9 Copy
 from copy import copy, deepcopy
 # 赋值操作并不clone对象，仅创建引用并绑定到原对象，原对象的一切改变都将反映到赋值对象上

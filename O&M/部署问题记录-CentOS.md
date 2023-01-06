@@ -213,8 +213,8 @@ hostnamectl
 # 备份repo
 mv /etc/yum.repos.d/CentOS-Base.repo !#:1.bak
 # 从阿里源下载repo
-curl -sL /etc/yum.repos.d/CentOS-Base.repo > \
-https://mirrors.aliyun.com/repo/Centos-7.repo
+curl -sL https://mirrors.aliyun.com/repo/Centos-7.repo > \
+/etc/yum.repos.d/CentOS-Base.repo
 # 替换$releaserver
 sed -ri 's#\$releaserver#7#' /etc/yum.repos.d/CentOS-Base.repo
 ```

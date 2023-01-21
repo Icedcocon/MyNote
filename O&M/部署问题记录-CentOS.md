@@ -218,3 +218,150 @@ curl -sL https://mirrors.aliyun.com/repo/Centos-7.repo > \
 # 替换$releaserver
 sed -ri 's#\$releaserver#7#' /etc/yum.repos.d/CentOS-Base.repo
 ```
+
+# 高可用安装部署
+
+### config/hosts
+
+- 虚拟IP不能与已存在物理IP冲突
+- master需按顺序配置三个节点IP
+
+```bash
+#AIStation ImageRepo
+100.3.14.250 harbor-infp.com            # 不能与现有物理机IP相同
+
+#AIStation Master
+100.3.14.201 ais-master1
+100.3.14.202 ais-master2
+100.3.14.203 ais-master3
+
+#AIStation CPU Node
+100.3.14.214 ais-cpu-node1
+100.3.14.215 ais-cpu-node2
+100.3.14.216 ais-cpu-node3
+```
+
+### ais.cfg
+
+- 确认关于用户名、密码、、虚拟IP、机器码、域名的要求
+
+用户名 密码 可能回修该
+
+```bash
+#harbor
+AIS_10_HARBOR_USER=admin
+AIS_11_HARBOR_PASSWORD=Harbor12345
+AIS_12_HARBOR_DOMAIN=harbor-infp.com:24444            # 不能选14444 推荐24444
+
+
+#hadoop
+AIS_17_HADOOP_IP=100.3.14.201,100.3.14.202            # master1 和 master2 的 IP地址
+AIS_18_HADOOP_PORT=14000
+AIS_19_HADOOP_LINK=http://100.3.14.201:14000,http://100.3.14.202:14000
+AIS_20_HADOOP_USER=root
+
+
+#database
+AIS_21_DB_HOST=100.3.14.250
+AIS_22_DB_PORT=13306                                # 13306
+
+#license and system serving
+AIS_36_LICENSE_MACHINECODE=b4:05:5d:5d:8c:a0        # machine code
+
+#cluster manager
+AIS_38_CLUSTER_CMSNODE=ais-master1
+AIS_40_CLUSTER_DOMAIN=test.cluster250                # 域名可能修改
+```
+
+- disk.ha
+
+```bash
+ais-master1:/dev/sdb                                # lsblk
+ais-master2:/dev/sdb                                # 第一级物理盘
+ais-master3:/dev/sdb
+```
+
+- 每步检测指令
+
+```bash
+# Step 1
+ssh IP                                                 #检测免密
+cat /var/log/ntpdate/ntpdate.log                    # ntpdate
+ip a | grep {virtual IP}        # 正常有一行字 尝试3个master节点 存在一个节点
+systemctl status  keepalived & haproxy
+
+# Step 2 
+dig 
+
+# Step 3
+docker version
+kubeadm version
+kubectl version
+systemctl status docker 、 kuberlet 
+
+# Step 4 
+http://[hadoop_IP]:50070        # master1 和 master2 的 IP ; 
+                                # nodes 状态active  stand by
+
+# Step 5
+https://[harbor_IP]:14444        # 三个master节点实际IP x3
+https://[harbor_IP]:24444        # 虚拟IP
+
+# Step 6
+mysql -uroot -proot -P port -h IP    # 三个master实际IP:3306 x 3
+                                    # 虚拟IP:13306 
+
+# Step 7
+http://[openldap_IP]:8086/phpldapadmin # master1 master2 IP:8086 x 2
+                                       # 虚拟IP:8086
+
+# Step 8
+ceph -s                                # 三个master节点执行 x 3
+lsblk                                # 会多出一行内容 *ceph*
+
+# Step 9
+nvidia-smi
+
+# Step 10
+
+# Step 12
+docker ps | grep -v goharbor | grep -v k8s            # 所有容器处于healthy状态打开UI界面
+
+#Step 
+```
+
+### 待办事项
+
+- 配置ntp服务，使用云平台指定ntp服务器，到/home/aistation/ais下修改
+  
+  - 111计算节点已修改/var/spool/cron/root 和 /etc/crontab
+  
+  - 112-114 master节点已修改/etc/crontab
+  
+  - 111-114节点修改config/ais.cfg文件
+
+- 修改域名，与存储和云平台配合，到/home/aistation/ais下修改
+  
+  - 已修改所有节点/home/aistation/ais/config/ais.cfg
+  
+  - 已修改112节点/root/aisha-install-v2.3/config/ais.cfg
+  
+  - 已在112节点重新执行第二步
+
+- 为gpu80-84安装寒武纪显卡驱动
+  
+  - 已在80-82三台master节点安装并验证
+  
+  - 
+
+- 数据库修改
+  
+  - 修改完成
+
+- 消除master节点的taint
+  
+  - 消除master1-3的node-role.kubernetes.io/master:NoSchedule的taint
+
+### 问题
+
+- 执行到第8步时修改/root/ais-install-v2.3 为 /root/aisha-install-v2.3

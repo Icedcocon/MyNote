@@ -129,7 +129,8 @@ openssl ca -in identify/server/server.csr \
            -cert identify/ca/ca.crt \
            -keyfile identify/ca/ca.key \
            -extensions v3_req \
-           -config /etc/pki/tls/openssl.cnf
+           -config /etc/pki/tls/openssl.cnf\
+           -policy policy_anything
 
 # 1.3.3 客户端证书
 # (1) 生成证书密钥
@@ -143,7 +144,8 @@ openssl ca -in identify/client/client.csr \
            -cert identify/ca/ca.crt \
            -keyfile identify/ca/ca.key \
            -out identify/client/client.crt \
-           -config bin/cnf/openssl.cnf
+           -config bin/cnf/openssl.cnf\
+           -policy policy_anything 
 ```
 
 ```bash
@@ -319,7 +321,7 @@ openssl rsa -in RSA.pem -des -passin pass:123456 -text -noout
 openssl rsa -in RSA.pem -passin pass:123456 -pubout -out pub.pem # 提取公钥
 # (5) 转换密钥的格式
 openssl rsa -in RSA.pem -passin pass:123456 -des -passout pass:123456 \
-		-outform der -out rsa.der 			 # 把pem格式转化成der格式
+        -outform der -out rsa.der              # 把pem格式转化成der格式
 
 
 # 2.1.7.3 rsautl
@@ -328,11 +330,11 @@ openssl rsa -in RSA.pem -passin pass:123456 -des -passout pass:123456 \
 # 并且根据具体的补齐方式不同输入的加密数据最大长度也不一样，而输出长度则总是跟RSA密钥长度相等
 # RSA不同的补齐方法对应的输入输入长度如下表
 
-# 数据补齐方式	     输入数据长度	                输出数据长度	参数字符串
-# PKCS#1 v1.5	     少于(密钥长度-11)字节	       同密钥长度	-pkcs
-# PKCS#1 OAEP	     少于(密钥长度-11)字节	       同密钥长度	-oaep
-# PKCS#1 for SSLv23	 少于(密钥长度-11)字节         同密钥长度	-ssl
-# 不使用补齐	          同密钥长度	                  同密钥长度	   -raw
+# 数据补齐方式         输入数据长度                    输出数据长度    参数字符串
+# PKCS#1 v1.5         少于(密钥长度-11)字节           同密钥长度    -pkcs
+# PKCS#1 OAEP         少于(密钥长度-11)字节           同密钥长度    -oaep
+# PKCS#1 for SSLv23     少于(密钥长度-11)字节         同密钥长度    -ssl
+# 不使用补齐              同密钥长度                      同密钥长度       -raw
 
 -in file        input file                                           //输入文件
 -out file       output file                                          //输出文件

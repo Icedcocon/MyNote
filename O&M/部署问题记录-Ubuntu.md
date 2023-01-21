@@ -89,12 +89,22 @@ apt remove {name}    # 卸载软件
 apt purage {name}    # 移除安装包及配置文件
 apt update           # 刷新索引缓存
 apt search {name}    # 搜索应用
+apt --fix-broken install      # 自动修复依赖关系
 
 apt-cache madison {name}   # 查看仓库中可供下载的版本
 apt-cache show {name}      # 查看详细信息
 apt-cache depends {name}   # 查看文件所需依赖
 
 apt-get --download-only install {name}    # 将安装包及其依赖下载到本地
+apt-get install {name} --reinstall        # 重新安装
+apt-get autoremove                        # 自动清理已安装但不被依赖的程序
+apt-get install check                # 查看未被满足的依赖关系
+
+dpkg -C                    # 检查已被解开但尚未配置的安装包(常用于dpkg安装冲突)
+dpkg --force-overwrite -i {name}  # 高风险，强制覆盖
+# 强制覆盖用于--fix-broken已经将安装包下载到/var/cache/apt/archives下
+# 但因冲突未被安装的情况
+dpkg --configure -a        # dpkg被中断后使用
 ```
 
 - 由于apt-get下载deb包时不能指定下载路径，默认下载到`/var/cache/apt/archives`，因此需要使用脚本辅助：
@@ -212,7 +222,7 @@ fudge 127.127.1.0 stratum 8
 ```bash
 # 将/etc/named.rfc1912.zones替换为/etc/bind/named.conf.default-zones
 sed -ri 's/etc\/named\.rfc1912\.zones/etc\/bind\/named\.conf\.local/g' 3rd/bind-dns/setup.sh
-# 将/etc/named/替换为/etc/cache/bind/
+# 将/etc/named/替换为/etc还是var?/cache/bind/
 sed -ri '26,30s/named/cache\/bind/g' 3rd/bind-dns/setup.sh
 # 将named.conf替换为named.conf.options
 sed -ri '32,34s/named\.conf/named\.conf\.options/g' 3rd/bind-dns/setup.sh

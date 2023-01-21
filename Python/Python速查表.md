@@ -19,12 +19,15 @@
   - Combinatorics
   - Datetime
 '3. Syntax':
-  - Args, Inline
+  - Args
+  - Splat 
+  - Inline
   - Import
   - Decorator
   - Class
   - Duck_Types
-  - Enum, Exception
+  - Enum
+  - Exception
 '4. System':
   - Exit
   - Print
@@ -369,13 +372,93 @@ def func(data = None):
 func()        # ['end']-
 func()        # ['end', 'end']
 
-# 3.1.1 Syntax-Arguments-Scope
+# 3.1.2 Syntax-Arguments-Scope
 # (1) 外围模块是全局作用域,相对当前模块导入模块的变量变成导入模块的属性
 # (2) 全局作用域的作用范围仅限于单个文件
 # (3) 赋值的变量名除非被声明为global或nonlocal,否则均为局部变量
 #     global修改或创建全局变量;nonlocal修改但不能创建外层
 # (4) 函数未定义的变量名被假定为外层函数的局部变量、全局变量或内置变量
 # (5) 函数的每次调用都会创建一个新的局部作用域,函数间的局部变量相互独立
+
+
+# 3.2 Splat Operator
+# 3.2.1 Syntax-Splat Operator-函数调用时的splat运算符
+# splat运算符(*)将集合展开为位置参数
+# splty-Splat运算符(**)将字典展开为关键字参数
+args   = (1, 2)
+kwargs = {'x': 3, 'y': 4, 'z': 5}
+func(*args, **kwargs)            # 等价于下行
+func(1, 2, x=3, y=4, z=5)        # 等价于上行
+
+# 3.2.2 Syntax-Splat Operator-函数定义时的splat运算符
+# splat运算符(*)将零个或多个位置参数组合到元组中
+# splty-Splat运算符(**)将零个或多个关键字参数组合到字典中
+def add(*a):
+    return sum(a)
+add(1, 2, 3)        # 6
+# 合法的参数组合:
+def f(*args): ...               # f(1, 2, 3)
+def f(x, *args): ...            # f(1, 2, 3)
+def f(*args, z): ...            # f(1, 2, z=3)
+def f(**kwargs): ...            # f(x=1, y=2, z=3)
+def f(x, **kwargs): ...         # f(x=1, y=2, z=3) | f(1, y=2, z=3)
+def f(*args, **kwargs): ...     # f(x=1, y=2, z=3) | f(1, y=2, z=3) |
+                                # f(1, 2, z=3)     | f(1, 2, 3)
+def f(x, *args, **kwargs): ...  # f(x=1, y=2, z=3) | f(1, y=2, z=3) |
+                                # f(1, 2, z=3)     | f(1, 2, 3)
+def f(*args, y, **kwargs): ...  # f(x=1, y=2, z=3) | f(1, y=2, z=3)
+def f(*, x, y, z): ...          # f(x=1, y=2, z=3)
+def f(x, *, y, z): ...          # f(x=1, y=2, z=3) | f(1, y=2, z=3)
+def f(x, y, *, z): ...          # f(x=1, y=2, z=3) | f(1, y=2, z=3) |
+                                # f(1, 2, z=3)
+
+# 3.2.3 Syntax-Splat Operator-splat运算符其他用法
+<list>  = [*<coll.> [, ...]]    # Or: list(<collection>) [+ ...]
+<tuple> = (*<coll.>, [...])     # Or: tuple(<collection>) [+ ...]
+<set>   = {*<coll.> [, ...]}    # Or: set(<collection>) [| ...]
+<dict>  = {**<dict> [, ...]}    # Or: dict(**<dict> [, ...])
+head, *body, tail = <coll.>     # Head 或 tail 可以被省略
+
+# 3.3 Inline
+# 3.3.1 Syntax-Inline-Lambda函数
+<func> = lambda: <return_value>                     # 单个语句函数
+<func> = lambda <arg_1>, <arg_2>: <return_value>    # 可接受默认参数
+
+# 3.3.2 Syntax-Inline-Comprehensions推导式
+<list> = [i+1 for i in range(10)]         # Or: [1, 2, ..., 10]
+<iter> = (i for i in range(10) if i > 5)  # Or: iter([6, 7, 8, 9])
+<set>  = {i+5 for i in range(10)}         # Or: {5, 6, ..., 14}
+<dict> = {i: i*2 for i in range(10)}      # Or: {0: 0, 1: 2, ..., 9: 18}
+[l+r for l in 'abc' for r in 'abc']       # ['aa', 'ab', 'ac', ..., 'cc']
+
+# 3.3.3 Syntax-Inline-Map, Filter, Reduce
+# 对可迭代对象元素进行操作
+<iter> = map(lambda x: x + 1, range(10))    # Or: iter([1, 2, ..., 10])
+# 对可迭代对向进行过滤，返回True/False
+<iter> = filter(lambda x: x > 5, range(10)) # Or: iter([6, 7, 8, 9])
+# 对可迭代对象进行组合，函数需要传入两个值，会将结果传入下一次迭代进行处理
+<obj>  = reduce(lambda out, x: out + x, range(10))  # Or: 45
+# 使用reduce需要导入Reducefunctools模块
+
+# 3.3.4 Syntax-Inline-Any, All
+<bool> = any(<collection>)        # 有元素为True则返回True
+any([0, '', [], None]) == False
+<bool> = all(<collection>)        # 空或所有元素都为True则返回True
+
+# 3.3.5 Syntax-Inline-Conditional Expression条件表达式
+<obj> = <exp> if <condition> else <exp>         # 只有一个表达式会执行
+>>> [a if a else 'zero' for a in (0, 1, 2, 3)]  # ['zero', 1, 2, 3]
+
+# 3.3.6 Syntax-Inline-Named Tuple, Enum, Dataclass
+from collections import namedtuple
+Point = namedtuple('Point', 'x y')                 # 创建元组子类
+point = Point(0, 0)                                # 返回实例
+from enum import Enum
+Direction = Enum('Direction', 'N E S W')           # 创建枚举类型
+direction = Direction.N                            # 返回值
+from dataclasses import make_dataclass
+Player = make_dataclass('Player', ['loc', 'dir'])  # 创建dataclass
+player = Player(point, direction)                  # 返回实例
 
 # 3.4 Class
 # 3.4.1 __repr__和__str__

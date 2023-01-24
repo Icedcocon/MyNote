@@ -265,6 +265,42 @@ isinstance(123, Number)                # True
 # 还包括: isspace()检测'[ \t\n\r\f\v\x1c-\x1f\x85\u2000…]'等空格
 
 
+# 2.3 Regex正则表达
+# 2.3.1 Type-Regex正则表达-常用方法
+import re
+<Pattern>=re.compile(<str>,flag=0)             # Pattern可调用以下re方法
+<str>   = re.sub(<regex>, new, text, count=0)  # new替换所有匹配项
+<list>  = re.findall(<regex>, text)            # 返回所有匹配项
+<list>  = re.split(<regex>, text, maxsplit=0)  # 将<re>做分隔符分割text
+<Match> = re.search(<regex>, text)             # 查找第一个匹配项
+<Match> = re.match(<regex>, text)              # 从文本开头查找匹配项
+<iter>  = re.finditer(<regex>, text)           # 返回所有的Match object
+# (0) <regex> = r'...'
+# (1) 参数'new'可以是一个接受Match对象并返回字符串的函数。
+# (2) Search()和match()如果找不到匹配则返回None。
+# (3) 参数'flags=re.IGNORECASE' 忽略大小写
+# (4) 参数'flags=re.MULTILINE'  令'^'和'$'匹配每行的开始/结束等换行符
+# (5) 参数'flags=re.DOTALL'     令'.'运算符可以匹配'\n'。
+# (6) r'\1'或'\\1'可在new中用于指明<regex>中的group，从而灵活替换
+# (7) 在'*'或'+'后添加'?'采用非贪婪模式，即选择尽可能少的字符串匹配
+
+# 2.3.2 Type-Regex正则表达-Match Object
+<str>   = <Match>.group()      # 返回所有匹配项，相当于group(0).
+<str>   = <Match>.group(1)     # 仅返回第一个括号中的部分
+<tuple> = <Match>.groups()     # 返回所有括号中的部分
+<int>   = <Match>.start()      # 返回匹配项的开始索引
+<int>   = <Match>.end()        # 返回匹配项的唯一结束索引
+
+# 2.3.3 Type-Regex正则表达-Special Sequences 特殊字符序列
+'\d' == '[0-9]'                # 匹配整数字符
+'\w' == '[a-zA-Z0-9_]'         # 匹配字母、数字和下划线。
+'\s' == '[ \t\n\r\f\v]'        # 匹配空格
+'(.*?)'                        # 仅返回()内
+                               # '.'匹配任何字符
+                               # '*'匹配任意多个前一个字符
+                               # '?'非贪婪模式，尽可能少的字符串
+# (1) \d\w\s默认匹配所有编码的十进制字符和空格，除非设置'flags=re.ASCII'
+
 # 2.4 Types-Format
 # 2.4.0 Types-Format-格式化方法及r、u、f、b
 <str> = f'{<el_1>}, {<el_2>}'               # f''中大括号含变量名可变量替换

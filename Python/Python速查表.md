@@ -435,6 +435,73 @@ y1 = decimal.Decimal(y).quantize(decimal.Decimal("0"))      # y1 = '2'
 {90:c}                                   # 'Z'
 {90:b}                                   # '1011010'
 {90:X}                                   # '5A'
+
+# 2.5 Types-Numbers
+# 2.5.1 Types-Numbers-int/float/complex/fractions
+<int>      = int(<float/str/bool>)        # Or: math.floor(<float>)
+<float>    = float(<int/str/bool>)        # Or: <real>e±<int>
+<complex>  = complex(real=0, imag=0)      # Or: <real> ± <real>j
+<Fraction> = fractions.Fraction(0, 1)     # Or: Fraction(numerator=0, denominator=1)
+<Decimal>  = decimal.Decimal(<str/int>)   # Or: Decimal((sign, digits, exponent))
+# (1) 'int(<str>)' 和 'float(<str>)' 传入非法字符会抛出 ValueError
+# (2) Decimal可以精确存储数字，不像float那样不精确
+# (3) 浮点数可以用以下方法进行比较 'math.isclose(<float>, <float>)'
+# (4) Decimal运算精度通过以下方式设置 'decimal.getcontext().prec = <int>'.
+
+# 2.5.2 Types-Numbers-Basic Functions基本函数
+<num> = pow(<num>, <num>)               # Or: <num> ** <num>
+<num> = abs(<num>)                      # <float> = abs(<complex>)
+<num> = round(<num> [, ±ndigits])       # `round(126, -1) == 130`
+
+# 2.5.3 Types-Numbers-Math数学计算和符号
+from math import e, pi, inf, nan, isinf, isnan    # `<el> == nan`永远为False.
+from math import sin, cos, tan, asin, acos, atan  # 还有 degrees, radians.
+from math import log, log10, log2                 # log可以接受基数作为第二参数
+
+# 2.5.4 Types-Numbers-Statistics数理统计函数
+from statistics import mean, median, variance  # 还有stdev, quantiles, groupby
+
+# 2.5.5 Types-Numbers-Random随机数
+from random import random, randint, choice  # 还有shuffle,gauss,triangular,seed
+<float> = random()                          # [0, 1)间的浮点数
+<int>   = randint(from_inc, to_inc)         # [from_inc, to_inc]间的整数
+<el>    = choice(<sequence>)                # 保持序列完整
+
+# 2.5.6 Types-Numbers-Bin, Hex
+<int> = ±0b<bin>             # Or: ±0x<hex>
+<int> = int('±<bin>', 2)     # Or: int('±<hex>', 16)
+<int> = int('±0b<bin>', 0)   # Or: int('±0x<hex>', 0)
+<str> = bin(<int>)           # 返回 '[-]0b<bin>'.
+
+# 2.5.7 Types-Numbers-Bitwise Operators位操作
+<int> = <int> & <int>          # 且  (0b1100 & 0b1010 == 0b1000).
+<int> = <int> | <int>          # 或  (0b1100 | 0b1010 == 0b1110).
+<int> = <int> ^ <int>          # 异或 (0b1100 ^ 0b1010 == 0b0110).
+<int> = <int> << n_bits        # 左移  >> 用于右移
+<int> = ~<int>                 # 非 也可用 -<int> 如 - 1
+
+# 2.6 Types-Combinatorics
+# 每个函数都会返回一个迭代器
+# 打印可传递给list()函数
+import itertools as it
+>>> it.product([0, 1], repeat=3)
+[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1),
+ (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
+>>> it.product('abc', 'abc')                      #   a  b  c
+[('a', 'a'), ('a', 'b'), ('a', 'c'),              # a x  x  x
+ ('b', 'a'), ('b', 'b'), ('b', 'c'),              # b x  x  x
+ ('c', 'a'), ('c', 'b'), ('c', 'c')]              # c x  x  x
+>>> it.combinations('abc', 2)                     #   a  b  c
+[('a', 'b'), ('a', 'c'),                          # a .  x  x
+ ('b', 'c')]                                      # b .  .  x
+>>> it.combinations_with_replacement('abc', 2)    #   a  b  c
+[('a', 'a'), ('a', 'b'), ('a', 'c'),              # a x  x  x
+ ('b', 'b'), ('b', 'c'),                          # b .  x  x
+ ('c', 'c')]                                      # c .  .  x
+>>> it.permutations('abc', 2)                     #   a  b  c
+[('a', 'b'), ('a', 'c'),                          # a .  x  x
+ ('b', 'a'), ('b', 'c'),                          # b x  .  x
+ ('c', 'a'), ('c', 'b')]                          # c x  x  .
 ```
 
 ```python

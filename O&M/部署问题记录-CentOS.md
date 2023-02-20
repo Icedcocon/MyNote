@@ -120,9 +120,13 @@ yum install -y
 
 # 修改集群域名
 
+- 获取knative中knative-serving的congifMap信息并修改config-domain
+
 `kubectl get cm -A`
 
-`kubectl edit config-domain -n knative-serving`
+`kubectl edit configmaps config-domain -n knative-serving`
+
+- 修改数据库中的信息
 
 MySQL -> database(domainName) -> table(cluster_manager) -> set domain = newDomain
 
@@ -136,9 +140,11 @@ yaml/kserve/kserve-graph.yaml 修改域名
 
 yaml/aistaion 替换所有域名
 
-pgrep -r 'domainName' .
+egrep -r 'domainName' .
 
 sed -r 's////' . | grep 'newDomain'
+
+重启所有服务
 
 # 旧集群镜像迁移
 
@@ -218,6 +224,95 @@ curl -sL https://mirrors.aliyun.com/repo/Centos-7.repo > \
 # 替换$releaserver
 sed -ri 's#\$releaserver#7#' /etc/yum.repos.d/CentOS-Base.repo
 ```
+
+# NFS重启后操作
+
+- 前往`/home/aistation/ais/nfs`检查nfs路径是否与pv匹配
+
+- 通过patch设置finalizer字段强制删除pvc
+
+- 重启store服务、nfs-default-provisioner服务
+
+# 节点添加
+
+- 将/home/ais.tar.gz安装包复制到待添加节点/home路径下
+
+- 如果是CentOS7.9（版本不匹配）则需要提前安装gcc等软件包
+
+- 在**node节点**执行shell/join_node.sh
+
+# pip安装与升级
+
+```bash
+yum -y install epel-release
+
+python3 -m pip install --upgrade pip
+```
+
+# 配置集群共享yum源
+
+- 需求：
+  
+  - CentOS镜像文件
+  
+  - httpd安装包
+
+- 执行`cat  /etc/httpd/conf/httpd.conf | grep -v \#`，查看httpd配置文件
+
+```bash
+ServerRoot "/etc/httpd"    # 服务器根目录
+Listen 8086                # 监听端口，默认8080
+Include conf.modules.d/*.conf
+User apache
+Group apache
+ServerAdmin root@localhost
+ServerName 172.16.0.113:8086
+
+<Directory />
+     Options Indexes FollowSymLinks
+     AllowOverride None
+     Order deny,allow
+     Allow from all
+</Directory>
+
+DocumentRoot "/var/www/html"    # 文件服务器根目录
+
+<Directory "/var/www">
+    AllowOverride None
+    Require all granted
+</Directory>
+
+<Directory "/var/www/html">    # 路径访问权限设置
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Require all granted
+</Directory>
+```
+
+- 执行`mount ./centos7.9.iso /var/www/html/sources/centos7.9`
+
+- 配置`/etc/yum.repos.d/`路径下的.repo文件
+  
+  - 备份原始`.repo`文件
+  
+  - 创建新`new.repo`文件如下
+
+```bash
+[aistation_packages]
+name=aistation_packages_repo
+baseurl=http://${IP}:${port}/sources/centos7.9
+gpgcheck=0
+```
+
+- 执行`yum clean all; yum makecache;`更新yum源
+
+# Docker镜像路径修改
+
+- 在/data/下新建路径
+
+- 将/var/lib/docker中的内容转移到/data/新路径下
+
+- 删除/var/lib/docker，并建立同名符号链接
 
 # 高可用安装部署
 

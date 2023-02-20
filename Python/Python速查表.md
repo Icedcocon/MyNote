@@ -54,6 +54,8 @@
   - Eval
   - Coroutine
 '7. Libraries':
+  - Multiprocessing
+
   - Progress_Bar
   - Plot
   - Table
@@ -949,4 +951,151 @@ process.stdin.flush()
 
 
 # 5.2 yaml
+```
+
+```python
+#######################################################################
+# 7. Libraries
+#######################################################################
+
+# 7.1 Libraries-Multiprocessing
+
+# 7.1.1 Libraries-Multiprocessing-上下文和启动方法
+# (1) spawn:父进程启动新解释器，子进程仅继承run()所需资源,慢,Unix/Win(默认)
+# (2) fork: 父进用os.fork()开启解释器分支,父子进程初相同,进程不安全,Unix(默认)
+# (3) forkserver:父进程请求服务器fork,服务器单线程故安全,仅fork所需资源，Unix
+# (4) 不兼容:fork上下文创建的锁不能传递给spawn或forkserver启动方法启动的进程
+
+import multiprocessing as mp
+def foo(q):
+    q.put('hello')
+if __name__ == '__main__':
+    mp.set_start_method('spawn')    # 不应该被多次调用
+ ## ctx = mp.get_context('spawn')   # 同一程序中使用多种启动方法
+    q = mp.Queue()                  # 队列是线程和进程安全的
+ ## q = ctx.Queue()
+    p = mp.Process(target=foo, args=(q,))
+ ## p = ctx.Process(target=foo, args=(q,))
+    p.start()
+    print(q.get())
+    p.join()
+
+# 7.1.2 Libraries-Multiprocessing-在进程之间交换对象
+# (1) 队列(队列是线程和进程安全的)
+from multiprocessing import Process, Queue
+def f(q):
+    q.put([42, None, 'hello'])
+if __name__ == '__main__':
+    q = Queue()
+    p = Process(target=f, args=(q,))
+    p.start()
+    print(q.get())    # prints "[42, None, 'hello']"
+    p.join()
+# (2) 管道
+#     1) Pipe()返回管道的两端(连接对象)，两端均有send()和recv()方法，默认双工
+#     2) 若两进程（或线程）同时读或写管道同一端，管道中数据可能损坏
+from multiprocessing import Process, Pipe
+def f(conn):
+    conn.send([42, None, 'hello'])
+    conn.close()
+if __name__ == '__main__':
+    parent_conn, child_conn = Pipe()
+    p = Process(target=f, args=(child_conn,))
+    p.start()
+    print(parent_conn.recv())   # prints "[42, None, 'hello']"
+    p.join()
+
+
+# 7.1.3 Libraries-Multiprocessing-进程间同步
+from multiprocessing import Process, Lock
+def f(l, i):
+    l.acquire()                    # 加锁
+    try:
+        print('hello world', i)    # 确保只有一个进程打印输出
+    finally:
+        l.release()                # 释放
+if __name__ == '__main__':
+    lock = Lock()
+    for num in range(10):
+        Process(target=f, args=(lock, num)).start()
+
+# 7.1.4 Libraries-Multiprocessing-进程间共享状态
+# (1) 共享内存（尽量避免）
+#     1) 参数'd'和'i'是array模块使用类型的typecode: 'd'双精度浮点数'i'有符号整数
+#     2) multiprocessing.sharedctypes可分配任意ctypes对象，更灵活
+#     3) alue或Array是进程和线程安全的
+from multiprocessing import Process, Value, Array
+def f(n, a):
+    n.value = 3.1415927
+    for i in range(len(a)):
+        a[i] = -a[i]
+if __name__ == '__main__':
+    num = Value('d', 0.0)        # Value或Array将数据存储在共享内存映射中
+    arr = Array('i', range(10))    
+    p = Process(target=f, args=(num, arr))
+    p.start()
+    p.join()
+    print(num.value)
+    print(arr[:])
+# (2) 服务进程
+# Manager()返回管理器对象控制的服务进程,该进程保存Python对象并允许其他进程用代理操作
+# Manager()返回的管理器支持类型：list、dict、Namespace、Lock、RLock、Semaphore
+#                            、BoundedSemaphore、Condition、Event、Barrier
+#                            、Queue、Value和Array 
+from multiprocessing import Process, Manager
+def f(d, l):
+    d[1] = '1'
+    d['2'] = 2
+    d[0.25] = None
+    l.reverse()
+if __name__ == '__main__':
+    with Manager() as manager:
+        d = manager.dict()
+        l = manager.list(range(10))
+        p = Process(target=f, args=(d, l))
+        p.start()
+        p.join()
+        print(d)
+        print(l)
+
+# 7.1.5 Libraries-Multiprocessing-工作进程池
+# 进程池的方法只能由创建它的进程使用
+from multiprocessing import Pool, TimeoutError
+import time
+import os
+def f(x):
+    return x*x
+if __name__ == '__main__':
+    # 开启4个工作进程
+    with Pool(processes=4) as pool:
+        # print "[0, 1, 4,..., 81]"
+        print(pool.map(f, range(10)))       
+        # 随机顺序打印上述数字
+        for i in pool.imap_unordered(f, range(10)): 
+            print(i)
+        # 单个进程异步执行"f(20)"
+        res = pool.apply_async(f, (20,))  # 仅开启一个进程执行
+        print(res.get(timeout=1))         # 打印"400"
+        # 可能有多个进程异步执行
+        multiple_results = [pool.apply_async(os.getpid, ()) for i in range(4)]
+        print([res.get(timeout=1) for res in multiple_results])
+        # 超时报错
+        res = pool.apply_async(time.sleep, (10,))
+        try:
+            print(res.get(timeout=1))
+        except TimeoutError:
+            print("We lacked patience and got a multiprocessing.TimeoutError")
+        print("For the moment, the pool remains available for more work")
+    # pool对象声明周期结束
+    print("Now the pool is closed and no longer available")
+
+
+# 7.1.6 Libraries-Multiprocessing-Process和异常API
+multiprocessing.Process(group=None, \  # 仅兼容threading,应始终是None
+                        target=None, \ # run()方法调用的可调用对象
+                        name=None, \   # 是进程名称
+                        args=(), \     # 目标调用的位置参数元组
+                        kwargs={}, \   # 关键字参数字典
+                        *, daemon=None)
+run() # 仅在子进程中执行,该方法只会调用target指向的函数,可被重载代替target
 ```

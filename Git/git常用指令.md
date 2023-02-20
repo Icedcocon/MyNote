@@ -117,4 +117,12 @@ git checkout B
 git pull
 # 合并指定文件或者文件夹到分支
 git checkout A README.md
+
+# git已跟踪且修改 并忽略改文件
+# (1) 忽略单个文件：
+git update-index --assume-unchanged sessions/abc.xml
+# (2) 忽略多个文件：
+git update-index --assume-unchanged sessions/*.xml
+# (3) 忽略文件夹：
+git update-index --assume-unchanged sessions/
 ```

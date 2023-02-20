@@ -367,6 +367,14 @@ options {
 
 `dnssec-keygen -a RSASHA1 ruyi-key`
 
+### 3.4 配置不同域名不同DNS服务器
+
+- Ubuntu20.04及18.04相较于CentOS7.7的NetworkManager服务配置不同，其配置文件位于`/etc/NetworkManager/NetworkManager.conf`
+
+- `/etc/resolv.conf`文件中设置`options rotate`参数不能解决该问题，推测根据域名的哈希值映射到固定位置域名服务器(可能不是第一个)。
+
+- 参考链接  https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/configuring_and_managing_networking/using-different-dns-servers-for-different-domains_configuring-and-managing-networking
+
 # 4 Docker
 
 ### 4.1 关闭防火墙

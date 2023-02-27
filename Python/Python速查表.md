@@ -960,6 +960,131 @@ process.stdin.flush()
 
 # 7.1 Libraries-Multiprocessing
 
+# 7.1.0 Libraries-Multiprocessing-创建管理进程模块和同步子进程模块
+# 创建管理进程模块
+# (1) Process        （用于创建进程）
+# (2) Pool           （用于创建管理进程池）
+# (3) Queue          （用于进程通信，资源共享）
+# (4) Value, Array   （用于进程通信，资源共享）
+# (5) Pipe           （用于管道通信）
+# (6) Manager        （用于资源共享）
+# 同步子进程模块
+# (1) Condition      （条件变量）
+# (2) Event          （事件）
+# (3) Lock           （互斥锁）
+# (4) RLock          （可重入的互斥锁(同一个进程可以多次获得它，同时不会造成阻塞)
+# (5) Semaphore      （信号量）
+
+# 7.1.0.1 Libraries-Multiprocessing-Process
+multiprocessing.Process(group=None, target=None, name=None, 
+                        args=(), kwargs={}, *, daemon=None)
+# (1) 参数介绍
+#  1) group:    分组，仅用于兼容threading.Thread，值始终为None
+#  2) target:   由run()方法调用的可调用对象，即子进程执行的任务，可传入方法名 
+#  3) name:     为子进程设定名称，通过Process.name获取
+#  4) args:     要传给target函数的位置参数，以元组方式进行传入。
+#  5) kwargs:   要传给target函数的字典参数，以字典方式进行传入。
+# (2) 实例方法
+#  1) start():            启动子进程，并调用该子进程中的p.run()方法
+#  2) run():              在子进程中调用target并传入args，可以重定义以代替target函数
+#  3) is_alive():        返回进程是否在运行，仍然运行返回True
+#  4) join([timeout]):  进程同步，阻塞至子进程完成或超时后执行后续代码，timeout是
+#                       可选超时秒数，进程可被join多次，但不能join自身
+#  5) terminate():        向子进程发送SIGTERM信号，无清理操作，其子进程变僵尸，锁不会释放
+#  6) kill():            类似，发送SIGKILL信号
+#  7) close():            关闭Process对象释放关联的所有资源，若子进程运行引发ValueError
+# (3) 属性介绍
+#  1) daemon:     默认False，True表示p为守护进程，随父进程终止而终止，且p不能创建新进程
+#                 改参数必须在p.start()之前设置
+#  2) name:       进程的名称
+#  3) pid:        进程的pid
+#  4) exitcode:   进程在运行时为None、如果为–N，表示被信号N结束(了解即可)
+#  5) authkey:    进程间身份认证(对称加密),默认由os.urandom()生成(32),IPC安全
+
+# 7.1.0.2 Libraries-Multiprocessing-pool.Pool
+multiprocessing.pool.Pool([processes[, initializer[, initargs[, 
+                           maxtasksperchild[, context]]]]])
+# (1) 参数介绍
+#  1) processes:    要创建的进程数，默认为os.cpu_count()返回数量
+#  2) initializer:  默认None，否则每个工作进程启动时执行initializer(*initargs)
+#  3) initargs:     传给initializer的参数组
+#  4) maxtasksperchild:工作进程退出之前可以完成的任务数，到达后释放资源占用让新进程代替
+#                   默认None，即进程寿命与Pool对象相同
+#  5) context:      指定工作进程上下文
+# (2) 实例方法
+#  1) apply(func[, args[, kwargs]]): 在进程池中选1个工作进程执行func(args,*kwargs)
+#                   因为返回结果前会阻塞，因此想用不同参数并发执行func，必须从不同线程调
+#                   用p.apply()函数或使用p.apply_async()函数（极少用）
+#  2) apply_async(func[, arg[, kwds={}[, callback=None]]]):进程池选1个工作进程异步
+#                   执行func(args,*kwargs),返回AsyncResult类实例;callback是仅接受1
+#                   个参数的可调用对象，必须非阻塞否则将阻塞其它异步结果接受，func成功返回
+#                   时传递给callback，
+#  3) map(func, iterable[, chunksize=None]):阻塞执行;逐个将iterable元素赋予func执行;
+#                    chunksize指定每块的项数;将iterable分割为多块交给进程池;返回列表;
+#  4) map_async(func, iterable[, chunksize=None]):异步执行，其余同上;
+#  5) imap():        与map区别为，执行完1个立即返回1个可迭代对象，而非全部完成返回列表
+#  6) imap_unordered(): 不保证返回的结果顺序与进程添加的顺序一致，其余同上
+#  7) close():       阻止后续任务提交到进程池，当所有任务执行完成后，工作进程会exit()
+#  8) terminate():  立即终止所有工作进程，不执行清理或结束挂起，Pool对象垃圾回收时自动执行
+#  9) join():       等待所有工作进程退出。此方法只能在close()或teminate()之后调用
+# (3) multiprocessing.pool.AsyncResult,方法apply_async()和map_async()的返回值
+#  1) get([timeout]):    返回执行结果，远程调用发生异常，异常会在执行get()时重新抛出
+#                        若timeout非None且超时则抛出multiprocessing.TimeoutError
+#  2) wait([timeout]):   阻塞，直到返回结果，或者 timeout 秒后超时。
+#  3) ready():           反回执行状态，完成返回True
+#  4) successful():      若调用未完成或有异常, 则将引发 ValueError，否则返回True
+
+# 7.1.0.3 Libraries-Multiprocessing-Queue
+multiprocessing.Queue([maxsize])
+# (0) 优缺点
+#  1) Queue可以在多进程间传递数据
+#  2) 只适用Process类，不能在Pool进程池中使用
+# (1) 参数介绍
+#  2) maxsize是队列中允许最大项数，省略则无大小限制。
+# (2) 实例方法
+
+#  1) put(obj[, block[, timeout]])：插入数据obj到队列;如果blocked为True（默认值）
+#                        并且timeout为正值，阻塞至超时会抛出Queue.Full异常;
+#                        如果blocked为False，Queue已满，会立即抛出Queue.Full异常
+#  2) get([block[, timeout]])：从队列读取并且删除一个元素;如果blocked为True（默认值）
+#                        并且timeout为正值，阻塞至超时会抛出Queue.Empty异常;
+#                        如果blocked为False，Queue已空，会立即抛出Queue.Empty异常
+#  3) get_nowait():        同q.get(False)
+#  4) put_nowait():        同q.put(False)
+#  5) empty():            调用此方法时q为空则返回True，该结果不可靠
+#  6) full():            调用此方法时q已满则返回True，该结果不可靠
+#  7) qsize():            返回队列中目前项目的正确数量，结果也不可靠
+
+# 7.1.0.4 Libraries-Multiprocessing-Value，Array
+# 在共享内存中创建ctypes()对象来共享数据
+multiprocessing.Value(typecode_or_type, *args, lock=True)
+# (1) 参数介绍
+#  1) typecode_or_type:指明返回对象类型，可以是类型码(单字符)或C类型
+#  2) args：透传给typecode_or_type这个类的构造函数作为参数
+#  3) lock：默认True将创建互斥锁保护Value;传入Lock或RLock实例将用于同步;False则不保护
+multiprocessing.Array(typecode_or_type, size_or_initializer, *, lock=True)
+# (1) 参数介绍
+#  1) typecode_or_type:指明返回对象类型，可以是类型码(单字符)或C类型
+#  2) size_or_initializer:若为整数表示数组长度，元素初始化为0;否则是用于初始化数组的序列
+#  3) *:传递给typecode_or_type构造函数的参数
+#  4) lock：默认True将创建互斥锁保护Value;传入Lock或RLock实例将用于同步;False则不保护
+# | Type code | C Type             | Python Type       | bytes |
+# | --------- | ------------------ | ----------------- | ------|
+# | `'b'`     | signed char        | int               | 1     |
+# | `'B'`     | unsigned char      | int               | 1     |
+# | `'u'`     | Py_UNICODE         | Unicode character | 2     |
+# | `'h'`     | signed short       | int               | 2     |
+# | `'H'`     | unsigned short     | int               | 2     |
+# | `'i'`     | signed int         | int               | 2     |
+# | `'I'`     | unsigned int       | int               | 2     |
+# | `'l'`     | signed long        | int               | 4     |
+# | `'L'`     | unsigned long      | int               | 4     |
+# | `'q'`     | signed long long   | int               | 8     |
+# | `'Q'`     | unsigned long long | int               | 8     |
+# | `'f'`     | float              | float             | 4     |
+# | `'d'`     | double             | float             | 8     |
+
+
 # 7.1.1 Libraries-Multiprocessing-上下文和启动方法
 # (1) spawn:父进程启动新解释器，子进程仅继承run()所需资源,慢,Unix/Win(默认)
 # (2) fork: 父进用os.fork()开启解释器分支,父子进程初相同,进程不安全,Unix(默认)

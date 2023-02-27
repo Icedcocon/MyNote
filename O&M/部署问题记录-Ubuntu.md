@@ -110,11 +110,13 @@ dpkg --configure -a        # dpkg被中断后使用
 - 由于apt-get下载deb包时不能指定下载路径，默认下载到`/var/cache/apt/archives`，因此需要使用脚本辅助：
 
 ```bash
+cat > /usr/bin/deb-get <<-EOF
 #! /bin/bash
 apt-get clean
 apt-get --download-only install $1
 cp /var/cache/apt/archives/*.deb .
 apt-get clean
+EOF
 
 # 反向操作
 apt-get clean

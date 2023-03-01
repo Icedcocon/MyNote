@@ -113,7 +113,7 @@ dpkg --configure -a        # dpkg被中断后使用
 cat > /usr/bin/deb-get <<-EOF
 #! /bin/bash
 apt-get clean
-apt-get --download-only install $1
+apt-get --download-only install \$1
 cp /var/cache/apt/archives/*.deb .
 apt-get clean
 EOF
@@ -991,5 +991,5 @@ sed -ri 's/yum localinstall -y.*/dpkg -i gcc\/\*\.deb/' 3rd/nvidia-driver/instal
 - hadoop的activating现象出现在各类系统中，RedHat也需要执行stop-all.sh
 
 ```bash
-sed -ri 's/yum install.*/dpkg -i \*\.deb/' 3rd/ipmitool/install_ipmitool.sh
+sed -ri 's/yum install.*/dpkg -i \*\.deb/' 3rd/ipmitool/install_ipmitool.shcerts
 ```

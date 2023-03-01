@@ -1084,6 +1084,100 @@ multiprocessing.Array(typecode_or_type, size_or_initializer, *, lock=True)
 # | `'f'`     | float              | float             | 4     |
 # | `'d'`     | double             | float             | 8     |
 
+# 7.1.0.5 Libraries-Multiprocessing-Pipe
+# 返回一对 Connection`对象  ``(conn1, conn2)` ， 分别表示管道的两端。
+multiprocessing.Pipe([duplex])
+# (1) 参数介绍
+# dumplex:默认全双工，duplex为False则conn1只能用于接收conn2只能用于发送
+# (2) 实例方法
+#  1) send(obj):    通过pipe发送对象
+#  2) recv():       接收另一端发送的对象;无消息则阻塞;另一端关闭则抛出EOFError
+#  3) close():      关闭连接;被垃圾回收将自动调用此方法
+#  4) fileno():     返回连接使用的整数文件描述符
+#  5) poll([timeout]):有数据则返回True;忽略timeout将立刻返回结果,None则一直阻塞
+#  6) recv_bytes([maxlength]):接受字节信息;长度超maxlength引发IOError;
+#                   另一端关闭则返回EOFError异常
+#  7) send_bytes(buffer [, offset [, size]]):发送字节信息;buffer支持缓冲区
+#                    接口任意对象;offset缓冲区中字节偏移量;size要发送字节数
+#  8) recv_bytes_into(buffer [, offset]):接收一条完整字节消息，并保存在buffer
+#                    (持缓冲区接口的)对象中;返回值是收到的字节数;消息长度大于可用
+#                     的缓冲区空间，将引发BufferTooShort异常
+
+# 7.1.0.6 Libraries-Multiprocessing-Manager、BaseManager
+multiprocessing.Manager()
+# (1) Manager()返回manager对象, 控制一个独立的server子进程,进程包含的python对象
+# (2) 子进程以服务器形式运行，可被其他的进程通过代理访问共享对象，代理作为客户端运行
+# (3) Manager()是BaseManager的子类，返回启动的SyncManager()实例
+# (4) SyncManager()实例可用于创建共享对象并返回访问这些共享对象的代理
+# (5) Manager模块常与Pool模块一起使用
+# (6) Manager支持的类型有
+# list, dict, Namespace, 
+# Lock, RLock, Semaphore, BoundedSemaphore, Condition,
+# Event, Queue, Value, Array
+
+multiprocessing.managers.BaseManager([address[, authkey]])
+# 创建管理器服务器的基类
+# (1) 参数介绍
+#  1) address:(hostname,port);服务进程监听的地址;None允许任意主机的请求建立连接
+#  2) authkey:连接服务器的客户端身份验证，默认current_process().authkey的值
+# (2) 实例方法：
+#  1) start([initializer[, initargs]]):启动单独子进程,并在其中启动管理器服务器
+#                    若initializer不是None，则子进程启动前执行该函数
+#  2) get_server(): 返回Server对象，是管理器在后台控制的真实的服务
+#  3) connect():    将本地管理器对象连接到一个远程管理器进程:
+#  4) shutdown():   停止管理器进程，只能在start()方法之后调用;它可以被多次调用
+# (3) 实例属性：
+#  1) address：只读属性，管理器所用的地址
+
+# 7.1.0.7 Libraries-Multiprocessing-Lock
+multiprocessing.Lock()
+# Lock是一个工厂函数,返回默认上下文初始化的multiprocessing.synchronize.Lock对象
+# 一个进程/线程acquire锁，任何其他进程/线程的acquire请求都会被阻塞直到锁被释放
+# (1) 参数介绍
+# (2) 实例方法：
+#  1) acquire([timeout]): 使线程进入同步阻塞状态，尝试获得锁定。
+#  2) release(): 释放锁;使用前线程必须已获得锁定，否则将抛出异常。
+lock = multiprocessing.Lock()
+lock.acquire()
+try:
+    # do something
+finally:
+    lock.release()
+with lock:
+    # do something
+
+# 7.1.0.8 Libraries-Multiprocessing-RLock
+multiprocessing.RLock
+# 可重入锁可以被同一线程请求多次acquire(),释放锁时需要调用release()相同次数
+# (1) 参数介绍
+# (2) 实例方法：
+#  1) acquire([timeout])：同Lock
+# 2) release(): 同Lock
+
+# 7.1.0.9 Libraries-Multiprocessing-Semaphore
+multiprocessing.Semaphore([value])
+信号量有一个计数器,当占用信号量的线程数超过信号量时线程阻塞
+构造方法:Semaphore([value])
+# (1) 参数介绍
+#  1) value：设定信号量，默认值为1
+# (2) 实例方法：
+#  1) acquire([timeout])：同Lock
+#  2) release(): 同Lock
+
+# 7.1.0.10 Libraries-Multiprocessing-Condition 条件变量
+multiprocessing.Condition([lock])
+# Condition在内部维护一个锁对象（默认是RLock）,提供除锁外的其他方法
+# (1) 参数介绍:
+#  1) lock:可以传递一个Lock/RLock实例给构造方法，否则它将自己生成一个RLock实例。
+# (2) 实例方法：
+#  1) acquire([timeout]):获取底层锁,无法获取则wait
+#  2) release():释放锁
+# wait([timeout]):线程进入Condition的等待池等待notify并释放锁
+#                 wait状态的线程接到通知后会重新判断条件
+# notify():       从等待池挑选一个线程并通知，被通知线程调用acquire()尝试获得锁定
+#                 其他线程仍然在等待池中，使用前必须获得锁
+# notifyAll():    通知等待池中所有的线程，这些线程都将进入锁定池尝试获得锁定
+#                  使用前必须获得锁
 
 # 7.1.1 Libraries-Multiprocessing-上下文和启动方法
 # (1) spawn:父进程启动新解释器，子进程仅继承run()所需资源,慢,Unix/Win(默认)

@@ -586,7 +586,7 @@ def f(x, y, *, z): ...          # f(x=1, y=2, z=3) | f(1, y=2, z=3) |
 <dict>  = {**<dict> [, ...]}    # Or: dict(**<dict> [, ...])
 head, *body, tail = <coll.>     # Head 或 tail 可以被省略
 
-# 3.3 Inline
+# 3.3 Syntax-Inline
 # 3.3.1 Syntax-Inline-Lambda函数
 <func> = lambda: <return_value>                     # 单个语句函数
 <func> = lambda <arg_1>, <arg_2>: <return_value>    # 可接受默认参数
@@ -627,8 +627,8 @@ from dataclasses import make_dataclass
 Player = make_dataclass('Player', ['loc', 'dir'])  # 创建dataclass
 player = Player(point, direction)                  # 返回实例
 
-# 3.4 Class
-# 3.4.1 __repr__和__str__
+# 3.4 Syntax-Class
+# 3.4.1 Syntax-Class-__repr__和__str__
 class <name>:
     def __init__(self, a):
         self.a = a
@@ -651,7 +651,7 @@ f'{<el>!r}'
 Z = dataclasses.make_dataclass('Z', ['a']); print/str/repr(Z(<el>))
 <el>
 
-# 3.4.2 @staticmethod和@classmethod
+# 3.4.2 Syntax-Class-@staticmethod和@classmethod
 class <name>:
     def __init__(self, a):
         self.a = a
@@ -679,7 +679,8 @@ class <name>:
 #  1) "@staticmethod"用于需要简单函数但仅为类服务的场合，可以节省创建对象的开支
 #  2) "@classmethod"可以实现单例模式、工厂模式;可用于对象数据的预处理(子类新功能) 
 
-# 3.4.3 构造函数重载（拦截内置的构造函数操作，并调用自定义方法，__init__是一个入口）
+# 3.4.3 Syntax-Class-构造函数重载
+# （拦截内置的构造函数操作，并调用自定义方法，__init__是一个入口）
 class <name>:
     def __init__(self, a=None):
         self.a = a
@@ -689,7 +690,7 @@ class <name>:
 # (2) 类实例化前先调用__new__方法创建实例，是类方法
 # (3) 实例对象创建后调用__init__方法初始化实例,是实例对象的方法,设置实例对象的初始值
 
-# 3.4.4 继承及类接口技术
+# 3.4.4 Syntax-Class-继承及类接口技术
 # (0)继承概念:obj.attr运算会触发继承，Python自底向上搜索命名空间树，下层定义屏蔽上层
 #    属性树构造:1.实例属性(self.a=v)2.类属性(class A:b=v)3.父类连接(class B(A))
 # (1) Super:    定义一个method函数以及一个delegate函数
@@ -716,7 +717,7 @@ class Provider(Super):
     def action(self):                       # 补充所需方法
 
 
-# 3.4.5 多重继承
+# 3.4.5 Syntax-Class-多重继承
 class A: pass
 class B: pass
 class C(A, B): pass
@@ -724,7 +725,7 @@ class C(A, B): pass
 >>> C.mro()
 [<class 'C'>, <class 'A'>, <class 'B'>, <class 'object'>]
 
-# 3.4.6 @property @name.setter @name.deleter
+# 3.4.6 Syntax-Class-@property @name.setter @name.deleter
 class Person:
 # (1) property时内置装饰器函数 将类的方法伪装成属性并且不能再被()调用
 # (2) 被property装饰后的方法，不能带除了self外的任何参数
@@ -748,7 +749,7 @@ class Person:
 >>> person.name
 'Guido van Rossum'
 
-# 3.4.7 Dataclass（自动生成init()、repr()和eq()）
+# 3.4.7 Syntax-Class-Dataclass（自动生成init()、repr()和eq()）
 from dataclasses import dataclass, field
 @dataclass(init=True, repr=True, eq=True, order=False, frozen=False)
 class <class_name>:
@@ -768,7 +769,7 @@ def func(<arg_name>: <type> [= <obj>]) -> <type>: ...
 <var_name>: typing.List/Set/Iterable/Sequence/Optional[<type>]
 <var_name>: typing.Dict/Tuple/Union[<type>, ...]
 
-# 3.4.8 Slots
+# 3.4.8 Syntax-Class-Slots
 # 需要将属性字符串顺序赋值给__slot__属性，
 # 仅__slot__列表内的名称可赋值为实例属性，可以不赋值但不赋值不能被使用
 # 显著减少内存占用，优化速度，但与Python的灵活性相背离
@@ -777,13 +778,212 @@ class MyClassWithSlots:
     def __init__(self):
         self.a = 1
 
-# 3.4.9 Copy
+# 3.4.9 Syntax-Class-Copy
 from copy import copy, deepcopy
 # 赋值操作并不clone对象，仅创建引用并绑定到原对象，原对象的一切改变都将反映到赋值对象上
 # copy操作clone第一层引用对象
 # deepcopy操作递归clone对象
 <object> = copy(<object>)
 <object> = deepcopy(<object>)
+
+# 3.5 Syntax-Decorator
+
+# 3.5.0 Syntax-Decorator-第一类对象
+# (1) 定义:第一类对象并不一定是类对象，而是指程序中的所有实体(变量、函数、队列、字典等)
+# (2) 第一类对象具有以下特征：
+#  1) 可以被存入变量或其他结构
+#  2) 可以被作为参数传递给其他方法/函数
+#  3) 可以被作为方法/函数的返回值
+#  4) 可以在执行期被创建，而无需在设计期全部写出
+#  5) 有固定身份
+# (3) 固有身份概念:指实体有内部表示而非根据名字来识别，如匿名函数可以通过赋值叫任何名字
+#                 大部分语言的基本类型的数值(int, float)等都是第一类对象,C数组不是
+#                 C数组作为函数参数时，传递首元素地址，且丢失数组长度信息
+#                 对于大多数的动态语言，函数/方法都是第一类对象
+
+# 3.5.1 Syntax-Decorator-函数、内部函数
+# (1) 函数是python中的一类对象，可以作为别的函数的参数、函数的返回值，赋值给变量或存储
+#      在数据结构中
+# (2) 内部函数(inner Functions)是在函数内定义的函数;内部函数只能在父函数内使用;
+
+# 3.5.2 Syntax-Decorator-装饰器实现/原理
+# (0) @my_decorator可以看作say_whee = my_decorator(say_whee)
+def my_decorator(func):  # (1) 装饰器传入函数func作为自由变量 再返回函数wrapper
+    def wrapper():       # (2) 定义内部函数，可取代无参数无返回值的函数
+        print("Something is happening before the function is called.")
+        func()
+        print("Something is happening after the function is called.")
+    return wrapper       # (3) 返回内部函数wrapper，取代被装饰的函数
+def say_whee():
+    print("Whee!")
+say_whee = my_decorator(say_whee)  # (4) 进行装饰
+@my_decorator                      # (5) 用语法糖进行装饰，效果相同
+def say_whee():
+    print("Whee!")
+>>> say_whee()
+Something is happening before the function is called.
+Whee!
+Something is happening after the function is called.
+
+# 3.5.3 Syntax-Decorator-装饰器修饰带参数/返回值的函数
+def do_twice(func):
+    def wrapper_do_twice(*args, **kwargs): 
+        # (1) 内部函数使用*args, **kwargs获取任意数量的参数，再传给func
+        func(*args, **kwargs)
+        func(*args, **kwargs)
+        # (1.5) 内部函数无返回值，可装饰无需返回值的函数
+    return wrapper_do_twice
+
+def do_twice(func):
+    def wrapper_do_twice(*args, **kwargs):
+        func(*args, **kwargs)
+        return func(*args, **kwargs)
+        # (2) 内部函数有返回值，则装饰后的函数可获取返回值
+    return wrapper_do_twice
+@do_twice
+def say_whee():
+    print("Whee!")
+    return "Whell!"
+>>> say_whee()
+Whee!         # 第1次打印
+Whee!         # 第2次打印
+'Whell!'    # 返回值
+
+# 3.5.4 Syntax-Decorator-保留函数的信息
+# (1) 包装后的函数是wrapper_do_twice，函数名的等信息都修改为
+#     wrapper_do_twice的信息
+>>> say_whee
+<function do_twice.<locals>.wrapper_do_twice at 0x7f43700e52f0>
+>>> say_whee.__name__
+'wrapper_do_twice'
+
+# (2) 使用functools.wraps修饰内部函数，并将被修饰函数作为参数传入装饰器
+#     可保留有关原始功能的信息
+import functools
+def do_twice(func):
+    @functools.wraps(func)
+    def wrapper_do_twice(*args, **kwargs):
+        func(*args, **kwargs)
+        return func(*args, **kwargs)
+    return wrapper_do_twice
+
+# 3.5.5 Syntax-Decorator-带参数的装饰器
+def repeat(num_times):   
+    # (1) 创建装饰器工厂函数，工厂函数的参数为装饰器要接受的参数
+    def decorator_repeat(func):                 # 装饰器函数
+        @functools.wraps(func)
+        def wrapper_repeat(*args, **kwargs): # 内部函数
+            for _ in range(num_times):
+                value = func(*args, **kwargs)
+            return value
+        return wrapper_repeat
+        # (2) 本层返回实际装饰后的函数
+    return decorator_repeat
+    # (3) 工厂函数repeat(num_times)根据参数创建装饰器函数并返回
+    #     装饰器函数再装饰say_whee函数
+    # (4) 等价于 say_whee = repeat(num_times=4)(say_whee)
+@repeat(num_times=4)
+def say_whee():
+    print("Whee!")
+
+# 3.5.6 Syntax-Decorator-装饰器的典型行为
+# (1) 把被装饰的函数替换成新函数
+# (2) 两者接受相同的参数
+# (3) 新函数（通常）返回被装饰函数本该返回的值
+# (4) 做些额外的操作
+
+# 3.5.7 Syntax-Decorator-自由变量、函数闭包、nonlocal
+def make_averager():
+    ############## 函数闭包 #############
+    count = 0
+    total = 0
+    def averager(new_value):
+        nonlocal count, total  # 自由变量
+        count += 1
+        total += new_value
+        return total / count
+    ####################################
+    return averager
+# (1) 自由变量(free variable): 未在本地作用域中绑定的变量，Cell间接引用自由变量
+# (2) 自由变量的引用: closure --> cell --> free variable; 
+#     cell用于解决多个closure引用自由变量，变量需要改变时要改变多个closure引用问题
+# (3) 查看自由变量
+function.__closure__                # 可以查看cell对象及内部自由变量的内存地址
+function.__closure__[0].cell_contents # 自由变量的值
+function.__code__.co_freevars       # 自由变量名称
+function.__code__.co_varnames       # 普通变量名称
+# (4) 像count这类不可变类型，执行+=操作相当于再次赋值，这会隐式创建局部变量count
+#     count不再是自由变量，则不能保存在函数闭包中
+# (5) nonlocal声明可以把变量标记为自由变量，即使重新赋值依然是自由变量
+
+# 3.5.8 Syntax-Decorator-带参数和不带参数共存的装饰器
+def name(_func=None, *, kw1=val1, kw2=val2, ...):  
+    def decorator(func):
+        ...  # Create and return a wrapper function.
+
+    if _func is None:
+        return decorator                     
+    else:
+        return decorator(_func)    
+        
+# 3.5.9 Syntax-Decorator-录状态的类装饰器
+# (1) __init__()方法相当于装饰器函数
+# (2) __call__()方法相当于内部函数
+import functools
+class CountCalls:
+    def __init__(self, func):
+        functools.update_wrapper(self, func)
+        self.func = func
+        self.num_calls = 0
+    def __call__(self, *args, **kwargs):
+        self.num_calls += 1
+        print(f"Call {self.num_calls} of {self.func.__name__!r}")
+        return self.func(*args, **kwargs)
+@CountCalls
+def say_whee():
+    print("Whee!")
+
+# 3.5.10 Syntax-Decorator-clock装饰器
+import time
+import functools
+def clock(fmt = "[{elapsed:0.8f}s] {name}({arg_str}) -> {result}"):
+    # (1) 装饰器工厂函数传递打印格式参数，并返回装饰器函数
+    def decorate(func):
+        # (2) 装饰器函数进行函数替换
+        def clocked(*args, **kwargs):
+            # (3) 内部函数添加新功能
+            t0 = time.time()
+            result = func(*args, **kwargs)
+            elapsed = time.time() - t0
+            name = func.__name__
+            arg_lst = []
+            if args:
+                arg_lst.append(', '.join(repr(arg) for arg in args))
+            if kwargs:
+                pairs = [f'{k}={w}' for k, w in sorted(kwargs.items())]
+                arg_lst.append(', '.join(pairs))
+            arg_str = ', '.join(arg_lst)
+            print(fmt.format(**locals()))
+            return result
+        return clocked
+    return decorate
+    
+# 3.5.11 Syntax-Decorator-装饰器实现单例模式
+import functools
+def singleton(cls):
+    """Make a class a Singleton class (only one instance)"""
+    @functools.wraps(cls)
+    def wrapper_singleton(*args, **kwargs):
+        if not wrapper_singleton.instance:
+            wrapper_singleton.instance = cls(*args, **kwargs)
+        return wrapper_singleton.instance
+    wrapper_singleton.instance = None
+    return wrapper_singleton
+@singleton
+class TheOne:
+    pass
+    
+    
 ```
 
 ```python

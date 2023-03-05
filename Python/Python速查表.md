@@ -925,7 +925,7 @@ def name(_func=None, *, kw1=val1, kw2=val2, ...):
         return decorator                     
     else:
         return decorator(_func)    
-        
+
 # 3.5.9 Syntax-Decorator-录状态的类装饰器
 # (1) __init__()方法相当于装饰器函数
 # (2) __call__()方法相当于内部函数
@@ -967,7 +967,7 @@ def clock(fmt = "[{elapsed:0.8f}s] {name}({arg_str}) -> {result}"):
             return result
         return clocked
     return decorate
-    
+
 # 3.5.11 Syntax-Decorator-装饰器实现单例模式
 import functools
 def singleton(cls):
@@ -982,8 +982,6 @@ def singleton(cls):
 @singleton
 class TheOne:
     pass
-    
-    
 ```
 
 ```python

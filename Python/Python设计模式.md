@@ -309,4 +309,67 @@ data = '[...]'
 context = Context(s1, data)
 context.set_strategy(s2)
 context.execute_strategy()
+
+
+# 1.3 组件协作-观察者模式
+# 1.3.1 组件协作-策略模式-概念
+# (1) 一个对象（目标）的状态发生改变，所有的依赖对象（观察者）都将得到通知;
+#     一个对象的改变需要同时改变其它对象，而不知道具体有多少对象有待改变;
+#     当一个抽象模型有两方面，其中一个方面依赖于另一个方面;
+#     一个对象必须通知其它对象，而它又不能假定其它对象是谁（松耦合）;
+# (2) 定义对象间的一种一对多的依赖关系;观察者模式又称“发布-订阅”模式;
+
+# 1.3.2 组件协作-观察者模式-实现
+# (1) 角色：
+#  1) 抽象主题（Subject）                    提供添加/删除观察者和通知功能
+#  2) 具体主题/发布者（Concrete Subject）     实现具体信息
+#  3) 抽象观察者（Observer）				  提供更新（观察）发布者信息功能
+#  4) 具体观察者/订阅者（Concrete Observer）  实现更新（观察）发布者信息功能
+# (2) 优缺点：
+#  1) 优点：目标和观察者之间的抽象耦合最小;
+#          支持广播通信;
+# (3) 代码
+from abc import ABCMeta, abstractmethod
+# 抽象订阅者
+class Observer(metaclass=ABCMeta):
+    @abstractmethod
+    def update(self, notice):
+        pass
+# 抽象发布者
+class Notice:
+    def __init__(self):
+        self.observers = []
+    def attach(self, obs):
+        self.observers.append(obs)
+    def detach(self, obs):
+        self.observers.remove(obs)
+    def notify(self):
+        for obs in self.observers:
+            obs.update(self)
+# 具体发布者
+class StaffNotice(Notice):
+    def __init__(self, company_info=None):
+        super().__init__()
+        self.__company_info = company_info
+    @property
+    def company_info(self):
+        return self.__company_info
+    @company_info.setter
+    def company_info(self, info):
+        self.__company_info = info
+# 具体订阅者
+class Staff(Observer):
+    def __init__(self):
+        self.company_info = None
+    def update(self, notice):
+        self.company_info = notice.company_info
+if __name__ == "__main__":
+    company = StaffNotice('今天休息！')
+    s1 = Staff()
+    s2 = Staff()
+    company.attach(s1)
+    company.attach(s2)
+    company.notify()
+    print(s1.company_info) # 今天休息！
+    print(s2.company_info) # 今天休息！
 ```

@@ -125,6 +125,18 @@ apt-get install $1
 apt-get clean
 ```
 
+### 1.7
+
+```bash
+dpkg -l | grep linux
+sudo apt-mark hold linux-generic 
+sudo apt-mark hold linux-headers-4.15.0-156 
+sudo apt-mark hold linux-headers-4.15.0-156-generic
+sudo apt-mark hold linux-headers-generic
+sudo apt-mark hold linux-image-4.15.0-156-generic
+sudo apt-mark hold linux-image-generic 
+```
+
 # 2. ntp服务
 
 ### 2.1 安装ntp服务
@@ -538,6 +550,94 @@ sed -ri 's/!includedir.*/!includedir \/etc\/mysql\/conf\.d\/\
 sed -ri 's/etc\/my\.cnf/etc\/mysql\/my\.cnf/' 3rd/mariadb/install/setup.sh
 sed -ri 's/.*mysql-clients.*/#&/' 3rd/mariadb/install/setup.sh
 sed -ri 's/.*client.cnf.*/#&/' 3rd/mariadb/install/setup.sh
+```
+
+### 7.3 源码安装
+
+- xiazia 
+
+```bash
+# 下载mariadb10.6.12
+- wget https://mirrors.tuna.tsinghua.edu.cn/mariadb/mariadb-10.6.12/source/mariadb-10.6.12.tar.gz
+
+# 解压安装包
+tar -xvf mariadb-10.6.11-linux-systemd-x86_64.tar.gz -C /usr/local/  # 可在本地
+ln -vs /usr/local/mariadb-10.6.11-linux-systemd-x86_64/ /usr/local/mysql
+
+# 下载依赖包
+apt-get install build-essential cmake bison libncurses5-dev libssl-dev libcurl4-openssl-dev libxml2-dev libzip-dev libaio-dev
+
+# 配置
+cat > /etc/my.conf <<-EOF
+[client]
+port = 3306
+default-character-set = utf8mb4
+
+[mysqld]
+basedir = /usr/local/mysql
+datadir=/usr/local/mysql/data/
+innodb_buffer_pool_size=128M
+port=3306
+symbolic-links=0
+
+[mysqld_safe]
+log-bin = mysql-bin
+log-error=/usr/local/mysql/logs/mysql.log
+EOF
+
+# 编译
+# DCMAKE_INSTALL_PREFIX MySQL安装目录，默认/usr/local/mysql
+# DMYSQL_DATADIR        数据文件目录
+# DSYSCONFDIR           my.cnf配置文件目录
+# DWITH_INNOBASE_STORAGE_ENGINE=1   支持InnoDB存储引擎
+# DWITH_ARCHIVE_STORAGE_ENGINE=1    支持Archive引擎
+# DWITH_BLACKHOLE_STORAGE_ENGINE=1  支持BLACKHOLE引擎
+# DWITH_PARTITION_STORAGE_ENGINE=1  支持PARTITION存储引擎
+# DWITH_PERFSCHEMA_STORAGE_ENGINE=1 支持PERFSCHEMA存储引擎
+# DWITH_SSL             通讯时支持ssl协议
+# DWITH_ZLIB            允许使用zlib library
+# DWITH_LIBWRAP=0       不支持libwrap库
+sudo cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+-DMYSQL_DATADIR=/usr/local/mysql/data \
+-DSYSCONFDIR=/etc \
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+-DWITH_ARCHIVE_STORAGE_ENGINE=1 \
+-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+-DWITH_PARTITION_STORAGE_ENGINE=1 \
+-DWITH_PERFSCHEMA_STORAGE_ENGINE=1 \
+-DWITH_SSL=system \
+-DWITH_ZLIB=system \
+-DWITH_LIBWRAP=0 \
+-DWITH_READLINE=1 \
+-DWITH_EMBEDDED_SERVER=1 \
+-DENABLED_LOCAL_INFILE=1 \
+-DENABLE_DTRACE=0 \
+-DENABLE_MYSQLD_MP=4 \
+-DWITH_DEBUG=0
+sudo make && sudo make install
+
+# DEFAULT_CHARSET        数据库默认字符编码
+# DDEFAULT_COLLATION     默认排序规则
+# DENABLED_LOCAL_INFILE  允许从本文件导入数据
+# DEXTRA_CHARSETS        安装所有字符集 
+# DWITH_BOOST            boost源码路径
+```
+
+### 7.4 安装高版本MariaDB
+
+```bash
+# 添加第三方repo
+cat > /etc/apt/sources.list.d/mariadb.list <<-EOF
+deb [arch=amd64,arm64] https://mirrors.ustc.edu.cn/mariadb/mariadb-10.6.12/repo/ubuntu bionic main
+EOF
+# 更新源并查看GPG Key
+apt update 
+# 添加GPG Key
+gpg --keyserver  keyserver.ubuntu.com --recv-keys E77FC0EC34276B4B
+gpg --export --armor E77FC0EC34276B4B | sudo apt-key add -
+# 更新源
+apt update
+apt-cache madison mariadb-server
 ```
 
 # 8 LDAP

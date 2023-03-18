@@ -312,7 +312,7 @@ context.execute_strategy()
 
 
 # 1.3 组件协作-观察者模式
-# 1.3.1 组件协作-策略模式-概念
+# 1.3.1 组件协作-观察者模式-概念
 # (1) 一个对象（目标）的状态发生改变，所有的依赖对象（观察者）都将得到通知;
 #     一个对象的改变需要同时改变其它对象，而不知道具体有多少对象有待改变;
 #     当一个抽象模型有两方面，其中一个方面依赖于另一个方面;
@@ -323,7 +323,7 @@ context.execute_strategy()
 # (1) 角色：
 #  1) 抽象主题（Subject）                    提供添加/删除观察者和通知功能
 #  2) 具体主题/发布者（Concrete Subject）     实现具体信息
-#  3) 抽象观察者（Observer）				  提供更新（观察）发布者信息功能
+#  3) 抽象观察者（Observer）                  提供更新（观察）发布者信息功能
 #  4) 具体观察者/订阅者（Concrete Observer）  实现更新（观察）发布者信息功能
 # (2) 优缺点：
 #  1) 优点：目标和观察者之间的抽象耦合最小;
@@ -372,4 +372,56 @@ if __name__ == "__main__":
     company.notify()
     print(s1.company_info) # 今天休息！
     print(s2.company_info) # 今天休息！
+
+# 1.4 组件协作-装饰器模式
+# 1.4.1 组件协作-装饰器模式-概念
+# (1) 防止过度地使用继承来扩展对象的功能
+#     继承为类型引入的静态特质缺乏灵活
+#      随子类(扩展功能)增多，各子类的组合(扩展功能的组合)会导致子类的膨胀
+# (2) 在不影响其他对象的情况下，以动态、透明的方式给单个对象添加职责
+#      处理那些可以撤销的职责
+# (3) 通过采用组合而非继承的手法，Decorator模式实现了在运行时动态扩展对象功能的能力，而且可以根据需要扩展多个功能。避免了使用继承带来的“灵活性差”和“多子类衍生问题”。
+2.Decorator类在接口上表现为is-a Component的继承关系，即 Decorator类继承了Component类所具有的接口。但在实现上又 表现为has-a Component的组合关系，即Decorator类又使用了另外一个Component类。
+3.Decorator模式的目的并非解决“多子类衍生的多继承”问题，Decorator模式应用的要点在于解决“主体类在多个方向上的扩展功能”——是为“装饰”的含义。
+
+# 1.4.2 组件协作-装饰器模式-实现
+# (1) 角色：
+#  1) 抽象组件（Component）               抽象方法
+#  2) 具体组件（Concrete Component）      具体方法
+#  3) 抽象装饰器（Decorator）             继承抽象组件(泛化);引用抽象组件(组合)
+#										调用抽象组件方法
+#  4) 具体装饰器（ Concrete Decorator）   具体装饰函数
+# (2) 优缺点：
+#  1) 优点：比静态继承更灵活;
+#          避免在层次结构高层的类有太多的特征;
+# (3) 代码
+import gzip
+from io import BytesIO
+class LogSocket:
+    def __init__(self, socket):
+        self.socket = socket
+    def send(self, data):
+        print("Sending {0} to {1}".format(
+            data, self.socket.getpeername()[0]))
+        self.socket.send(data)
+    def close(self):
+        self.socket.close()
+class GzipSocket:
+    def __init__(self, socket):
+        self.socket = socket
+    def send(self, data):
+        buf = BytesIO()
+        zipfile = gzip.GzipFile(fileobj=buf, mode="w")
+        zipfile.write(data)
+        zipfile.close()
+        self.socket.send(buf.getvalue())
+    def close(self):
+        self.socket.close()
+if __name__ == "__main__":
+    client, addr = server.accept()
+    if log_send:
+        client = LoggingSocket(client)
+    if client.getpeername()[0] in compress_hosts:
+        client = GzipSocket(client)
+    respond(client)
 ```

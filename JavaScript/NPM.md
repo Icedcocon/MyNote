@@ -87,14 +87,6 @@ npm prune                               # 清除项目中没有被使用的包
 
 ##### 运行命令
 
-
-
-
-
-
-
-
-
 - `npm init` 初始化项目，其实就是创建一个`package.json`文件。
 - `npm install` 安装所有项目依赖。
 - `npm help xxx` 查看`xxx`命令的帮助信息。

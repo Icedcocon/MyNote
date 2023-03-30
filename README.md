@@ -91,3 +91,35 @@
   - 描述：可以直观的显示内存分配、对象创建、内存回收过程
   
   - 推荐阅读： 执行代码
+
+- Vue3.x速查表
+  
+  - 网址： https://www.isqqw.com/ref/docs/vue.html
+  
+  - 描述： 简洁明了展示了大部分Vue语法，可用于记忆及查询
+  
+  - 推荐阅读： 全部
+
+- ES6入门教程
+  
+  - 网址： https://es6.ruanyifeng.com/#docs/module
+  
+  - 描述： 阮一峰的教程，包含大部分JS语法，适合入门学习
+  
+  - 推荐阅读： Module语法、按需
+
+- HTML入门教程
+  
+  - 网址： https://github.com/wangdoc/html-tutorial
+  
+  - 描述： 详细说明了各种标签和属性的用法，内容详实
+  
+  - 推荐阅读： intro、attribute及各标签
+
+- CSS入门教程
+  
+  - 网址： https://github.com/wangdoc/css-tutorial
+  
+  - 描述： 详细说明了CSS使用方法
+  
+  - 推荐阅读： 按需，**该文档作者还有其它教程**

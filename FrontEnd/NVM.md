@@ -37,6 +37,17 @@ command -v nvm
 # 设施nvm自启动
 echo "source ~/nvm/nvm.sh" >> ~/.bashrc
 source ~/.bashrc
+
+# 源码
+wget https://github.com/nvm-sh/nvm/archive/refs/tags/v0.39.3.tar.gz 
+tar -xzf v0.39.3.tar.gz
+mv nvm-0.39.3 /usr/local/nvm/
+cat > /etc/profile.d/nvm.sh <<-EOF
+#!/usr/bin/env bash
+export NVM_DIR="/usr/local/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+EOF
+source /etc/profile.d/nvm.sh
 ```
 
 ##### 下载Node.js

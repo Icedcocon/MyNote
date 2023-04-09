@@ -1209,7 +1209,7 @@ multiprocessing.pool.Pool([processes[, initializer[, initargs[,
 #  4) maxtasksperchild:工作进程退出之前可以完成的任务数，到达后释放资源占用让新进程代替
 #                   默认None，即进程寿命与Pool对象相同
 #  5) context:      指定工作进程上下文
-# (2) 实例方法
+# (2) 例方法
 #  1) apply(func[, args[, kwargs]]): 在进程池中选1个工作进程执行func(args,*kwargs)
 #                   因为返回结果前会阻塞，因此想用不同参数并发执行func，必须从不同线程调
 #                   用p.apply()函数或使用p.apply_async()函数（极少用）
@@ -1515,4 +1515,199 @@ multiprocessing.Process(group=None, \  # 仅兼容threading,应始终是None
                         kwargs={}, \   # 关键字参数字典
                         *, daemon=None)
 run() # 仅在子进程中执行,该方法只会调用target指向的函数,可被重载代替target
+
+
+# 7.2 Libraries-Coroutines
+# 7.2.1 Libraries-Coroutines-概念
+# (1) 协程函数(coroutine function)以'async'定义，以'await'调用
+# (2) 协程对象(coroutine object)是协程函数返回的对象object
+# (3) 'asyncio.run(<coroutine>)'是异步程序的主要入口点
+# (4) 函数 wait()、gather() 和 as_completed() 能同时启动多个协程
+# (5) Asyncio 模块还提供了自己的Queue、Event、Lock和Semaphore类
+import asyncio
+async def inner_coro(): # 定义
+    return "Hello World"
+async def main():
+    message = await inner_coro()
+    print(message)
+result = asyncio.run(main()) # main()本身是一个协程
+print(result)
+
+# 7.2.2 Libraries-Coroutines-协程/Task/Future执行的入口点
+# (1) 两种开始执行的入口函数
+asyncio.run(coro, *, debug=None)  # 协程执行入口点
+loop.run_until_complete(future)   # Task/Future执行入口点
+# (2) 生成task的方法
+asyncio.ensure_future(obj, *, loop=None) -> Task/Future
+asyncio.create_task(coro, *, name=None, context=None) -> Task
+asyncio.gather(*aws, return_exceptions=False) -> results # 协程自动转task
+
+# 7.2.2.1 Libraries-Coroutines-协程运行-asyncio.run
+# (1) asyncio.run(coro, *, debug=None) 执行协程coro并返回结果
+#     1) 创建新的event loop并在结束后关闭
+#     2) 若当前线程有event loop运行，则不能执行
+#     3) debug为True以调试模式运行，None遵守全局设置
+import asyncio
+import time
+async def main():
+    await asyncio.sleep(1)
+    print('hello')
+asyncio.run(main())
+
+# 7.2.2.2 Libraries-Coroutines-协程运行-asyncio.create_task
+# (2) asyncio.create_task(coro, *, name=None, context=None) -> Task
+#     1) 将协程coro封装成Task并调度执行;返回Task对象;
+#     2) Task.set_name()可设置任务名称name
+import asyncio
+import time
+async def say_after(delay, what):
+    await asyncio.sleep(delay)
+    return what
+async def main1():
+    task1 = asyncio.create_task(say_after(1, 'hello'))
+    task2 = asyncio.create_task(say_after(2, 'world'))
+    start = time.time()
+    await task1
+    await task2
+    now = time.time()
+    print("Time Consumed: ", now - start)
+async def main2():
+    start = time.time()
+    await say_after(1,"hello")  # 执行完成后执行下一条指令
+    await say_after(2,"world")  # 顺序执行
+    now = time.time()
+    print("Time Consumed: ", now - start)
+asyncio.run(main1()) # 总共需要2秒
+asyncio.run(main2()) # 总共需要3秒
+
+# 7.2.2.3 Libraries-Coroutines-协程运行-asyncio.gather
+# (3) asyncio.gather(*aws, return_exceptions=False) -> list
+#     1) 并发运行aws序列中的可等待对象
+#     2) 若aws为协程coro将自动被转为task并调度
+#     3) 所有可等待对象完成后获得返回值列表;顺序与aws可等待对象一致
+#     4) 若return_exceptions为False(默认)，则task异常不会影响后续task
+#     5) gather()被取消则未完成task被取消;aws序列中task取消不会影响后续task
+import asyncio
+import time
+async def say_after(delay, what):
+    await asyncio.sleep(delay)
+    return what
+async def main3():
+    start = time.time()
+    task1 = say_after(1,"hello")
+    task2 = say_after(2,"world")
+    message = await asyncio.gather(task1, task2)
+   #message = await asyncio.gather(say_after(1,"h"), say_after(2,"w"))
+    print(message)
+    now = time.time()
+    print("Time Consumed: ", now - start)
+asyncio.run(main3()) # 总共需要2秒
+
+# 7.2.3 Libraries-Coroutines-三种可等待(挂起)对象Awaitable objects
+# 协程是可挂起的;挂起后的协程就是协程的嵌套
+# (1) coroutines
+# (2) Tasks
+#     1) Task通常用于封装协程、绑定回调函数
+#     2) task所绑定的回调函数,必须有位置参数future: def callback(future)
+#     3) 回调函数通过future对象的result方法对结果进行处理
+# (3) Futures
+#     1) Future是一个异步运算的最终结果;是未来的完成状态
+#     3) loop.create_future()可以创建Future对象，但通常不应直接创建
+
+# 7.2.4 Libraries-Coroutines-Task对象及函数
+# class asyncio.Task(coro, *, loop=None, name=None)
+# Task对象用于封装协程以添加多个并发任务;追踪协程的运行/完成状态;获取协程结果;
+# 协程封装为Task后需要await该Task启动;Task_list可用wait()或gather()启动 
+# 若协程等待Future对象,Task对象会挂起该协程直到Future对象完成
+task.add_done_callback(callback, *, context=None)
+# 注册回调函数，在Task对象完成时执行
+task.remove_done_callback(callback)
+# 移除回调函数
+task.cancel(msg=None)
+# 请求取消Task对象;
+task.result()
+# 返回Task的结果;若事件被取消则抛出CancelledError异常;
+task.exception()
+# 返回Task对象的异常
+
+
+# 7.2.5 Libraries-Coroutines-Future相关函数
+# (1) Future又称未来/期程对象;Task继承自Future 
+# (2) 直接创建Future需要使用asyncio.ensure_future()函数
+# (3) asyncio.Future不是coroutines.futures.Future;后者用于多进程/线程实现并发
+# (1) asyncio.isfuture(obj)
+#     1) obj为Future类、Task类或带有_asyncio_future_blocking属性的实例返回True
+# (2) asyncio.ensure_future(obj, *, loop=None)
+#     1)  obj对象为Future、Task会直接返回;为coro对象封装并返回task对象
+# (3) Future.add_done_callback(callback, *, context=None)
+#     Task.add_done_callback(callback, *, context=None)
+#     1) 添加回调函数,在Future/Task对象完成时执行;
+# (4) future对象常用函数(通常在callback中调用)
+future.result()          # 返回 Future 的结果
+future.exception()       # 返回 Future 已设置的异常
+
+# 7.2.6 Libraries-Coroutines-Loop对象
+# (1) 获取事件循环
+asyncio.get_running_loop()  # 返回当前OS线程中正在运行的事件循环
+asyncio.get_event_loop()    # 获取当前事件循环（不推荐）(会自动添加task)
+asyncio.set_event_loop(loop)# 将loop设为OS线程的当前event loop
+asyncio.new_event_loop()    # 创建并返回一个新的事件循环对象(手动绑定task)
+# (2) 运行和停止循环
+loop.run_until_complete(future)  # 运行直到future被完成;返回Future的结果或异常
+loop.run_forever()               # 运行事件循环直到stop()被调用
+loop.stop()                      # 停止事件循环
+loop.is_running()                # 运行返回True 
+loop.is_closed()                 # 关闭返回True
+loop.close()                     # 关闭事件循环
+# (3) 安排回调
+loop.call_soon(callback, *args, context=None) # loop下次迭代时调用callback
+loop.call_later(delay, callback, *args, context=None) # 延时delay秒调用
+# (4) 创建/绑定Future和Task
+loop.create_future() # 创建asyncio.Future对象并绑定到该loop
+loop.create_task(coro, *, name=None, context=None) # 创建并绑定task
+
+
+# 7.2.6.1 Libraries-Coroutines-Loop对象-单任务事件循环
+import asyncio
+async def work(loop, t):
+    print('[work] start')
+    await asyncio.sleep(t)  # 模拟IO操作
+    await asyncio.sleep(t)  # 模拟IO操作
+    # ...
+    print('[work] finished')
+    loop.stop()  # 停止事件循环，stop后仍可重新运行
+if __name__ == '__main__':
+    loop = asyncio.new_event_loop()        # 创建新的event loop
+    task = loop.create_task(work(loop, 1)) # 将task绑定到loop
+    print('[main]', task._state)
+    loop.run_forever()  # 无限运行事件循环，直至loop.stop停止
+    print('[main]', task._state)
+
+# 7.2.6.2 Libraries-Coroutines-Loop对象-多任务事件循环
+# (1) asyncio.gather()返回的task_list使用add_done_callback方法
+#     会在所有task完成后调用
+# (2) gather推荐与asyncio.run()搭配使用，而非loop
+import asyncio
+import functools
+def loop_stop(loop, future):  # 最后一个参数必须为future或task
+    print('[callback] stop loop by callback.')
+    loop.stop()
+async def work(t):
+    print('[work] coroutine start.')
+    await asyncio.sleep(t)
+    print('[work] coroutine end.')
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    tasks = asyncio.gather(work(3), work(1))
+    tasks.add_done_callback(functools.partial(loop_stop, loop))
+    loop.run_forever()
+    loop.close()
+
+# 7.2.7 Libraries-Coroutines-Future对象
+future.result()          # 返回 Future 的结果
+future.set_result(result)       # 将Future标记为完成并设置结果
+future.set_exception(exception) # 将Future标记为完成并设置一个异常
+future.done()            # 如果Future为已完成则返回 True
+future.cancelled()       # 如果Future已取消则返回 True
+future.get_loop()        # 返回Future对象已绑定的事件循环
 ```

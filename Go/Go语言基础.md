@@ -182,7 +182,7 @@ const (                      // (6) ①iota的值从0开始，用于常量的数
 
 ```go
 //#######################################################################
-// 数组、切片
+// 数组、切片、映射
 //#######################################################################
 // 1.数组
 var a [10]int          // (1) 声明长度为10的int数组，数组长度是数组类型的一部分
@@ -240,6 +240,9 @@ copy(s2,s1)                // (2) 7 8 9 copy是原址修改，s1已经改变
 // (1) 循环遍历数组或切片
 for i, e := range a {
     // i是下标索引，从0开始, e是具体的元素
+    // i, e 是局部变量，可通过以下方式修改数组内容
+
+    a[i] = 1000  
 }
 
 // (2) 如果你只需要元素，不需要下标索引，可以按照下面的方式做:
@@ -255,5 +258,216 @@ for i := range a {
 // (4) Go 1.4开始，可以不用带上i和e，直接for range遍历
 for range time.Tick(time.Second) {
     // 每秒执行一次
+}
+
+// 4.map映射
+m := make(map[string]int)   // (1) 初始化map后才能使用
+m["key"] = 42               //     赋值
+fmt.Println(m["key"])       //     使用
+delete(m, "key")            //     删除键值对
+elem, ok := m["key"] // (2) 若key存在,ok为true,elem是对应value
+                     //     否则ok是false，elem是map的value的类型的零值
+// (3) map字面值，声明的同时做初始化
+// type Vertex struct {
+//     X, Y float64
+// }
+var m = map[string]Vertex{
+    "Bell Labs": {40.68433, -74.39967},
+    "Google":    {37.42202, -122.08408},
+}
+// (4) 遍历map
+for key, value := range m {
+    m[key] = {1,2}  // key和value是局部变量，改变不影响map
+}
+// (5) 复杂map必须逐层初始化
+m := make(map[int]map[int]string)
+m[1] = make(map[int]string)
+m[1][1] = "hello world"
+Println(m[1][1])
+```
+
+```go
+//#######################################################################
+// 控制语句
+//#######################################################################
+
+// 控制语句-if
+// (1) 基本语法
+if x > 10 {
+    return x
+} else if x == 10 {
+    return 10
+} else {
+    return -x
+}
+// (2) 在if条件前面可以加一条语句;通常为初始化语句;用分号隔开
+if a := b + c; a < 42 {
+    return a
+} else {
+    return a - 42
+}
+// (3) 在if里做类型判断
+var val interface{} = "foo"
+if str, ok := val.(string); ok {
+    fmt.Println(str)
+}
+
+// 控制语句-for
+// Go只有for，没有while和until关键字
+for i := 1; i < 10; i++ {  // (1) 标准for循环
+}
+for ; i < 10;  {           // (2) 相当while循环的效果
+}
+for i < 10  {              // (3) 可以省略分号,相当while循环
+}
+for {                      // (4) 可以忽略条件，相当于while (true)
+
+// 控制语句-switch
+// (1) 标准格式
+switch operatingSystem {
+case "darwin":
+    fmt.Println("Mac OS Hipster")
+    // case分支里的代码执行完后会自动退出switch，默认没有fallthrough
+case "linux":
+    fmt.Println("Linux Geek")
+default:
+    // Windows, BSD, ...
+    fmt.Println("Other")
+}
+// (2) 和if一样，switch的value之前可以添加一条赋值语句
+switch os := runtime.GOOS; os {
+case "darwin": ...
+}
+// (3) switch的case条件还可以是比较语句
+number := 42
+switch {
+    case number < 42:
+        fmt.Println("Smaller")
+    case number == 42:
+        fmt.Println("Equal")
+    case number > 42:
+        fmt.Println("Greater")
+}
+// (4) case分支后还可以带多个值，用逗号分隔，任意一个匹配即可
+var char byte = '?'
+switch char {
+    case ' ', '?', '&', '=', '#', '+', '%':
+        fmt.Println("Should escape")
+}
+
+// 控制语句-跳出循环
+// (1) 循环里可以使用break/continue/goto来控制循环执行逻辑
+// (2) break/continue/goto还可以和循环外的label一起使用,控制外层循环的执行逻辑
+// (3) continue here 表示外层的for循环继续执行，继续执行时外层for循环里的i会++
+here:
+    for i := 0; i < 2; i++ {
+        for j := 0; ; j++ {
+            if j == 2 {
+                continue here
+                // continue可以跳出内层死循环，外层有限循环
+            }
+            fmt.Println(j)
+        }
+    }
+// (4) break there 表示退出外层循环，也就是退出整个循环了
+there:
+    for i := 0; ; i++ {
+        for j := 0; ; j++ {
+            fmt.Println(j)
+            if j == 2 {
+                break there
+                // break可以跳出外层无限循环
+            }
+        }
+    }
+// (5) goto where 表示退出外层循环，也就是退出整个循环了
+    for i := 0; ; i++ {
+        for j := i + 1; j < 3; j++ {
+            fmt.Println(j)
+            if j == 2 {
+                goto where
+                // goto对应的标签应该位于循环下方
+            }
+        }
+    }
+where:
+```
+
+```go
+//#######################################################################
+// 函数
+//#######################################################################
+
+// 函数-函数基础
+// (1) 一个简单的函数
+func functionName() {}
+// (2) 带参数的函数，参数的类型在标识符后面
+func functionName(param1 string, param2 int) {}
+// (3)多个参数有相同的类型
+func functionName(param1, param2 int) {}
+// (4) 返回值类型声明
+func functionName() int {
+    return 42
+}
+// (5) 可以返回多个值
+func returnMulti() (int, string) {
+    return 42, "foobar"
+}
+var x, str = returnMulti()
+// (6)函数返回值有标识符，可以在函数体内对返回标识符赋值
+func returnMulti2() (n int, s string) {
+    n = 42
+    s = "foobar"
+    // 只需要return即可，n和s的值会被返回
+    return
+}
+var x, str = returnMulti2()
+
+
+// 函数-函数闭包
+func outer() (func() int, int) {
+    outer_var := 2
+    // (1) 闭包是匿名函数，闭包可以访问当前作用域可以访问到的变量
+    inner := func() int {
+        outer_var += 99 // 如果执行了闭包，闭包外面的outer_var的值会被修改
+        return outer_var
+    }
+    inner()
+    return inner, outer_var // outer_var的值被改变，这里返回inner函数和101
+}
+
+// 函数-参数可变的函数
+func main() {
+    fmt.Println(adder(1, 2, 3))     // 6
+    fmt.Println(adder(9, 9))    // 18
+    nums := []int{10, 20, 30}
+    fmt.Println(adder(nums...))    // 60
+}
+// (1) 最后一个参数的类型前面加...表示函数的最后一个传参可以有0个或者多个
+func adder(args ...int) int {
+    total := 0
+    for _, v := range args { // (2) 遍历传进来的参数, args是一个slice类型变量
+        total += v
+        v++  // (3) 本质是值传递，对slice的修改不会影响外部变量
+    }
+
+    return total
+}
+
+// 函数-defer
+// (1) defer 行为类似析构函数，在函数体执行结束后按照调用顺序的相反顺序逐个执行
+// (2) 即使函数发生严重错误也会执行
+// (3) 支持匿名函数的调用
+// (4) 常用于资源清理、文件关闭、解锁以及记录时间等操作
+// (5) 通过与匿名函数配合可在return之后修改函数计算结果(因为最后执行)
+// (6) 如果函数体内某个变量作为deferE时匿名函数的参数，则在定义defer
+//     时即已经获得了拷坝，否则则是引用某个变量的地址（闭包）
+// (7) Go没有异常机制，但有panic/recover模式来处理错误
+// (8) Panic可以在任何地方引发，但recover只有在defer调用的函数中有效
+func main() {
+  defer func() {
+    fmt.Println("Done")
+  }()
+  fmt.Println("Working...")
 }
 ```

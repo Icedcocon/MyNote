@@ -365,4 +365,176 @@ div[data-role="mobile"] {
 // onplaying, onprogress, onratechange, onreset, onresize, onscroll, 
 // onseeked, onseeking, onselect, onshow, onsort, onstalled, onsubmit, 
 // onsuspend, ontimeupdate, ontoggle, onvolumechange, onwaiting
+
+// 2.3 HTML语法-文本标签
+
+// 2.3.1 HTML语法-文本标签-<div>
+// (1) <div>是无语义的块级元素,表示一个区块（division）,没语义元素合适时使用
+// (2) 应优先使用带有语义的块级标签（<article>、<section>、<aside>、<nav>等）
+<div>
+  <img src="warning.jpg" alt="警告">
+  <p>小心</p>  // 将图像和文字组合在一起，构成一个警告区块。
+</div>
+
+// 2.3.2 HTML语法-文本标签-<p>
+// (1) <p>标签是一个块级元素，代表一个段落（paragraph）
+// (2) 任何想以段落显示的内容(文本、图片、表单项)都可以放进<p>元素
+<p>hello world</p>    // 一个简单的段落
+
+// 2.3.3 HTML语法-文本标签-<span>
+// (1) <span>是一个通用目的的行内标签（不产生换行），不带有任何语义
+// (2) 它通常用作 CSS 样式的钩子，对<span>内的内容指定样式
+<p>这是一句<span style="color: red">重要</span>的句子。</p>
+
+// 2.3.4 HTML语法-文本标签-<br>，<wbr>
+// <br>让网页产生一个换行效果。该标签是单独使用的，没有闭合标签。
+// (1) 块级元素的间隔，不要使用<br>来产生，而要使用 CSS 指定
+// (2) <wbr>标签表示可选断行。如果宽度足够，则不断行；否则在<wbr>的位置断行
+
+// 2.3.5 HTML语法-文本标签-< hr>
+// (1) <hr>用于分隔文章中两个不同主题，浏览器会将其渲染为一根水平线
+// (2) 尽量避免使用;主题间分隔可用<section>;水平线可用CSS
+<p>第一个主题</p>
+<hr>
+<p>第二个主题</p>
+
+// 2.3.6 HTML语法-文本标签-< pre>
+// (1) <pre>是一个块级元素，表示保留原来的格式（preformatted）,即换行和空格
+// (2) 内部嵌套的HTML标签依然起作用，仅保留嵌套标签内的内容的换行和空格
+<pre><strong>hello 
+这段文字会加粗显示，并保留换行
+world</strong></pre>
+
+// 2.3.7 HTML语法-文本标签-< strong>，< b>
+// (1) <strong>是一个行内元素，表示内容很强重要，浏览器会以粗体显示内容
+// (2) <b>是没有语义的纯样式标签，违反了语义与样式分离的原则，应优先使用<strong>
+
+// 2.4 HTML语法-链接标签
+// 2.4.1 HTML语法-链接标签-< a>
+// (1) 用户点击<a>标签内的对象(文字、图像、多媒体)后，浏览器会跳转到指定的网址
+<a href="https://www.example.com/">
+  <img src="https://www.example.com/foo.jpg">
+</a>
+// (2) <a>标签有如下属性
+//  1) href:链接指向的网址(URL/锚点)
+<a href="#demo">示例</a>
+//  2) hreflang:链接指向的网址所使用的语言(无实际功能)
+<a href="https://www.example.com" hreflang="en">示例网址</a>
+//  3) title:链接的说明信息,鼠标悬停时显示
+<a href="https://www.example.com/" title="hello">示例</a>。
+//  4) target:如何展示打开的链接(_self当前窗口;_blank新窗口...)
+<a href="https://www.example.com" target="_blank">示例链接</a>
+//  5) rel:链接与当前页面的关系
+<a href="help.html" rel="help">帮助</a>
+//  6) referrerpolicy:设定点击链接时，浏览器发送HTTP头信息的Referer字段的行为
+//  7) ping:用户点击时向指定网址发出POST请求，常用于跟踪用户行为
+<a href="http://localhost:3000" ping="http://localhost:3001">-</a>
+//  8) type:出链接URL的MIME类型(网页、图像、文件),无实际功能
+<a href="smile.jpg" type="image/jpeg">示例图片</a>
+//  9) download:表明当前链接用于下载,若有值则为文件名
+<a href="demo.txt" download>下载</a>
+
+// 2.4.2 HTML语法-链接标签-< link>概念
+// (1) <link>标签一般在<head>标签内用于引用外部资源，如加载 CSS 样式表
+<link rel="stylesheet" type="text/css" href="theme.css">
+// (2) 或加载替代样式表，即默认不生效、需要用户手动切换的样式表;title必备
+<link href="default.css" rel="stylesheet" title="Default Style">
+<link href="fancy.css" rel="alternate stylesheet" title="Fancy">
+// (3) 加载网站的 favicon 图标文件;通常在JS中用require动态加载
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+// (4) 根据客户端加载不同分辨率图片
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="favicon114.png">
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="favicon72.png">
+
+// 2.4.3 HTML语法-链接标签-< link>属性
+// (1) rel: 表示外部资源与当前文档之间的关系，是必需属性
+// (2) media：给出外部资源生效的媒介条件
+// (1) crossorigin：加载外部资源的跨域设置。
+// (1) href：外部资源的网址。
+// (1) referrerpolicy：加载时Referer头信息字段的处理方法。
+// (1) as：rel="preload"或rel="prefetch"时，设置外部资源的类型。
+// (1) type：外部资源的 MIME 类型，目前仅用于rel="preload"或rel="prefetch"的情况。
+// (1) title：加载样式表时，用来标识样式表的名称。
+// (1) sizes：用来声明图标文件的尺寸，比如加载苹果手机的图标文件。
+
+// 2.4.3.1 HTML语法-链接标签-< link>属性-rel属性取值
+// (1)  alternate：文档的另一种表现形式的链接，比如打印版。
+// (2)  author：文档作者的链接。
+// (3)  dns-prefetch：要求浏览器提前执行指定网址的 DNS 查询。
+// (4)  help：帮助文档的链接。
+// (5)  icon：加载文档的图标文件。
+// (6)  license：许可证链接。
+// (7)  next：系列文档下一篇的链接。
+// (8)  pingback：接收当前文档 pingback 请求的网址。
+// (9)  preconnect：要求浏览器提前与给定服务器，建立 HTTP 连接。
+// (10) prefetch：要求浏览器提前下载并缓存指定资源，供下一个页面使用。
+//                它的优先级较低，浏览器可以不下载。
+// (11) preload：要求浏览器提前下载并缓存指定资源，当前页面稍后就会用到。
+//               它的优先级较高，浏览器必须立即下载。
+// (12) prerender：要求浏览器提前渲染指定链接。这样的话，用户稍后打开
+//                 该链接，就会立刻显示，感觉非常快。
+// (13) prev：表示当前文档是系列文档的一篇，这里给出上一篇文档的链接。
+// (14) search：提供当前网页的搜索链接。
+// (15) stylesheet：加载一张样式表。
+<!-- 作者信息 -->
+<link rel="author" href="humans.txt">
+<!-- 版权信息 -->
+<link rel="license" href="copyright.html">
+<!-- 另一个语言的版本 -->
+<link rel="alternate" href="https://es.example.com/" hreflang="es">
+<!-- 联系方式 -->
+<link rel="me" href="https://google.com/profiles/someone" type="text/html">
+<link rel="me" href="mailto:name@example.com">
+<link rel="me" href="sms:+15035550125">
+<!-- 历史资料 -->
+<link rel="archives" href="http://example.com/archives/">
+<!-- 目录 -->
+<link rel="index" href="http://example.com/article/">
+<!-- 导航 -->
+<link rel="first" href="http://example.com/article/">
+<link rel="last" href="http://example.com/article/?page=42">
+<link rel="prev" href="http://example.com/article/?page=1">
+<link rel="next" href="http://example.com/article/?page=3">
+
+// 2.4.3.2 HTML语法-链接标签-< link>属性-资源的预加载
+<link rel="preload" href="style.css" as="style">
+<link rel="preload" href="main.js" as="script">
+// 不指定as属性，或浏览器不认识，则以较低的优先级下载这个资源
+// as属性指定加载资源的类型，它的值一般有下面几种:
+//  1) "script"
+//  2) "style"
+//  3) "image"
+//  4) "media"
+//  5) "document"
+
+// 2.4.3.3 HTML语法-链接标签-< link>属性-资源的预加载
+// (0) media属性给出外部资源生效的媒介条件。
+// (1) 打印时加载print.css，移动设备访问时（设备宽度小于600像素）加载mobile.css
+<link href="print.css" rel="stylesheet" media="print">
+<link href="mobile.css" rel="stylesheet" media="screen and (max-width: 600px)">
+// (2) 条件加载:如果屏幕宽度在600像素以下，则只加载第一个资源，否则就加载第二个资源
+<link rel="preload" as="image" href="map.png" media="(max-width: 600px)">
+<link rel="preload" as="script" href="map.js" media="(min-width: 601px)">
+
+// 2.4.4 HTML语法-链接标签-< script>概念及type属性
+// (1) <script>用于加载脚本代码，目前主要是加载 JavaScript 代码。
+<script>console.log('hello world');</script>
+// (2) <script>也可以加载外部脚本，src属性给出外部脚本的地址。
+<script src="javascript.js"></script> // 加载脚本文件并执行
+// (3) type属性给出脚本的类型，默认是 JavaScript 代码，所以可省略
+<script type="text/javascript" src="javascript.js"></script>
+// (4) type属性也可以设成module，表示这是一个 ES6 模块，不是传统脚本。
+<script type="module" src="main.js"></script>
+
+// 2.4.5 HTML语法-链接标签-< script>其它属性
+// (1) async：该属性指定 JavaScript 代码为异步执行，不是造成阻塞效果，
+//            JavaScript 代码默认是同步执行。
+// (2) defer：该属性指定 JavaScript 代码不是立即执行，而是页面解析完成后执行。
+// (3) crossorigin：如果采用这个属性，就会采用跨域的方式加载外部脚本，
+//                  即 HTTP 请求的头信息会加上origin字段。
+// (4) integrity：给出外部脚本的哈希值，防止脚本被篡改。
+//                只有哈希值相符的外部脚本，才会执行。
+// (5) nonce：一个密码随机数，由服务器在 HTTP 头信息里面给出，每次加载脚本都不一样。
+//            它相当于给出了内嵌脚本的白名单，只有在白名单内的脚本才能执行。
+// (1) referrerpolicy：HTTP 请求的Referer字段的处理方法。
 ```

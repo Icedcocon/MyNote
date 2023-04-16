@@ -249,6 +249,24 @@ yum -y install epel-release
 python3 -m pip install --upgrade pip
 ```
 
+# 配置本地yum源
+
+- 需求：
+  
+  - CentOS镜像文件
+
+- 执行`mount ./centos7.9.iso /var/www/html/sources/centos7.9`
+
+- `vim /etc/yum.repos.d/local.repo` 自定义配置文件名
+  
+  ```bash
+  [Local]                  # yum的ID，本地唯一，用于区分不同yum源
+  name=Local-Kylin         # 描述信息
+  baseurl=file:///var/www/html/sources/centos7.9  # file://是协议
+  enabled=1                # 1启用yum源，0禁用yum源
+  gpgcheck=0               # 1使用公钥验证rpm包的正确性，0不验证
+  ```
+
 # 配置集群共享yum源
 
 - 需求：

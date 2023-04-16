@@ -138,5 +138,3 @@ def application(environ, start_response):
 # uWSGI: 是一个应用服务器, 采用可插拔的架构以支持多语言和平台.
 # 因为其上开发出来的第一个插件支持的就是Python中的WSGI标准, 所以才有了现在的名字.
 ```
-
-

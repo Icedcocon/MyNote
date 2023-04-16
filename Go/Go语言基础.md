@@ -399,6 +399,8 @@ where:
 //#######################################################################
 
 // 函数-函数基础
+// (0) 函数声明包括函数名、形式参数列表、返回值列表（可省略）以及函数体。
+func name(parameter-list) (result-list) {}
 // (1) 一个简单的函数
 func functionName() {}
 // (2) 带参数的函数，参数的类型在标识符后面
@@ -469,5 +471,504 @@ func main() {
     fmt.Println("Done")
   }()
   fmt.Println("Working...")
+}
+```
+
+```go
+//#######################################################################
+// 5 结构体
+//#######################################################################
+
+// 1.结构体的声明、赋值及访问
+// 5.1 结构体-声明
+// (0) 结构体是一种类型，也是一系列字段的集合
+type node struct {     // (1) 用type <Name> struct{}定义结构，遵守可见性规则
+    id    int
+    value string
+    next  *node        // (2) 支持指向自身的指针类型成员
+}
+n := node{ 1, "a" }    // (3) 顺序初始化，必须包含全部字段值
+                       // 错误: too few values in struct literal
+n := node{             // (4) 命名初始化，不用全部字段，也无关顺序
+    id   : 2,
+    value: "abc",      // 注意结尾逗号 !!!
+}
+type nNode struct {
+    int                // (5) 匿名字段(本质上是以类型名为名称的字段)
+    _ string           // (6) 可用 _ 忽略字段名。
+    node               // (7) 结构体的嵌套(具名结构体-匿名字段)
+}
+s := nNode {19, 2, node{id:1, value: "10"}}
+// 如果使用外层结构体不存在的字段，会自动向内层查找
+// 如果内外层有同名结构体，使用内层字段时，需要指定具体路径
+type mNode struct{
+    name string
+    myNode node        // (8) 结构体的嵌套(具名结构体-具名字段)
+}
+s := mNode{name: "Name", myNode:node{id:1, value: "10"}}
+                       // (9) 相同类型的成员可进行直接拷贝赋值
+
+// 5.2 结构体-匿名结构和空结构
+user := struct {         // (1) 匿名结构体通过value := struct{}{}定义使用
+    id   int
+    name string
+}{id: 1, name: "user1"}
+type Student struct {    // (2) 匿名结构体可嵌入其他类型,用作成员或定义成员变量
+    Person struct {sex, name string}  // 匿名结构体-具名字段
+    age, id int                       // 相同类型的声明可以用逗号分割
+}
+s := Student{age:18, id:0}
+ss := []Student{{age:18, id:0}, {age:18, id:0}} // 初始化结构体切片
+s.Person.sex = "m"                   // 匿名结构体-具名字段
+s.Person.name = "Mary"               // 只能通过字段名赋值
+users := make(map[int]struct{})      // 匿名结构也可以用于map的值
+var a struct{}          // (3) 空结构中没有字段，常用于值可被忽略的场合;
+var b [1000]struct{}    
+s := b[:]               // (4) 结构自身和元素类型的长度都为零，但实体存在;
+println(unsafe.Sizeof(a), unsafe.Sizeof(b))  // 0, 0
+println(len(s), cap(s))                      // 1000, 1000
+
+// 5.2 结构体-比较运算符
+// (1) 支持==与！=比较运算符，但不支持>或<
+// (2) 仅所有字段全部支持，才可做相等操作。
+
+// 5.3 结构体-指针
+// (1) 可用指针选择字段，但不支持多级指针。
+// (2) 可以使用匿名字段指针
+// (3) 允许直接通过指针来读写结构成员
+// (4) 结构体的.运算符
+var v = Vertex{1, 2}
+var vp = &Vertex{1, 2}
+Println(v1.X, v2.X)  // 不论变量是指针还是结构体.运算符具有相同的表现
+
+// 5.4 结构体-标签
+// (1) 标签（tag）不是注释，而是对字段进行描述的元数据
+// (2) 不是数据成员，却是类型的组成部分。
+// (3) 内存布局相同，允许显式类型转换。
+type user1 struct {id int `id`}  
+type user2 struct {id int `uid`}
+u1 := user1{1}
+u2 := user2{2}   // 类型不同
+_ = u1 == u2     // mismatched types user1 and user2
+u1 = user(u2)    // 内存布局相同，支持转换。
+fmt.Println(u1)
+```
+
+```go
+//#######################################################################
+// 6 方法
+//#######################################################################// 2.在结构体中定义方法
+// (1) 在func关键字和方法名称之间加上结构体声明(var_name StructName)
+// 调用方法时，会把结构体的值拷贝一份
+func (v Vertex) Abs() float64 {
+    return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+// 调用结构体方法
+v.Abs()
+
+// (2) 调用方法时想改变外部结构体变量的值，方法需要使用指针接受者
+// 下面的方法，每次调用add方法时就不会拷贝结构体的值
+func (v *Vertex) add(n float64) {
+    v.X += n
+    v.Y += n
+}
+var v = Vertex{0,0}
+v.add(10)
+(*Vertex).add(&v, 10)
+```
+
+```go
+//#######################################################################
+// 7 接口
+//#######################################################################
+// (0) 接口是一个或多个方法签名的集合
+type Connecter interface{    // (1) 接口只有方法声明，没有实现，没有数据字段
+    Connect()
+}
+type USB interface{
+    Name() string
+    Connecter()              // (2) 接口可以匿名嵌入其它接口，或嵌入到结构中
+}
+type PhoneConnecter struct{  // (3) 类型拥有该接口的所有方法签名，即算实现该接口
+    name string              //     无需显示声明实现哪个接口
+}                            //     这称为Structural Typing
+func (pc PhoneConnecter)Name() string{
+    return pc.name
+}
+func (pc PhoneConnecter)Connect() {
+    fmt.Println("Connected:"pc.name)
+}
+func main() {
+    a := PhoneConnecter{"PhoneConnecter"}  // (4) 赋值给接口时会发生拷贝
+    a.name = "NewName"      // 接口内部存储指向复制品的指针,而非结构体
+    a.Connect()             // 对结构体赋值不会改变复制品的状态，也不能获取指针
+
+    Disconnect(a)
+    b := Connecter(a)       // (5) 超集的接口可以转换为子集的接口，反之失败
+    b.Connect()             // 成功
+
+    var a interface{}       // (6) 仅接口存储的类型和对象都为nil时接口才等于nil
+    fmt.Println(a == nil)   // True
+    var p *int = nil
+    a = p
+    fmt.Println(a == nil)   // False
+}
+func Disconnect(usbUSB){
+    if pc,ok := usb.(PhoneConnecter);ok{  // (7) 判断类型方法一
+        fmt.Println("Disconnected:"pc.name)
+        return
+    }
+    fmt.Println("Unknown decive.")
+}
+func Disconnect(usb interface}){
+    switch v:=usb.(type){                 // (8) 判断类型方法二
+    case PhoneConnecter:
+        fmt.Println("Disconnected:"V.name)
+    default:
+        fmt.Println("Unknown decive.")
+    }
+}
+//  (9) 接口调用不会做receiver的自动转换，与struct不同
+// (10) 接口同样支持匿名字段方法
+// (11) 接口也可实现类似OOP中的多态
+// (12) 空接口可以作为任何类型数据的容器
+
+
+// 接口-空接口
+// interface{} 表示空接口，可以用它引用任意类型的数据类型
+// Golang给interface{}提供类型断言机制以区分此时引用的类型
+func myFunc(arg interface{}) {
+  value, ok := arg.(string) // 类型断言
+  if !ok {
+    fmt.Println("arg is not string type")
+  } else {
+    fmt.Println("arg is string type, value = ", value)
+    fmt.Printf("value type is %T\n", value)
+  }
+}
+
+// 接口-接口值得组成(具体类型、具体类型的值)
+// 接口的值是由一个 具体类型 和 具体类型的值 两部分组成
+var w io.Writer       // 动态类型: nil; 动态类型的值: nil
+w = os.Stdout         // 动态类型: *os.File; 动态类型的值: fd int=1(stdout)
+w = new(bytes.Buffer) // 动态类型: *bytes.Buffer; 动态类型的值: data []byte
+w = nil               // 动态类型: nil; 动态类型的值: nil
+var i interface{}     // 动态类型: nil; 动态类型的值: nil
+
+// 接口-类型断言的本质
+// 类型断言其实就是根据 pair 中的 type 获取到 value
+// pair 在传递过程中不变，不管 r 还是 w，pair中的tpye始终是Book
+type Reader interface {
+    ReadBook()
+}
+type Writer interface {
+    WriteBook()
+}
+type Book struct {} // 具体类型
+func (b *Book) ReadBook() {
+    fmt.Println("Read a Book")
+}
+func (b *Book) WriteBook() {
+    fmt.Println("Write a Book")
+}
+func main() {
+    // b: pair<type: Book, value: book{} 地址>
+    b := &Book{}
+    // book ---> reader
+    // r: pair<type: , value: >
+    var r Reader
+    // r: pair<type: Book, value: book{} 地址>
+    r = b
+    r.ReadBook()
+    // reader ---> writer
+    // w: pair<type: , value: >
+    var w Writer
+    // w: pair<type: Book, value: book{} 地址>
+    w = r.(Writer) // 此处的断言为什么成功？因为 w, r 的type是一致的
+    w.WriteBook()
+}
+```
+
+```go
+// 反射-两种反射方式
+// (1) ValueOf接口用于获取输入参数接口中的数据的值，如果接口为空则返回0
+func ValueOf(i interface{}) Value {...}
+// (2) TypeOf用来动态获取输入参数接口中的值的类型，如果接口为空则返回nil
+func TypeOf(i interface{}) Type {...}
+
+// 反射-获取结构体变量的方式
+type User struct {
+    Id   int
+    Name string
+    Age  int
+}
+func (u User) Call() {
+    fmt.Println("user ius called..")
+    fmt.Printf("%v\n", u)
+}
+func main() {
+    user := User{1, "AceId", 18}
+    DoFieldAndMethod(user)
+}
+func DoFieldAndMethod(input interface{}) {
+    inputType := reflect.TypeOf(input) // 获取input的type
+    fmt.Println("inputType is :", inputType.Name())
+    inputValue := reflect.ValueOf(input)  // 获取input的value
+    fmt.Println("inputValue is :", inputValue)
+    // 通过type获取里面的字段
+    // 1.获取interface的reflect.Type，通过Type得到NumField，进行遍历
+    // 2.得到每个field，数据类型
+    // 3.通过field有一个Interface()方法，得到对应的value
+    for i := 0; i < inputType.NumField(); i++ {
+        field := inputType.Field(i)
+        value := inputValue.Field(i).Interface()
+        fmt.Printf("%s: %v = %v\n", field.Name, field.Type, value)
+    }
+    // 通过type获取里面的方法，调用
+    for i := 0; i < inputType.NumMethod(); i++ {
+        m := inputType.Method(i)
+        fmt.Printf("%s: %v\n", m.Name, m.Type)
+    }
+}
+
+// 反射-结构体标签用于解析json
+import (
+    "encoding/json"
+    "fmt"
+)
+type Movie struct {
+    Title  string   `json:"title"`
+    Year   int      `json:"year"`
+    Price  int      `json:"price"`
+    Actors []string `json:"actors"`
+    Test   string   `json:"-"` // 忽略该值,不解析
+}
+func main() {
+    movie := Movie{"喜剧之王", 2000, 10, []string{"xingye", "zhangbozhi"}, "hhh"}
+    // 编码：结构体 -> json
+    jsonStr, err := json.Marshal(movie)
+    if err != nil {
+        fmt.Println("json marshal error", err)
+        return
+    }
+    fmt.Printf("jsonStr = %s\n", jsonStr)
+    // 解码：jsonstr -> 结构体
+    myMovie := Movie{}
+    err = json.Unmarshal(jsonStr, &myMovie)
+    if err != nil {
+        fmt.Println("json unmarshal error", err)
+        return
+    }
+    fmt.Printf("%v\n", myMovie)
+}
+
+
+// (0) 反射问大大提高程序的灵活性，使得interface{}有更大的发挥余地
+type User struct
+    Id int
+    Name string
+    Age int
+}
+func (u User)Hello() {
+    fmt.Println("Hello world.")
+}
+func main() {
+    u := User{1,"OK",12}
+    Info(&u)
+}
+func Info(o interface{}){
+    t := reflect.Typeof(o)          // TypeOf获取对象类型信息
+    fmt.Println("Type:", t.Name())
+
+    if k := t.Kind(); k != reflect.Struct{ // 判断传入类型是否是期望的
+        fmt.Println("XX")           // Kind()方法获取对象类型
+        return                      // reflect.Struct用于类型判断
+    }
+
+    v := reflect.ValueOf(o)         // ValueOf获取对象的值
+    fmt.Println("Fields:")
+
+    for i:=0; i<t.NumField(); i++{  // NumField()取得字段数量
+        f := t.Field(i)             // Field()方法获取字段
+        val := v.Field(i).Interface()  // Interface()取出字段的值
+        fmt.Printf("%6s:%v %v\n",f.Name,f.Type,val)
+    }
+
+    for i:=0; i<t.NumMethod(); i++{ // NumMethod()取得方法数量
+        m := t.Method(i)            // Method()获取方法信息
+        fmt.Printf("%6s:%v\n",m.Name,m.Type)
+    }
+}
+
+type User struct{
+    Id int
+    Name string
+    Age int
+}
+type Manager struct{
+    User
+    title string
+}
+func main() {
+    m := Manager{User:User{1,"OK",12},title:"123"}
+    t :=reflect.Typeof(m)
+    fmt.Printf("%#v\n",t.Field(0))     // 根据index获取匿名字段信息
+    fmt.Printf("%#v\n",t.FieldByIndex([]int{0,0})) // 匿名嵌套结构体中的字段
+}
+
+
+// (1) 想要利用反射修改对象状态，前提是interface.data是settable,
+       即pointer-interface
+× := 123
+v := reflect.ValueOf(&x)  // 获取对象的指针
+v.Elem().SetInt(999)      // 设置对象的值
+fmt.Println(x)
+
+func main() {
+    u := User{1,"0K",12}
+    set(&u)
+    fmt.Println(u)
+}
+func Set(o interface{}){
+    v :reflect.Valueof(o)
+    if v.Kind()=reflect.Ptr &!v.Elem().CanSet(){ 
+        fmt.Println("XXX")    // 判断类型是否是指针且可修改
+        return
+    } else {
+        v = v.Elem()
+    }
+
+    f :=v.FieldByName("Name")  // 根据字段名查找字段
+    if !f.IsValid() {          // 判断字段名是否合法
+        fmt.Println("BAD")
+        return
+    }
+
+    if f.Kind() == reflect.String{ // 判断类型是否为string
+        f.Setstring("BYEBYE")      // 设置string的值
+    }
+}
+
+// 通过反射可以“动态”调用方法
+type User struct{
+    Id int
+    Name string
+    Age int
+}
+
+func (u User)Hello(name string){
+    fmt.Println("Hello",name,"my name is",u.Name)
+}
+func main() {
+    u := User{1,"0K",12}
+    v := reflect.ValueOf(u)
+    mv := v.MethodByName("Hello")
+
+    args :[]reflect.Value{reflect.Valueof("joe")} // Valueof()生成值对象
+                                                  // Value对象作为参数
+    mv.Call(args)
+}
+```
+
+```go
+// 并发
+
+// 并发-runtime.Goexit()
+// runtime.Goexit()可以退出当前goroutine
+func main() {
+    go func() {
+        defer fmt.Println("A.defer")
+        func() {
+            defer fmt.Println("B.defer")
+            runtime.Goexit() // 退出当前goroutine
+        }()
+    }()
+    time.Sleep(1 * time.Second) // 防止程序退出
+}
+
+// 并发-channel的使用
+// Channel通过make创建，close关闭
+make(chan Type) // 等价于 make(chan Type, 0)
+make(chan Type, capacity)
+channel <- value    // 发送value到channel
+<-channel            // 接收并将其丢弃
+x := <-channel        // 从channel中接收数据，并赋值给x
+x, ok := <-channel    // 功能同上，同时检查通道是否已关闭或为空
+// 有缓存channel特点
+//   1) 当 channel 已经满，再向⾥面写数据，就会阻塞。
+//   2) 当 channel 为空，从⾥面取数据也会阻塞。
+func main(){
+    c := make(chan bool)
+    // c := make(chan bool, 1)
+    go func(){
+        fmt.Println("Go Go Go!!!")
+        c <- true
+    }()
+    <-c    // 阻塞直至channel中有数据
+}
+
+// 并发-channel关闭
+// (1) 关闭channel再发送数据回引发panic错误，导致接收立即返回零值
+// (2) 关闭channel可以继续从channel接收数据
+// (3) 对于nil channel⽆论收发都会被阻塞
+func main() {
+    c := make(chan int)
+    go func() {
+        for i := 0; i < 5; i++ {
+            c <- i
+        }
+        close(c) // close可以关闭一个channel
+    }()
+    for {
+        if data, ok := <-c; ok { // ok为true表示channel没有关闭
+            fmt.Println(data)
+        } else {
+            break
+        }
+    }
+  // (4) 可以使用range来迭代不断操作channel,效果
+  //for data := range c {
+  //    fmt.Println(data)
+  //}
+    fmt.Println("Main Finished..")
+}
+
+
+// 并发-channel与select
+// (1) 可处理一个或多个channel的发送与接收
+// (2) 同时有多个可用的channel时按随机顺序处理
+// (3) 可用空的select来阻塞main函数
+// (4) 可设置超时
+select{
+    case <- chan1:
+        // 如果chanl成功读到欧据，则进行该case处理语句
+    case chan2 <- 1:
+        // 如果成功向chan2写入数据，则进行该case处理语句
+    default:
+        //如果上面都没有成功，则进入default处理流程
+}
+func fibonacii(c, quit chan int) {
+    x, y := 1, 1
+    for {
+        select {
+        case c <- x: // 如果c可写，则进入该case
+            x, y = y, x+y
+        case <-quit: // 如果quit可读，则进入该case
+            fmt.Println("quit")
+            return
+        }
+    }
+}
+func main() {
+    c := make(chan int)
+    quit := make(chan int)
+
+    go func() { // sub go
+        for i := 0; i < 6; i++ {
+            fmt.Println(<-c)
+        }
+        quit <- 0
+    }()
+    fibonacii(c, quit) // main go
 }
 ```

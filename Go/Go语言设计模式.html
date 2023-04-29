@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc-markdown-css-theme" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Go语言设计模式</title>
+  <style type="text/css">:root {--background-color: #fff;--color-text: #1b2733;--color-text-secondary: #637282;--color-link: #0070e0;--color-sidenote: #616970;--highlight-red: #ea9999;--highlight-yellow: #ffe599;--highlight-green: #b6d7a8;--highlight-blue: #a4c2f4;--highlight-purple: #b4a7d6;--color-inline-code: #1b2733;--color-inline-code-bg: #f3f3f8;--color-border: #dfdfd0;--color-border-heavy: #ccccd4;--color-table-heading: #f3f3fb;--font-family-prose: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;--font-family-heading: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif;--font-family-code: Menlo, monospace;--side-note-number-font-family: var(--font-family-prose);--line-height: 26px;--font-size: 17px;--inline-code-font-size: 15px;--code-block-font-size: 14px;--code-block-side-padding: 8px;--line-numbers-font-size: 12px;--tight-code-line-height: 18px;--tight-code-padding-top: 5px;--side-note-line-height: 20px;--side-note-font-size: 13px;--side-note-code-font-size: 13px;--side-note-baseline-offset: 4px;--side-note-sup-offset: -6px;--side-note-number-hang-left: -6px;--side-note-text-indent: -9px;--heading-font-weight: 500;--title-font-size: 42px;--title-code-font-size: 40px;--title-line-height: 48px;--title-margin-top: 92px;--h1-font-size: 32px;--h1-code-font-size: 29px;--h1-line-height: 36px;--h1-word-spacing: 1px;--h1-margin-top: 30px;--h1-margin-bottom: 12px;--h2-font-size: 22px;--h2-code-font-size: 20px;--h2-line-height: 28px;--h2-word-spacing: 0.5px;--h2-margin-top: 18px;--h2-margin-bottom: 6px;--ul-indent-size: 23px;--ol-indent-size: 19px;--ol-li-padding-left: 4px;--hr-margin-top: 18px;--hr-margin-bottom: calc(var(--line-height) - var(--hr-margin-top) - 1px);--extra-wide-scale-factor: 1.5;--figcaption-line-height: 21px;--figcaption-font-size: 14px;--figcaption-code-font-size: 13px;--figcaption-gap: 6px;--captioned-figure-gap: 10px;--table-line-height: 21px;--table-font-size: 14px;--table-code-font-size: 13px;--nav-toc-font-size: 12px;--nav-toc-code-font-size: 12px;--nav-toc-indent: 15px;--nav-toc-baseline-offset: 2px;--main-width: 745px;--main-width-narrow: 550px;--side-note-max-width: 300px;}@media (prefers-color-scheme: dark) {:root {--background-color: #161313;--color-text: #f7f5f2;--color-text-secondary: #9d9b99;--color-link: #2994ff;--color-sidenote: #b4b2af;--highlight-red: #660000;--highlight-yellow: #7f6000;--highlight-green: #274e13;--highlight-blue: #1c4587;--highlight-purple: #351c75;--color-inline-code: #f7f5f2;--color-inline-code-bg: #242121;--color-border: #393635;--color-border-heavy: #524f4d;--color-table-heading: #242121;}}*, *:after, *:before {box-sizing: border-box;margin: 0;padding: 0;-webkit-tap-highlight-color: rgba(0,0,0,0);-webkit-font-smoothing: antialiased;-moz-osx-font-smoothing: grayscale;}html {-webkit-text-size-adjust: 100%;}body {font-family: var(--font-family-prose);color: var(--color-text);font-size: var(--font-size);line-height: var(--line-height);-webkit-font-variant-ligatures: no-common-ligatures;font-variant-ligatures: no-common-ligatures;hanging-punctuation: first;margin: 0;padding: 0;padding-top: var(--title-margin-top);width: 100%;background-color: var(--background-color);}@media print {body {background-color: initial;}}.only-light-mode {display: inherit;}.only-dark-mode {display: none;}@media (prefers-color-scheme: dark) {.only-light-mode {display: none;}.only-dark-mode {display: inherit;}}.sidenote,.marginnote {color: var(--color-sidenote);font-size: var(--side-note-font-size);line-height: var(--side-note-line-height);vertical-align: baseline;margin-top: var(--side-note-baseline-offset);}.sidenote code,.marginnote code {color: var(--color-sidenote);}main {counter-reset: sidenote-counter;}.sidenote-number {counter-increment: sidenote-counter;}.sidenote-number:after,.sidenote:before {content: counter(sidenote-counter);position: relative;}nav#TOC label,label.margin-toggle:not(.sidenote-number),.sidenote-number:after,.sidenote:before,.footnote-ref sup,sup {font-size: var(--side-note-font-size);font-weight: 700;font-family: var(--side-note-number-font-family);-webkit-font-feature-settings: "tnum" 1;font-feature-settings: "tnum" 1;vertical-align: baseline;position: relative;top: var(--side-note-sup-offset);}sup {font-weight: inherit;}.sidenote:before { left: var(--side-note-number-hang-left); }.sidenote { text-indent: var(--side-note-text-indent); }input.margin-toggle {display: none;}label.margin-toggle:not(.sidenote-number) {display: none;}label.sidenote-number {display: inline;}@media screen and (max-width: calc(26px + 550px + 26px + 169px + 26px - 1px)) {.margin-toggle:checked + .sidenote,.margin-toggle:checked + .marginnote {margin-top: var(--side-note-line-height);vertical-align: baseline;}label.margin-toggle {color: var(--color-link);}label.margin-toggle:not(.sidenote-number) {display: inline;}label {cursor: pointer;}}h1, h2 {font-family: var(--font-family-heading);font-weight: var(--heading-font-weight);}h4, h5, h6 {font-weight: normal;}h1.title {margin-top: var(--line-height);margin-bottom: var(--line-height);font-size: var(--title-font-size);line-height: var(--title-line-height);}h1.title code {font-size: var(--title-code-font-size);}h1:not(.title) {font-size: var(--h1-font-size);line-height: var(--h1-line-height);word-spacing: var(--h1-word-spacing);margin-top: var(--h1-margin-top);margin-bottom: var(--h1-margin-bottom);}h1:not(.title) code {font-size: var(--h1-code-font-size);}h2 {font-size: var(--h2-font-size);line-height: var(--h2-line-height);word-spacing: var(--h2-word-spacing);margin-top: var(--h2-margin-top);margin-bottom: var(--h2-margin-bottom);}h2 code {font-size: var(--h2-code-font-size);}h3 {font-size: var(--font-size);line-height: var(--line-height);font-weight: bold;}h1:not(.title) + *, h1:not(.title) + p { margin-top: var(--h1-margin-bottom); }h2 + *, h2 + p { margin-top: var(--h2-margin-bottom); }h3 + *, h3 + p { margin-top: 0; }p, main > ul, main > ol, div.sourceCode, main > pre, img, table {margin-top: var(--line-height);margin-bottom: var(--line-height)}ul:not(.task-list) {margin-left: var(--ul-indent-size);}ol {margin-left: var(--ol-indent-size);}ul.task-list {list-style: none;margin-left: var(--ul-indent-size);}ul.task-list > li {position: relative;}ul.task-list > li > input[type="checkbox"] {position: absolute;left: calc(-1 * var(--ul-indent-size));height: var(--line-height);}ol > li {padding-left: var(--ol-li-padding-left);}ol { list-style-type: decimal; }ol ol { list-style-type: lower-alpha; }ol ol ol { list-style-type: lower-roman; }ol ol ol ol { list-style-type: decimal; }ol ol ol ol ol { list-style-type: lower-alpha; }ol ol ol ol ol ol { list-style-type: lower-roman; }ol ol ol ol ol ol ol { list-style-type: decimal; }ol ol ol ol ol ol ol ol { list-style-type: lower-alpha; }ol ol ol ol ol ol ol ol ol { list-style-type: lower-roman; }ul { list-style-type: disc; }ul ul { list-style-type: circle; }ul ul ul { list-style-type: square; }ul ul ul ul { list-style-type: disc; }ul ul ul ul ul { list-style-type: circle; }ul ul ul ul ul ul { list-style-type: square; }ul ul ul ul ul ul ul { list-style-type: disc; }ul ul ul ul ul ul ul ul { list-style-type: circle; }ul ul ul ul ul ul ul ul ul { list-style-type: square; }blockquote {border-left: 1px solid var(--color-text-secondary);padding-left: 1.5rem;font-style: italic;}blockquote > p {margin-top: 0;}blockquote em, blockquote i, blockquote .sidenote-wrapper {font-style: normal;}hr {margin-top: var(--hr-margin-top);margin-bottom: var(--hr-margin-bottom);border-style: solid;color: var(--color-border-heavy);border-width: 1px 0 0;}a code, a:link code, a:visited code,a, a:link, a:visited {color: var(--color-link);text-decoration: none;}a:hover {text-decoration: underline;}span.mark, mark {color: inherit;padding: 2px 0 1px;}span.mark.red, mark.red { background-color: var(--highlight-red); }span.mark.yellow, mark.yellow { background-color: var(--highlight-yellow); }span.mark.green, mark.green { background-color: var(--highlight-green); }span.mark.blue, mark.blue { background-color: var(--highlight-blue); }span.mark.purple, mark.purple { background-color: var(--highlight-purple); }.subtitle {margin-top: 0;}.author, .date {margin-top: 0;margin-bottom: 0;}.signoff {margin-top: calc(4 * var(--line-height));margin-bottom: calc(4 * var(--line-height));}span.smallcaps{ font-variant: small-caps; }span.underline{ text-decoration: underline; }.katex-display {background: var(--background-color);transform: translateZ(0px);}@media print {.katex-display {background-color: initial;}}code {font-family: var(--font-family-code);word-spacing: normal;color: var(--color-inline-code);background-color: var(--color-inline-code-bg);font-size: var(--inline-code-font-size);margin: 0;padding: 2px 0 1px;border: 1px solid var(--color-border);border-radius: 1px;}.sidenote code,.marginnote code {font-size: var(--side-note-code-font-size);}pre code {color: inherit;background-color: inherit;font-size: var(--code-block-font-size);line-height: var(--line-height);margin: initial;padding: initial;border: initial;border-radius: initial;}pre > code {position: relative; display: inline-block;min-width: 100%;z-index: 1;white-space: pre-wrap;padding: 0 var(--code-block-side-padding);}code.sourceCode::selection {background: transparent;}.wide > pre, .wide > div.sourceCode {transform: translateZ(0px);}.wide pre > code {white-space: pre;}pre.numberSource code {counter-reset: source-line 0;}pre > code.sourceCode > span {line-height: var(--line-height);display: inline-block;min-width: 100%;}div.sourceCode {--line-numbers-width: calc(4 * var(--line-numbers-font-size));--line-numbers-negative-width: calc(-1 * var(--line-numbers-width));margin-left: var(--line-numbers-negative-width);}div.sourceCode > pre {margin-left: var(--line-numbers-width);}pre.numberSource > code.sourceCode > span {counter-increment: source-line;padding-left: var(--line-numbers-width);text-indent: var(--line-numbers-negative-width);position: relative;left: var(--line-numbers-negative-width);}pre.numberSource > code.sourceCode > span > a:first-child::before {-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;content: counter(source-line);font-size: var(--line-numbers-font-size);text-decoration: none;position: relative;text-align: right;display: inline-block;padding: 0 calc(2 * var(--code-block-side-padding));width: var(--line-numbers-width);}pre > code.sourceCode > span > a:first-child::before:hover {text-decoration: underline;}.tight-code pre,pre.tight-code {padding-top: var(--tight-code-padding-top);}pre.tight-code code,.tight-code pre code,.tight-code pre > code.sourceCode > span,pre.tight-code > code.sourceCode > span {line-height: var(--tight-code-line-height);}pre > code.sourceCode > span::after {position: absolute;background-color: var(--color-code-highlight-bg);z-index: -1;left: calc(var(--line-numbers-width) - var(--code-block-side-padding));right: calc(var(--line-numbers-negative-width) - var(--code-block-side-padding));top: 0;height: 100%;}pre.hl-1 > code.sourceCode > span:nth-of-type(1)::after { content: ""; }pre.hl-2 > code.sourceCode > span:nth-of-type(2)::after { content: ""; }pre.hl-3 > code.sourceCode > span:nth-of-type(3)::after { content: ""; }pre.hl-4 > code.sourceCode > span:nth-of-type(4)::after { content: ""; }pre.hl-5 > code.sourceCode > span:nth-of-type(5)::after { content: ""; }pre.hl-6 > code.sourceCode > span:nth-of-type(6)::after { content: ""; }pre.hl-7 > code.sourceCode > span:nth-of-type(7)::after { content: ""; }pre.hl-8 > code.sourceCode > span:nth-of-type(8)::after { content: ""; }pre.hl-9 > code.sourceCode > span:nth-of-type(9)::after { content: ""; }pre.hl-10 > code.sourceCode > span:nth-of-type(10)::after { content: ""; }pre.hl-11 > code.sourceCode > span:nth-of-type(11)::after { content: ""; }pre.hl-12 > code.sourceCode > span:nth-of-type(12)::after { content: ""; }pre.hl-13 > code.sourceCode > span:nth-of-type(13)::after { content: ""; }pre.hl-14 > code.sourceCode > span:nth-of-type(14)::after { content: ""; }pre.hl-15 > code.sourceCode > span:nth-of-type(15)::after { content: ""; }pre.hl-16 > code.sourceCode > span:nth-of-type(16)::after { content: ""; }pre.hl-17 > code.sourceCode > span:nth-of-type(17)::after { content: ""; }pre.hl-18 > code.sourceCode > span:nth-of-type(18)::after { content: ""; }pre.hl-19 > code.sourceCode > span:nth-of-type(19)::after { content: ""; }pre.hl-20 > code.sourceCode > span:nth-of-type(20)::after { content: ""; }pre.hl-21 > code.sourceCode > span:nth-of-type(21)::after { content: ""; }pre.hl-22 > code.sourceCode > span:nth-of-type(22)::after { content: ""; }pre.hl-23 > code.sourceCode > span:nth-of-type(23)::after { content: ""; }pre.hl-24 > code.sourceCode > span:nth-of-type(24)::after { content: ""; }pre.hl-25 > code.sourceCode > span:nth-of-type(25)::after { content: ""; }pre.hl-26 > code.sourceCode > span:nth-of-type(26)::after { content: ""; }pre.hl-27 > code.sourceCode > span:nth-of-type(27)::after { content: ""; }pre.hl-28 > code.sourceCode > span:nth-of-type(28)::after { content: ""; }pre.hl-29 > code.sourceCode > span:nth-of-type(29)::after { content: ""; }pre.hl-30 > code.sourceCode > span:nth-of-type(30)::after { content: ""; }pre.hl-31 > code.sourceCode > span:nth-of-type(31)::after { content: ""; }pre.hl-32 > code.sourceCode > span:nth-of-type(32)::after { content: ""; }pre.hl-33 > code.sourceCode > span:nth-of-type(33)::after { content: ""; }pre.hl-34 > code.sourceCode > span:nth-of-type(34)::after { content: ""; }pre.hl-35 > code.sourceCode > span:nth-of-type(35)::after { content: ""; }pre.hl-36 > code.sourceCode > span:nth-of-type(36)::after { content: ""; }pre.hl-37 > code.sourceCode > span:nth-of-type(37)::after { content: ""; }pre.hl-38 > code.sourceCode > span:nth-of-type(38)::after { content: ""; }pre.hl-39 > code.sourceCode > span:nth-of-type(39)::after { content: ""; }pre.hl-40 > code.sourceCode > span:nth-of-type(40)::after { content: ""; }figure {margin-bottom: var(--captioned-figure-gap);}figure + p {margin-top: var(--captioned-figure-gap);}figure > img, figure > pre, figure > div.sourceCode {margin-bottom: var(--figcaption-gap);}img {width: 100%;display: block;}.wide img {transform: translateZ(0px);}figcaption {font-size: var(--figcaption-font-size);line-height: var(--figcaption-line-height);font-style: italic;text-align: center;color: var(--color-text-secondary);}.left-align-caption figcaption {text-align: left;}figcaption code {font-size: var(--figcaption-code-font-size);}table {-webkit-font-feature-settings: "tnum" 1;font-feature-settings: "tnum" 1;font-size: var(--table-font-size);line-height: var(--table-line-height);border-spacing: 0;border-collapse: collapse;border: 1px solid var(--color-border-heavy);width: 100%;background-color: var(--background-color);}@media print {table {background-color: initial;}}table code {font-size: var(--table-code-font-size);}table pre code {font-size: inherit;}.wide table {transform: translateZ(0px);}table td, table th {border: 1px solid var(--color-border-heavy);padding: 5px 8px;min-width: 100px;}table th {background-color: var(--color-table-heading);}table > caption {caption-side: bottom;margin-top: var(--figcaption-gap);margin-bottom: calc(var(--captioned-figure-gap) - var(--line-height));font-size: var(--figcaption-font-size);line-height: var(--figcaption-line-height);font-style: italic;text-align: center;color: var(--color-text-secondary);}.left-align-caption table > caption {text-align: left;}table > caption code {font-size: var(--figcaption-code-font-size);}.note table {font-size: inherit;line-height: inherit;}.note table, .note td {border: none;}.note.red td { background: var(--highlight-red); }.note.yellow td { background: var(--highlight-yellow); }.note.green td { background: var(--highlight-green); }.note.blue td { background: var(--highlight-blue); }.note.purple td { background: var(--highlight-purple); }.date.before-toc {padding-bottom: var(--line-height);}nav#TOC {margin-bottom: var(--line-height);border-left: 1px solid var(--color-text-secondary);padding-left: 1.5rem;}nav#TOC input {display: none;}nav#TOC label {color: var(--color-link);cursor: pointer;}nav#TOC > ul {display: none;}nav#TOC > input:checked + ul {display: block;}@media print {nav#TOC > input + ul {display: block;}}@media screen and (min-width: calc(745px + 2 * (52px + 206px + 52px) - 1px)) {header {margin-bottom: var(--line-height);}.date.before-toc {padding-bottom: initial;}nav#TOC {margin-bottom: initial;border-left: initial;padding-left: initial;position: sticky;margin-top: calc(var(--nav-toc-baseline-offset));float: left;top: var(--line-height);font-size: var(--nav-toc-font-size);color: var(--color-text-secondary);margin-left: var(--line-height);max-width: calc((100vw - var(--main-width)) / 2 - 2 * var(--line-height));max-height: calc(100vh - 2 * var(--line-height));overflow-y: auto;}nav#TOC label {display: none;}nav#TOC ul {display: block;list-style: none;margin-left: var(--nav-toc-indent);}nav#TOC > ul {margin-left: 0;}nav#TOC li {white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}nav#TOC code {font-size: var(--nav-toc-code-font-size);}nav#TOC code,nav#TOC a,nav#TOD a:link,nav#TOD a:visited {color: var(--color-text-secondary);}nav#TOC a:hover,nav#TOC a:hover code {text-decoration: none;color: var(--color-link);}}.sidenote,.marginnote {float: right;clear: right;position: relative;width: var(--computed-width);max-width: var(--side-note-max-width);margin-right: calc(-1 * min(var(--computed-width), var(--side-note-max-width)) - var(--margin-left));}@media screen and (min-width: calc(745px + 2 * (52px + 206px + 52px))) {header,main,footer {max-width: var(--main-width);}header,main,footer {margin-left: auto;margin-right: auto;}.sidenote,.marginnote {--margin-left: calc(2 * var(--line-height));--margin-right: var(--margin-left);--computed-width: calc((100vw - 100%) / 2 - var(--margin-right) - var(--margin-left));}.wide {width: 100%;overflow-x: auto;}.wide.extra-wide {margin-left: calc((1 - var(--extra-wide-scale-factor)) / 2 * 100%);width: calc(var(--extra-wide-scale-factor) * 100%);}.wide.full-width {margin-left: calc(var(--line-height) - ((100vw - var(--main-width)) / 2));width: calc(100vw - 2 * var(--line-height));}.wide.extra-wide figcaption,.wide.extra-wide table > caption {margin-left: calc(((var(--extra-wide-scale-factor) - 1) / 2) * var(--main-width));max-width: var(--main-width);margin-right: calc(100% - var(--main-width) - (((var(--extra-wide-scale-factor) - 1) / 2) * var(--main-width)));}.wide.full-width figcaption,.wide.full-width table > caption {margin-left: calc((100vw - var(--main-width)) / 2 - var(--line-height));max-width: var(--main-width);margin-right: calc(100% - var(--main-width) - ((100vw - var(--main-width)) / 2 - var(--line-height)));}}@media screen and (min-width: calc(52px + 745px + 52px + 206px + 52px)) and (max-width: calc(745px + 2 * (52px + 206px + 52px) - 1px)) {header,nav#TOC,main,footer {margin-left: calc(2 * var(--line-height));max-width: var(--main-width);margin-right: auto;}.sidenote,.marginnote {--margin-left: calc(2 * var(--line-height));--margin-right: var(--margin-left);--computed-width: calc(100vw - var(--main-width) - calc(2 * var(--line-height)) - var(--margin-right) - var(--margin-left));}.wide {width: 100%;overflow-x: auto;overflow-y: hidden;}.wide.extra-wide {margin-left: calc(-1 * var(--line-height));width: calc(100vw - 2 * var(--line-height));max-width: calc(var(--extra-wide-scale-factor) * var(--main-width));}.wide.full-width {margin-left: calc(-1 * var(--line-height));width: calc(100vw - 2 * var(--line-height));max-width: calc(100vw - 2 * var(--line-height));}.wide.extra-wide .katex-display,.wide.full-width .katex-display {padding-left: var(--line-height);padding-right: var(--line-height);}.wide.extra-wide .katex-display,.wide.extra-wide .katex-display > .katex,.wide.full-width .katex-display,.wide.full-width .katex-display > .katex {text-align: left;}.wide.extra-wide figcaption,.wide.extra-wide table > caption,.wide.full-width figcaption,.wide.full-width table > caption {text-align: left;margin-left: var(--line-height);max-width: var(--main-width);}}@media screen and (min-width: calc(26px + 550px + 26px + 169px + 26px)) and (max-width: calc(52px + 745px + 52px + 206px + 52px - 1px)) {header,nav#TOC,main,footer {margin-left: var(--line-height);max-width: calc(max(var(--main-width-narrow), 100vw - (3 * var(--line-height)) - var(--side-note-max-width)));margin-right: auto;}.sidenote,.marginnote {--margin-left: var(--line-height);--margin-right: var(--line-height);--computed-width: calc(100vw - var(--main-width-narrow) - var(--line-height) - var(--margin-right) - var(--margin-left));}.wide {width: var(--main-width);overflow-x: auto;overflow-y: hidden;}.wide .katex-display,.wide .katex-display > .katex {text-align: left;}.wide figcaption,.wide table > caption {text-align: left;max-width: var(--main-width-narrow);}.wide.extra-wide,.wide.full-width {width: calc(100vw - 2 * var(--line-height));}}@media screen and (max-width: calc(26px + 550px + 26px + 169px + 26px - 1px)) {header,nav#TOC,main,footer {margin-left: var(--line-height);margin-right: var(--line-height);}.sidenote,.marginnote {display: none;}.margin-toggle:checked + .sidenote,.margin-toggle:checked + .marginnote {display: block;float: left;clear: both;width: 100%;max-width: 100%;}.wide {width: 100%;overflow-x: auto;overflow-y: hidden;}.wide .katex-display,.wide .katex-display > .katex {text-align: left;}.wide figcaption,.wide table > caption {text-align: left;max-width: calc(100vw - 2 * var(--line-height));}}@page {size: letter;margin: 0.5in;margin-left: 0.25in;}@media print {:root {--line-height: 18px;--font-size: 12px;--inline-code-font-size: 11px;--code-block-font-size: 10px;--code-block-side-padding: 6px;--line-numbers-font-size: 8.5px;--tight-code-line-height: 12.5px;--tight-code-padding-top: 2px;--side-note-line-height: 14px;--side-note-font-size: 9px;--side-note-code-font-size: 9px;--side-note-baseline-offset: 3px;--side-note-sup-offset: -4px;--side-note-number-hang-left: -4px;--side-note-text-indent: -6.5px;--title-font-size: 30px;--title-code-font-size: 29px;--title-line-height: 37px;--title-margin-top: 71px;--h1-font-size: 22px;--h1-code-font-size: 20px;--h1-line-height: 28px;--h1-word-spacing: 0.5px;--h1-margin-top: 18px;--h1-margin-bottom: 6px;--h2-font-size: 16.5px;--h2-code-font-size: 15px;--h2-line-height: 22px;--h2-word-spacing: 0px;--h2-margin-top: 14px;--h2-margin-bottom: 4.5px;--ul-indent-size: 18px;--ol-indent-size: 14px;--hr-margin-top: 14px;--figcaption-line-height: 16px;--figcaption-font-size: 10px;--figcaption-code-font-size: 9.5px;--figcaption-gap: 4.5px;--captioned-figure-gap: 7.5px;--table-line-height: 16px;--table-font-size: 10px;--table-code-font-size: 9.5px;--nav-toc-font-size: 8.5px;--nav-toc-code-font-size: 8.5px;}body {padding-top: 0;padding-left: 0.25in;}header,nav#TOC,main,footer {width: 5.25in;margin-right: auto;}.sidenote,.marginnote {width: 2in;margin-right: -2.25in;}.wide {width: 7.5in;overflow-x: hidden;overflow-y: hidden;}.wide .katex-display,.wide .katex-display > .katex {text-align: left;}.wide figcaption,.wide table > caption {text-align: left;width: 5.25in;}.wide pre > code {white-space: pre-wrap;}}h1, h2, h3 {page-break-after: avoid;}table, figure, pre, img {page-break-inside: avoid;}</style>
+</head>
+<body>
+
+<header>
+<h1 class="title"></h1>
+<blockquote class="metadata">
+</blockquote>
+</header>
+
+
+<main>
+<h1 id="行为模式">行为模式</h1>
+<h3 id="模板方法">模板方法</h3>
+<h5 id="角色和职责">角色和职责</h5>
+<ul>
+<li><p><strong>AbstractClass（抽象类）</strong></p>
+<ul>
+<li><p>定义了一系列基本操作(PrimitiveOperations)，具体、抽象均可</p></li>
+<li><p>基本操作与算法步骤一一对应，子类中可重定义或实现这些步骤</p></li>
+<li><p>实现一个模板方法(Template
+Method)，用于定义一个算法的框架</p></li>
+<li><p>模板方法可调用抽象类或子类实现的基本方法，还可调用其他对象方法</p></li>
+</ul></li>
+<li><p><strong>ConcreteClass（具体子类）</strong></p>
+<ul>
+<li>是抽象类的子类，实现在父类中声明的抽象基本操作</li>
+</ul></li>
+</ul>
+<h5 id="适用场景">适用场景</h5>
+<ul>
+<li><ol type="1">
+<li>具有统一的操作步骤或操作过程;</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>具有不同的操作细节;</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>存在多个具有同样操作步骤的应用场景，但某些具体的操作细节却各不相同;</li>
+</ol></li>
+</ul>
+<h5 id="类图">类图</h5>
+<pre class="mermaid"><code>classDiagram
+    class AbstractClassInterface {
+        +PrimitiveOperation1()
+        +PrimitiveOperation2()
+        +TemplateMethod()
+    }
+    AbstractClassInterface .. AbstractClass 
+    class AbstractClass {
+        -a: AbstractClassInterface
+        +TemplateMethod()
+        +ConcreteOperation1()
+    }
+    AbstractClass &lt;|-- ConcreteClass
+    class ConcreteClass {
+        +PrimitiveOperation1()
+        +PrimitiveOperation2()
+    }</code></pre>
+<h5 id="实现">实现</h5>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 抽象类</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> AbstractClassInterface <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    PrimitiveOperation1<span class="op">()</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    PrimitiveOperation2<span class="op">()</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    TemplateMethod<span class="op">()</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// 可以再封装一层，并在其中实现公共的具体方法</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> AbstractClass <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    a AbstractClassInterface </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>a <span class="op">*</span>AbstractClass <span class="op">)</span> TemplateMethod<span class="op">()</span> <span class="op">{</span>  <span class="co">// 抽象类实现模板方法</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    a<span class="op">.</span>a<span class="op">.</span>PrimitiveOperation1<span class="op">()</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    a<span class="op">.</span>a<span class="op">.</span>PrimitiveOperation2<span class="op">()</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>a <span class="op">*</span>AbstractClass<span class="op">)</span> ConcreteOperation1<span class="op">()</span> <span class="op">{</span>  <span class="co">// 抽象类公共方法</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">.</span>Println<span class="op">(</span><span class="st">&quot;抽象类类公共方法1实现&quot;</span><span class="op">)</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">// 具体类</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> ConcreteClass <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    AbstractClass</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>c <span class="op">*</span>ConcreteClass<span class="op">)</span> PrimitiveOperation1<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">.</span>Println<span class="op">(</span><span class="st">&quot;具体类方法1实现&quot;</span><span class="op">)</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>c <span class="op">*</span>ConcreteClass<span class="op">)</span> PrimitiveOperation2<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">.</span>Println<span class="op">(</span><span class="st">&quot;具体类方法2实现&quot;</span><span class="op">)</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">var</span> a AbstractClass</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    a <span class="op">=</span> <span class="op">&amp;</span>ConcreteClass<span class="op">{}</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    a<span class="op">.</span>TemplateMethod<span class="op">()</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="策略模式">策略模式</h3>
+<h5 id="角色和职责-1">角色和职责</h5>
+<ul>
+<li><p><strong>Context（环境类）</strong></p>
+<ul>
+<li><p>使用算法，解决问题时可采用多种策略</p></li>
+<li><p>维持一个对抽象策略类的引用实例</p></li>
+</ul></li>
+<li><p><strong>Strategy（抽象策略类）</strong></p>
+<ul>
+<li><p>为所支持的算法声明了抽象方法，可以是抽象类/具体类/接口</p></li>
+<li><p>环境类通过抽象策略类中声明的方法，在运行时调用具体策略类中实现的算法</p></li>
+</ul></li>
+<li><p><strong>ConcreteStrategy（具体策略类）</strong></p>
+<ul>
+<li>实现了在抽象策略类中声明的算法</li>
+</ul></li>
+</ul>
+<h5 id="适用场景-1">适用场景</h5>
+<ul>
+<li>准备一组算法，并将每一个算法封装起来，使得它们可以互换。</li>
+</ul>
+<h5 id="类图-1">类图</h5>
+<pre class="mermaid"><code>classDiagram
+    class Strategy {
+        +Execute(int, int) int
+    }
+    class AddStrategy {
+        +Execute(int, int) int
+    }
+    class SubStrategy {
+        +Execute(int, int) int
+    }
+    class Context {
+        -strategy Strategy
+        +SetStrategy(Strategy)
+        +ExecuteStrategy(int, int) int
+    }
+    Strategy &lt;|-- AddStrategy
+    Strategy &lt;|-- SubStrategy
+    Context o-- Strategy</code></pre>
+<h5 id="实现-1">实现</h5>
+<div class="sourceCode" id="cb4"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 策略接口</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Strategy <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    Execute<span class="op">(</span><span class="dt">int</span><span class="op">,</span> <span class="dt">int</span><span class="op">)</span> <span class="dt">int</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 加法策略</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> AddStrategy <span class="kw">struct</span><span class="op">{}</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>s AddStrategy<span class="op">)</span> Execute<span class="op">(</span>a<span class="op">,</span> b <span class="dt">int</span><span class="op">)</span> <span class="dt">int</span> <span class="op">{</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">+</span> b</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">// 减法策略</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> SubStrategy <span class="kw">struct</span><span class="op">{}</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>s SubStrategy<span class="op">)</span> Execute<span class="op">(</span>a<span class="op">,</span> b <span class="dt">int</span><span class="op">)</span> <span class="dt">int</span> <span class="op">{</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">-</span> b</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">// 环境类</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Context <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    strategy Strategy</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>c <span class="op">*</span>Context<span class="op">)</span> SetStrategy<span class="op">(</span>strategy Strategy<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    c<span class="op">.</span>strategy <span class="op">=</span> strategy</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>c Context<span class="op">)</span> ExecuteStrategy<span class="op">(</span>a<span class="op">,</span> b <span class="dt">int</span><span class="op">)</span> <span class="dt">int</span> <span class="op">{</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> c<span class="op">.</span>strategy<span class="op">.</span>Execute<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 创建环境类</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    context <span class="op">:=</span> Context<span class="op">{}</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 设置加法策略</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    context<span class="op">.</span>SetStrategy<span class="op">(</span>AddStrategy<span class="op">{})</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">.</span>Println<span class="op">(</span><span class="st">&quot;10 + 5 =&quot;</span><span class="op">,</span> context<span class="op">.</span>ExecuteStrategy<span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">5</span><span class="op">))</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 设置减法策略</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    context<span class="op">.</span>SetStrategy<span class="op">(</span>SubStrategy<span class="op">{})</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">.</span>Println<span class="op">(</span><span class="st">&quot;10 - 5 =&quot;</span><span class="op">,</span> context<span class="op">.</span>ExecuteStrategy<span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">5</span><span class="op">))</span></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="观察者模式">观察者模式</h3>
+<h5 id="角色和职责-2">角色和职责</h5>
+<ul>
+<li><p><strong>Subject（被观察者或目标，抽象主题）</strong></p>
+<ul>
+<li><p>被观察的对象，状态发生变化时通知队列中所有观察者对象</p></li>
+<li><p>维持（添加，删除，通知）一个观察者对象的队列列表</p></li>
+</ul></li>
+<li><p><strong>ConcreteSubject（具体被观察者或目标，具体主题）</strong></p>
+<ul>
+<li>被观察者的具体实现，包含基本的属性状态及其他操作</li>
+</ul></li>
+<li><p><strong>Observer（观察者）</strong></p>
+<ul>
+<li>接口或抽象类，状态变化时观察者会被callback函数通知</li>
+</ul></li>
+<li><p><strong>ConcreteObserver（具体观察者）</strong></p>
+<ul>
+<li>观察者的具体实现，得到通知后将完成一些具体的业务逻辑处理</li>
+</ul></li>
+</ul>
+<h5 id="适用场景-2">适用场景</h5>
+<ul>
+<li><ol type="1">
+<li></li>
+</ol>
+<ul>
+<li><p>一个抽象模型有两个方面，其中一个方面依赖于另一个方面</p></li>
+<li><p>将这两个方面封装在独立的对象中使它们可以各自独立地改变和复用。</p></li>
+</ul></li>
+<li><ol start="2" type="1">
+<li></li>
+</ol>
+<ul>
+<li><p>一个对象的改变将导致一个或多个其他对象也发生改变</p></li>
+<li><p>而并不知道具体有多少对象将发生改变，也不知道这些对象是谁。</p></li>
+</ul></li>
+<li><ol start="3" type="1">
+<li></li>
+</ol>
+<ul>
+<li><p>需要在系统中创建一个触发链，A对象的行为将影响B对象</p></li>
+<li><p>B对象的行为将影响C对象……，可以使用观察者模式创建一种链式触发机制。</p></li>
+</ul></li>
+</ul>
+<h5 id="类图-2">类图</h5>
+<pre class="mermaid"><code>classDiagram
+    class Observer {
+        +Update()
+    }
+    class Subject {
+        +Attach(observer)
+        +Detach(observer)
+        +Notify()
+    }
+    class ConcreteObserver {
+        +Update()
+    }
+    class ConcreteSubject {
+        -observers: Observer[]
+        +Attach(observer)
+        +Detach(observer)
+        +Notify()
+    }
+    Observer &lt;|-- ConcreteObserver
+    Subject &lt;|-- ConcreteSubject
+    Subject o-- Observer</code></pre>
+<h5 id="实现-2">实现</h5>
+<div class="sourceCode" id="cb6"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 观察者接口</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Observer <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    Update<span class="op">()</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 主题接口</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Subject <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    Attach<span class="op">(</span>observer Observer<span class="op">)</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    Detach<span class="op">(</span>observer Observer<span class="op">)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    Notify<span class="op">()</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">// 具体观察者</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> ConcreteObserver <span class="kw">struct</span> <span class="op">{}</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>co <span class="op">*</span>ConcreteObserver<span class="op">)</span> Update<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">.</span>Println<span class="op">(</span><span class="st">&quot;ConcreteObserver received the update signal.&quot;</span><span class="op">)</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co">// 具体主题</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> ConcreteSubject <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    observers <span class="op">[]</span>Observer</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>cs <span class="op">*</span>ConcreteSubject<span class="op">)</span> Attach<span class="op">(</span>observer Observer<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    cs<span class="op">.</span>observers <span class="op">=</span> <span class="bu">append</span><span class="op">(</span>cs<span class="op">.</span>observers<span class="op">,</span> observer<span class="op">)</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>cs <span class="op">*</span>ConcreteSubject<span class="op">)</span> Detach<span class="op">(</span>observer Observer<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i<span class="op">,</span> o <span class="op">:=</span> <span class="kw">range</span> cs<span class="op">.</span>observers <span class="op">{</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> o <span class="op">==</span> observer <span class="op">{</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>            cs<span class="op">.</span>observers <span class="op">=</span> <span class="bu">append</span><span class="op">(</span>cs<span class="op">.</span>observers<span class="op">[:</span>i<span class="op">],</span> cs<span class="op">.</span>observers<span class="op">[</span>i<span class="op">+</span><span class="dv">1</span><span class="op">:]...)</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>cs <span class="op">*</span>ConcreteSubject<span class="op">)</span> Notify<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _<span class="op">,</span> observer <span class="op">:=</span> <span class="kw">range</span> cs<span class="op">.</span>observers <span class="op">{</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>        observer<span class="op">.</span>Update<span class="op">()</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    subject <span class="op">:=</span> <span class="op">&amp;</span>ConcreteSubject<span class="op">{}</span>     <span class="co">// 主题</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>    observer1 <span class="op">:=</span> <span class="op">&amp;</span>ConcreteObserver<span class="op">{}</span>  <span class="co">// 观察者1</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    observer2 <span class="op">:=</span> <span class="op">&amp;</span>ConcreteObserver<span class="op">{}</span>  <span class="co">// 观察者2</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>    subject<span class="op">.</span>Attach<span class="op">(</span>observer1<span class="op">)</span>          <span class="co">// 添加观察者</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>    subject<span class="op">.</span>Attach<span class="op">(</span>observer2<span class="op">)</span>      </span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>    subject<span class="op">.</span>Notify<span class="op">()</span>                  <span class="co">// 通知观察者</span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>    subject<span class="op">.</span>Detach<span class="op">(</span>observer2<span class="op">)</span>         <span class="co">// 移除观察者</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>    subject<span class="op">.</span>Notify<span class="op">()</span>              </span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="命令模式">命令模式</h3>
+<h5 id="角色和职责-3">角色和职责</h5>
+<ul>
+<li><p><strong>Command（抽象命令类）</strong></p>
+<ul>
+<li><p>抽象类或接口，声明用于执行请求的execute()等方法</p></li>
+<li><p>这些方法可以调用请求接收者的相关操作</p></li>
+</ul></li>
+<li><p><strong>ConcreteCommand（具体命令类）</strong></p>
+<ul>
+<li><p>抽象命令类的子类，对应具体的对象，并绑定接收者的动作</p></li>
+<li><p>execute()方法的实现调用接收者对象的相关操作(Action)</p></li>
+</ul></li>
+<li><p><strong>Invoker（调用者）</strong></p>
+<ul>
+<li><p>请求发送者，通过命令对象来执行请求</p></li>
+<li><p>调用者只与抽象命令类之间存在关联关系</p></li>
+<li><p>运行时调用具体命令对象的execute()方法</p></li>
+</ul></li>
+<li><p><strong>Receiver（接收者）</strong></p>
+<ul>
+<li>接收者执行与请求相关的操作，它具体实现对请求的业务处理</li>
+</ul></li>
+</ul>
+<h5 id="适用场景-3">适用场景</h5>
+<ol type="1">
+<li><p>请求调用者和请求接收者解耦，两者不直接交互。</p></li>
+<li><p>系统需要在不同的时间指定请求、将请求排队和执行请求。(不同生命周期)</p></li>
+<li><p>系统需要将一组操作组合在一起形成宏命令。</p></li>
+</ol>
+<h5 id="类图-3">类图</h5>
+<pre class="mermaid"><code>classDiagram
+    class  Command {
+        +Execute()
+    }
+    class Receiver {
+        -name: string
+        +Action()
+    }
+    class ConcreteCommand {
+        -receiver: Receiver
+        +Execute()
+    }
+    class Invoker {
+        -command: Command
+        +SetCommand(command: Command)
+        +ExecuteCommand()
+    }
+    Command &lt;|.. ConcreteCommand
+    Receiver &lt;-- ConcreteCommand
+    Invoker o-- Command</code></pre>
+<h5 id="实现-3">实现</h5>
+<div class="sourceCode" id="cb8"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 命令接口</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Command <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    Execute<span class="op">()</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 接收者</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Receiver <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    Name <span class="dt">string</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>r <span class="op">*</span>Receiver<span class="op">)</span> Action<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    fmt<span class="op">.</span>Printf<span class="op">(</span><span class="st">&quot;%s执行了操作</span><span class="ch">\n</span><span class="st">&quot;</span><span class="op">,</span> r<span class="op">.</span>Name<span class="op">)</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">// 具体命令</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> ConcreteCommand <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    receiver <span class="op">*</span>Receiver</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>c <span class="op">*</span>ConcreteCommand<span class="op">)</span> Execute<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    c<span class="op">.</span>receiver<span class="op">.</span>Action<span class="op">()</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co">// 调用者</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Invoker <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    command Command</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>i <span class="op">*</span>Invoker<span class="op">)</span> SetCommand<span class="op">(</span>command Command<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    i<span class="op">.</span>command <span class="op">=</span> command</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>i <span class="op">*</span>Invoker<span class="op">)</span> ExecuteCommand<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    i<span class="op">.</span>command<span class="op">.</span>Execute<span class="op">()</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 创建接收者</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    receiver <span class="op">:=</span> <span class="op">&amp;</span>Receiver<span class="op">{</span>Name<span class="op">:</span> <span class="st">&quot;接收者&quot;</span><span class="op">}</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 创建具体命令并指定接收者</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    command <span class="op">:=</span> <span class="op">&amp;</span>ConcreteCommand<span class="op">{</span>receiver<span class="op">:</span> receiver<span class="op">}</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 创建调用者并设置命令</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    invoker <span class="op">:=</span> <span class="op">&amp;</span>Invoker<span class="op">{}</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    invoker<span class="op">.</span>SetCommand<span class="op">(</span>command<span class="op">)</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 调用者执行命令</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    invoker<span class="op">.</span>ExecuteCommand<span class="op">()</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</main>
+
+<script>
+;(function() {
+  // Non-essential if user has JavaScript off. Just makes checkboxes look nicer.
+  var selector = '.task-list > li > input[type="checkbox"]';
+  var checkboxes = document.querySelectorAll(selector);
+  Array.from(checkboxes).forEach((checkbox) => {
+    var wasChecked = checkbox.checked;
+    checkbox.disabled = false;
+    checkbox.addEventListener('click', (ev) => {ev.target.checked = wasChecked});
+  });
+})();
+</script>
+</body>
+</html>

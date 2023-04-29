@@ -126,3 +126,34 @@ git update-index --assume-unchanged sessions/*.xml
 # (3) 忽略文件夹：
 git update-index --assume-unchanged sessions/
 ```
+
+```bash
+# 机器A
+# 创建git代码仓库
+git init
+git config --global --add safe.directory /<path>/project
+git add .
+# git branch -m master
+# git config --global user.name "Your Name"
+# git config --global user.email you@example.com
+git commit -m "create project"
+
+# 切换到project父目录，创建一个project-bare目录
+cd ..
+mkdir project-bare
+cd project-bare
+
+# 从原始代码仓库创建bare仓库，作为“中央”仓库，其他机器(包括本机的原始仓库)往这里push，从这里pull
+git clone --bare ../project ./project-bare.git
+
+# 回到project仓库目录
+cd ../project
+
+# 把project-bare添加为remote，
+git remote add origin ../project-bare/project-bare.git
+git branch --set-upstream-to=origin/master master
+
+
+# 机器B
+git clone ssh://<username>@<ip>:/codes/project-bare/project-bare.git ./project
+```

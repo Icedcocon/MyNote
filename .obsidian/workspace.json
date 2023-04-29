@@ -1,0 +1,157 @@
+{
+  "main": {
+    "id": "4499013276a01879",
+    "type": "split",
+    "children": [
+      {
+        "id": "783814261d78ec9c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "df0c9a4e7619b5e4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Go/Go语言设计模式.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "46c5b27066e4df63",
+    "type": "split",
+    "children": [
+      {
+        "id": "f4f1083e8261a1bf",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a0f6104afdd3ecb7",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "2e0714e40f7c02ca",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "93955bba9a650cea",
+            "type": "leaf",
+            "state": {
+              "type": "starred",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "2bca9d0d79e5bdbf",
+    "type": "split",
+    "children": [
+      {
+        "id": "a7a31804cbe93972",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "926ae365f796ed2a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Go/Go语言设计模式.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "85340b82a637ffb8",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Go/Go语言设计模式.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "c31ca40216ebd3c0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "cffd1ef3beb50ba0",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Go/Go语言设计模式.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "webpage-html-export:Export Vault to HTML": false
+    }
+  },
+  "active": "df0c9a4e7619b5e4",
+  "lastOpenFiles": [
+    "模板方法.md",
+    "Go/Go语言设计模式.md",
+    "easy-template.html.md",
+    "Go/Go语言设计模式.html"
+  ]
+}

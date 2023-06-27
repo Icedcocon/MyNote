@@ -33,6 +33,49 @@ if errors.Is(err, db.ErrCollectionDoesNotExist) {
 }
 ```
 
+- 表的映射
+
+```go
+// omitempty标签字段值为0时, Insert、Update操作将忽略该字段
+// 常用于有auto_increment属性的字段
+type Book struct {
+  ID        int    `db:"id,omitempty"` 
+  Title     string `db:"title"`
+  AuthorID  int    `db:"author_id"`
+  SubjectID int    `db:"subject_id"`
+}
+
+// 可以在 db tag 后使用 json tag 从而让结构体既能映射DB也能映射json数据
+type Author struct {
+  ID        int    `db:"id,omitempty"` // Also has an ID column.
+  LastName  string `db:"last_name" json:"last_name"`
+  FirstName string `db:"first_name" json:"first_name"`
+}
+
+// BookAuthor
+type BookAuthor struct {
+  // Author 和 Book 都有 ID 字段， 引入book_id字段，并在查询时定义别名加以区分
+  BookID int `db:"book_id,omitempty"`
+
+  Author `db:",inline"`
+  Book   `db:",inline"`
+}
+req := sess.SQL().
+  Select("b.id AS book_id", db.Raw("b.*"), db.Raw("a.*"),).
+  From("books b").
+  Join("authors a").On("b.author_id = a.id").
+  OrderBy("b.title")
+var books []BookAuthor
+if err := req.All(&books); err != nil {
+  log.Fatal(err)
+}
+for _, book := range books {
+  fmt.Printf(
+    "ID: %d\tAuthor: %s\t\tBook: %q\n",
+    book.BookID, book.Author.LastName, book.Book.Title,
+  )
+```
+
 ### 2. 原生SQL
 
 - 增

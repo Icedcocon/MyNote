@@ -13,8 +13,8 @@ r.headers['content-type']        # (3) 响应头
 r.headers.get('content-type')    #     同上
 r.encoding                       # (4) 编码算法()
 r.text                           # (5) 字符串(以推测编码解码)
-r.json()                         # (6) 字典类型(将字符串转为字典)
-r.content()                      # (7) byte类型(不进行解码)
+r.json                           # (6) 字典类型(将字符串转为字典)
+r.content                        # (7) byte类型(不进行解码)
 r.cookies['example_cookie_name'] # (8) cookies(类型为RequestCookieJar)
 r.raw.read(10)                   # (9) raw格式(需令get中字典参数stream=True)
 ```

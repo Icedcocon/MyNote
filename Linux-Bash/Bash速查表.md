@@ -211,6 +211,7 @@ fg {job}                  # 切换特定后台进程到前台
 
 nohup {command}           # 长期运行某程序，在你退出登陆都保持它运行
 nohup {command} &         # 在后台长期运行某程序
+nohup {cmd} > file 2>1 &  # 在后台长期运行某程序，且立即返回
 disown {PID|JID}          # 将进程从后台任务列表（jobs）移除，类似nohup
 
 trap cmd sig1 sig2        # 在脚本中设置信号处理命令
@@ -681,6 +682,16 @@ n<&m                               # 文件描述符 n 被作为描述符 m 的�
 n>&-                               # 关闭作为输出的文件描述符 n
 n<&-                               # 关闭作为输入的文件描述符 n
 diff <(cmd1) <(cmd2)               # 比较两个命令的输出
+
+exec ls         # 在 shell 中执行 ls，ls 结束后不返回原来的 shell 中了
+exec            # file 中的内容作为标准输入（替代 STDIN）
+exec >file      # 将标准输出写入file（替代STDOUT）
+exec 3          # 将 file 读入到文件描述符 3 中（此时，创建了文件描述符 3）
+sort <&3        # 将文件描述符3作为临时输入，用于 sort 排序
+exec 4>file     # 将写入文件描述符 4 中的内容写入 file 中（此时，创建了文件描述符 4）
+ls >&4          # ls将不会有显示，直接写入文件描述符 4 中了，即上面的 file 中
+exec 5<&4       # 创建文件描述符 4 的拷贝文件描述符 5
+exec 3<&-       # 关闭文件描述符 3
 ```
 
 ```bash

@@ -105,8 +105,8 @@
     
     sed -ri 's/\$releasever/7/g' /etc/yum.repos.d/docker-ce.repo
     
-    yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.3-3.1.el7.x86_64.rpm
-    yum install docker-ce -y
+    yum install --downloadonly --downloaddir . -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.4.3-3.1.el7.x86_64.rpm
+    yum install --downloadonly --downloaddir .  docker-ce -y
     
     # ====================== 下载 docker-compose  ================
     #mkdir /root/aisha-install-v2.2.bak/rpm/docker-compose
@@ -122,7 +122,7 @@
     yum-config-manager --enable libnvidia-container-experimental
     
     yum clean expire-cache
-    yum install -y nvidia-docker2
+    yum install -y  --downloadonly --downloaddir .  nvidia-docker2
     
     mv rpm/nvidia-docker rpm/nvidia-docker.bak
     yum install -y nvidia-docker2

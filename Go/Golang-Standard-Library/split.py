@@ -35,4 +35,4 @@ def split_file(file_name, format_str='### ', prefix_num=2):
         f.close()
 
 if __name__ == '__main__':
-    split_file('MyNote/Go/Golang-Standard-Library/Chapter13/13.3/13.03.md', format_str='## ', prefix_num=2)
+    split_file('MyNote/Go/Golang-Standard-Library/Chapter4/04.4/04.04.01.md', format_str='### ', prefix_num=3)

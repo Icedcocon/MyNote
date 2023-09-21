@@ -35,5 +35,7 @@ def split_file(file_name, format_str='### ', prefix_num=2):
                 f.write(line)
         f.close()
 if __name__ == '__main__':
-    #split_file('MyNote/FrontEnd/VueDoc/guide/01.essentials/01.05.class-and-style.md', format_str='## ', prefix_num=2)
-    split_file('MyNote/FrontEnd/ES6/08/08.function.md', format_str='## ', prefix_num=1)
+    #split_file('MyNote/FrontEnd/VueDoc/guide/01.essentials/01.08.event-handling.md', format_str='## ', prefix_num=2)
+    #split_file('MyNote/FrontEnd/ES6/10/10.object.md', format_str='## ', prefix_num=1)
+    split_file('MyNote/FrontEnd/JavaScript/10.BOM/10.04/10.04.cookie.md', format_str='## ', prefix_num=2)
+    #split_file('MyNote/FrontEnd/HTML/13/13.form.md', format_str='## ', prefix_num=1)

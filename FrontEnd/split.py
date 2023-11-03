@@ -34,8 +34,36 @@ def split_file(file_name, format_str='### ', prefix_num=2):
                     f = open(file_name, 'w', encoding='utf-8')
                 f.write(line)
         f.close()
+
+# 将 markdown 文档中的 "标题\n======" 转换成 "# 标题"
+# 将 markdown 文档中的 "标题\n------" 转换成 "## 标题"
+def convert_title(file_name):
+    with open(file_name, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for i in range(len(lines)):
+            if lines[i].startswith('======'):
+                lines[i-1] = '# ' + lines[i-1]
+                lines[i] = ''
+            elif lines[i].startswith('------'):
+                lines[i-1] = '## ' + lines[i-1]
+                lines[i] = ''
+        f.close()
+    with open(file_name, 'w', encoding='utf-8') as f:
+        for line in lines:
+            f.write(line)
+        f.close()
+
 if __name__ == '__main__':
     #split_file('MyNote/FrontEnd/VueDoc/guide/01.essentials/01.08.event-handling.md', format_str='## ', prefix_num=2)
     #split_file('MyNote/FrontEnd/ES6/10/10.object.md', format_str='## ', prefix_num=1)
-    split_file('MyNote/FrontEnd/JavaScript/10.BOM/10.04/10.04.cookie.md', format_str='## ', prefix_num=2)
+    #os.chdir('MyNote/FrontEnd/JavaScript/06.oop/06.02')
+    #split_file('06.02.this.md', format_str='## ', prefix_num=2)
     #split_file('MyNote/FrontEnd/HTML/13/13.form.md', format_str='## ', prefix_num=1)
+    
+    os.chdir('MyNote/AI/Pytorch速通/01/01.03')
+    convert_title('01.03.neural_networks_tutorial.md')
+    split_file('01.03.neural_networks_tutorial.md', format_str='## ', prefix_num=2)
+
+    #os.chdir('MyNote/FrontEnd/CSS/10')
+    #os.chdir('MyNote/FrontEnd/CSS/02.selectors/02.03')
+    #split_file('10.grid.md', format_str='## ', prefix_num=2)

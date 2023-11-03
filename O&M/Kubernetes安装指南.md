@@ -42,6 +42,8 @@ systemctl restart docker
 
 ### 1.2 安装 nvidia-docker
 
+- nvidia-docker
+
 ```bash
 # 安装nvidia-docker
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
@@ -51,6 +53,20 @@ distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
             sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 sudo apt-get update
 sudo apt-get install -y nvidia-docker2
+```
+
+- nvidia-container-toolkit
+
+```bash
+# 配置仓库
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list \
+  && \
+    sudo apt-get update
+# 安装
+sudo apt-get install -y nvidia-container-toolkit
 ```
 
 ### 1.3 安装 kubeadm kubectl kubelet

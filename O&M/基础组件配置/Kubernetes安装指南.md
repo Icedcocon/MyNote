@@ -79,7 +79,7 @@ vim /etc/apt/sources.list.d/kubernetes.list
 # 添加 
 deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main
 sudo apt update
-deb-get kubelet=1.26.3-00 kubeadm=1.26.3-00 kubectl=1.26.3-00
+deb-get kubelet=1.28.2-00 kubeadm=1.28.2-00 kubectl=1.28.2-00
 ```
 
 ### 1.4 将网桥的ip4流量转接到iptables
@@ -100,7 +100,7 @@ EOF
   - 可以通过命令行参数 `--runtime-endpoint` 和 `--image-endpoint`
   - 可以通过设置环境变量 `CONTAINER_RUNTIME_ENDPOINT` 和 `CONTAINER_RUNTIME_ENDPOINT`
   - 可以通过配置文件的endpoint设置 `--config=/etc/crictl.yaml`
-- 可更改配置为 `/etc/crictl.yaml`
+- 创建配置文件 `/etc/crictl.yaml`即可（上面的记不清了）
 
 ```yaml
 runtime-endpoint: unix:///var/run/containerd/containerd.sock
@@ -108,6 +108,12 @@ image-endpoint: unix:///var/run/containerd/containerd.sock
 timeout: 10
 #debug: true
 debug: false
+```
+
+- 注意在`/etc/containerd/config.toml` 中的以下内容需要被注释
+
+```toml
+disabled_plugins = ["cri"]
 ```
 
 ### 2.2 kubeadm 指定镜像仓库
@@ -195,20 +201,30 @@ kubeadm init --config kubeadm-config.yaml
 
 - Kubernetes 允许容器运行时指定沙箱容器及其镜像仓库，因此kubeadm查询到的pause镜像与运行时所需镜像并不完全一致，且containerd的镜像仓库及所需运行时镜像需要独立指定。
 
+- 推荐指令`/usr/bin/containerd config dump > config.toml`然后修改
+
+```toml
+[plugins."io.containerd.grpc.v1.cri"]
+  sandbox_image = "registry.k8s.io/pause:3.9"
+
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+  SystemdCgroup = true
+```
+
 - `vim /etc/containerd/config.toml` 配置containerd镜像仓库及沙箱运行时
-  
-  ```toml
-  [plugins."io.containerd.grpc.v1.cri"]
-  sandbox_image = "your-sandbox-image"
-  [plugins."io.containerd.grpc.v1.cri".registry]
-    [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."your-custom-repo1"]
-        endpoint = ["https://your-custom-repo1"]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."your-custom-repo2"]
-        endpoint = ["https://your-custom-repo2"]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."your-custom-repo3"]
-        endpoint = ["https://your-custom-repo3"]
-  ```
+
+```toml
+[plugins."io.containerd.grpc.v1.cri"]
+sandbox_image = "your-sandbox-image"
+[plugins."io.containerd.grpc.v1.cri".registry]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."your-custom-repo1"]
+      endpoint = ["https://your-custom-repo1"]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."your-custom-repo2"]
+      endpoint = ["https://your-custom-repo2"]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."your-custom-repo3"]
+      endpoint = ["https://your-custom-repo3"]
+```
 
 - 重启continerd
   
@@ -279,4 +295,21 @@ hostPath=$(echo $(kubectl config view |grep server) | cut -d " " -f2)
 # 访问API
 curl --cert ./client.pem --key ./client-key.pem --cacert ./ca.pem \
 ${hostPath}/api/v1/pods
+```
+
+### 4. Calico
+
+##### 4.1 安装部署
+
+- 下载calico离线包
+
+```bash
+# https://github.com/projectcalico/calico/releases
+wget 
+```
+
+- 解压并检查镜像后上传
+
+```bash
+grep image: calico.yaml
 ```

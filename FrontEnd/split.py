@@ -60,10 +60,10 @@ if __name__ == '__main__':
     #split_file('06.02.this.md', format_str='## ', prefix_num=2)
     #split_file('MyNote/FrontEnd/HTML/13/13.form.md', format_str='## ', prefix_num=1)
     
-    os.chdir('MyNote/AI/Pytorch速通/01/01.03')
-    convert_title('01.03.neural_networks_tutorial.md')
-    split_file('01.03.neural_networks_tutorial.md', format_str='## ', prefix_num=2)
+    # os.chdir('MyNote/AI/Pytorch速通/01/01.03')
+    # convert_title('01.03.neural_networks_tutorial.md')
+    # split_file('01.03.neural_networks_tutorial.md', format_str='## ', prefix_num=2)
 
-    #os.chdir('MyNote/FrontEnd/CSS/10')
-    #os.chdir('MyNote/FrontEnd/CSS/02.selectors/02.03')
-    #split_file('10.grid.md', format_str='## ', prefix_num=2)
+    os.chdir('MyNote/FrontEnd/CSS/23')
+    # os.chdir('MyNote/FrontEnd/CSS/02.selectors/02.03')
+    split_file('23.blend.md', format_str='## ', prefix_num=1)

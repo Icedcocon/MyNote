@@ -1,5 +1,114 @@
 # 笔记
 
+### 已学习内容
+
+- Comprehensive Python Cheatsheet          Python速查表大全
+  
+  - 网址： https://gto76.github.io/python-cheatsheet/
+  
+  - 描述： Python的核心语法总结，适合记忆或查询
+  
+  - 学习状态： 基础语法及标准库
+
+- The Golang Standard Library by Example   Go语言标准库
+  
+  - 网址： https://github.com/polaris1119/The-Golang-Standard-Library-by-Example
+  
+  - 描述： Golang标准库总结，适合记忆或查询
+  
+  - 学习状态： 第1 2 4 6 9 10 13 16 章
+
+- WangDoc JavaScript 核心语法
+  
+  - 网址： https://github.com/wangdoc/javascript-tutorial
+  
+  - 描述： JavaScript的核心语法总结，适合记忆或查询
+  
+  - 学习状态： 第 6 7 8 9 10 章
+
+- WangDoc ECMAScript 6 教程
+  
+  - 网址： https://github.com/wangdoc/es6-tutorial
+  
+  - 描述： ECMAScript 6 语法总结，适合记忆或查询
+  
+  - 学习状态： 第 8 10 24 25 章
+
+- WangDoc HTML5 教程
+  
+  - 网址： https://github.com/wangdoc/html-tutorial
+  
+  - 描述： HTML5 语法总结，适合记忆或查询
+  
+  - 学习状态： 第 13 章
+
+- WangPengFei CSS3 教程
+  
+  - 网址： https://github.com/pengfeiw/css-tutorial
+  
+  - 描述： CSS3 基础语法总结，适合记忆或查询
+  
+  - 学习状态： 全部
+
+### 未学习内容
+
+- Vue3 文档
+  
+  - 网址： https://github.com/vuejs-translations/docs-zh-cn
+  
+  - 描述： Vue3 文档，适合记忆或查询
+  
+  - 学习状态： 起步
+
+- 程序员海外工作/英文面试手册
+  
+  - 网址： https://github.com/eliaszon/Programmers-Overseas-Job-Interview-Handbook
+  
+  - 描述： 程序员海外工作/英文面试手册，适合记忆
+  
+  - 学习状态： 未开始
+  
+- Flask 简体中文文档
+  
+  - 网址： https://github.com/dormouse/Flask_Docs_ZhCn
+  
+  - 描述： Flask 简体中文文档，适合记忆或查询（非 MarkDown !）
+  
+  - 学习状态： 未开始
+
+- Go语言四十二章经
+  
+  - 网址： https://github.com/ffhelicopter/Go42
+  
+  - 描述： golang 常用三方库，适合记忆或查询
+  
+  - 学习状态： 未开始
+  
+- over-golang   Golang综合
+  
+  - 网址： https://github.com/overnote/over-golang
+  
+  - 描述： golang 系统教程内容详细，golang工程化指南，适合记忆或查询
+  
+  - 学习状态： 未开始 
+
+- golang 数据结构
+  
+  - 网址： https://github.com/overnote/over-algorithm/tree/master
+  
+  - 描述： golang 数据结构教程，适合记忆或查询
+  
+  - 学习状态： 未开始 
+  
+- LeetCode golang
+  
+  - 网址： https://github.com/halfrost/LeetCode-Go
+  
+  - 描述： golang 算法题
+  
+  - 学习状态： 未开始  
+ 
+
 ### 工作中用到的知识点
 
 - Docker-Kubernetes

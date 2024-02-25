@@ -1,3 +1,58 @@
+## 容器化部署 IP Derper 服务器
+
+### 1. 克隆ip_derper仓库并编译
+
+```bash
+git clone https://github.com/yangchuansheng/ip_derper.git
+cd ip_derper
+git clone --recurse-submodules https://github.com/tailscale/tailscale.git
+docker build -t ip_derper:latest .
+
+docker run --restart always --net host --name derper -d ghcr.io/yangchuansheng/ip_derper
+```
+
+### 2. Headscale 部署
+
+```bash
+wget https://github.com/juanfont/headscale/releases/download/v0.23.0-alpha3/headscale_0.23.0-alpha3_linux_amd64.deb
+dpkg -i headscale_0.23.0-alpha3_linux_amd64.deb
+# 修改 Headscale 配置文件：
+# 一定要用对应版本的配置文件 如 0.22.3
+vim /etc/headscale/config.yaml
+```
+
+- 修改配置文件，将 `server_url` 改为公网 IP 或域名。**如果是国内服务器，域名必须要备案**。我的域名无法备案，所以我就直接用公网 IP 了。
+- 如果暂时用不到 DNS 功能，可以先将 `magic_dns` 设为 false。
+- `server_url` 设置为 `http://<PUBLIC_ENDPOINT>:8080`，将 `<PUBLIC_ENDPOINT>` 替换为公网 IP 或者域名。
+- 建议打开随机端口，将 randomize_client_port 设为 true。
+- 可自定义私有网段，也可同时开启 IPv4 和 IPv6：
+
+```yaml
+server_url: http://<PUBLIC_ENDPOINT>:8080
+randomize_client_port: true
+ip_prefixes:
+  # - fd7a:115c:a1e0::/48
+  - 100.64.0.0/16
+```
+
+### 3. headscale-admin部署（有bug）
+
+```bash
+# docker run -p 8000:80 --name headscale-admin -d --restart unless-stopped  goodieshq/headscale-admin:latest
+docker run -p 8000:80 goodieshq/headscale-admin:latest
+
+headscale apikey create --expiration 9999d
+```
+
+### 4. headscale-ui部署
+
+```bash
+docker pull ghcr.io/gurucomputing/headscale-ui:latest
+docker run -p 8000:443 --name headscale-ui -d --restart unless-stopped  ghcr.io/gurucomputing/headscale-ui:latest
+```
+
+## 原教程
+
 ## 1. Linux 安装tailscale
 
 官网连接: `https://tailscale.com/download/linux`
@@ -137,10 +192,10 @@ CMD bash /app/build_cert.sh $DERP_HOST $DERP_CERTS /app/san.conf && \
     --certdir=$DERP_CERTS \
     --stun=$DERP_STUN  \
     --verify-clients=$DERP_VERIFY_CLIENTS
-# -a 					指定 HTTPS 端口
-# -http-port			指定 HTTP 端口
-# --certmode=manual		手动指定证书文件
-# --certdir				证书文件位置
+# -a                     指定 HTTPS 端口
+# -http-port            指定 HTTP 端口
+# --certmode=manual        手动指定证书文件
+# --certdir                证书文件位置
 ```
 
 ### 2.4 编译镜像并部署
@@ -205,7 +260,9 @@ docker run --restart always --net host --name derper -d ip_derper
 ```
 
 ## 4 防蹭网
+
 ### 4.1 服务器端安装 tailscale 并加入网络
+
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
 
@@ -213,3 +270,21 @@ tailscale up
 
 docker run --restart always --net host -e "DERP_VERIFY_CLIENTS=true"  --name derper -d ip_derper
 ```
+
+## 参考资料
+
+https://zhuanlan.zhihu.com/p/676818620
+
+- 使用 ip 的 derper 容器
+
+[GitHub - yangchuansheng/ip_derper: 无需域名的 derper](https://github.com/yangchuansheng/ip_derper)
+
+- headscale 使用教程
+
+[Tailscale 基础教程：Headscale 的部署方法和使用教程 &#183; 云原生实验室](https://icloudnative.io/posts/how-to-set-up-or-migrate-headscale/)
+
+- haedscale 及 webui 的容器化部署
+
+[Docker 搭建 headscale 异地组网完整教程](https://www.nodeseek.com/post-37577-1)
+
+https://github.com/iFargle/headscale-webui/issues/79

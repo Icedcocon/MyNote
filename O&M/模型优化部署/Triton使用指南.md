@@ -766,7 +766,7 @@ class TritonPythonModel:
                             help='The attention window size that controls the sliding window attention / cyclic kv cache behaviour')
         parser.add_argument('--streaming', default=False, action='store_true')
         parser.add_argument('--streaming_interval', type=int, help="How often to return tokens when streaming.", default=5)
-        
+
         # 还不理解的
         parser.add_argument('--temperature', type=float, default=1.0)
         parser.add_argument('--top_k', type=int, default=1)
@@ -821,7 +821,7 @@ class TritonPythonModel:
                     generation_logits=None,
                     output_logits_npy=None):
         batch_size, num_beams, _ = output_ids.size()
-        
+
         output_text_matrix = np.empty(batch_size, dtype=object) 
         for batch_idx in range(batch_size):
             inputs = output_ids[batch_idx][0][:input_lengths[batch_idx]].tolist(
@@ -840,9 +840,6 @@ class TritonPythonModel:
             output_text_matrix[batch_idx] = output_text_array
 
         return output_text_matrix
-
-
-
 ```
 
 - config.pbtxt

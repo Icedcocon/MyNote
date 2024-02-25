@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Demo</title>
+</head>
+
+<body>
+    <form id="myForm" name="myForm">
+        <div>
+            <label for="username">用户名：</label>
+            <input type="text" id="username" name="username">
+        </div>
+        <div>
+            <label for="useracc">账号：</label>
+            <input type="text" id="useracc" name="useracc">
+        </div>
+        <div>
+            <label for="userfile">上传文件：</label>
+            <input type="file" id="userfile" name="userfile">
+        </div>
+        <input type="submit" form="myForm" value="Submit!">
+    </form>
+    <p></p>
+    <script>
+        var submit = document.querySelector("input[type=submit]")
+        submit.addEventListener("click",showForm,{capture:false,once:false})
+        function showForm(event) {
+            event.preventDefault()
+            var myForm = document.getElementById("myForm")
+            var formData = new FormData(myForm)
+            var formP = document.querySelector("p")
+            for (var key of formData.keys()) {
+                formP.innerHTML += `<br>key: ${key}`
+            }
+            for (var value of formData.values()) {
+                formP.innerHTML += `<br>value: ${value}`
+            }
+            for (var pair of formData.entries()) {
+                formP.innerHTML += `<br>key: ${pair[0]} value: ${pair[1]}`
+            }
+        }
+    </script>
+</body>
+
+</html>

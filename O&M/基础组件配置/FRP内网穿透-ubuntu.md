@@ -8,10 +8,10 @@
 - 前往 https://github.com/fatedier/frp/releases 下载 `frp_0.49.0_linux_amd64.tar.gz`
 
 ```bash
-wget https://github.com/fatedier/frp/releases/download/v0.49.0/frp_0.49.0_linux_amd64.tar.gz
+wget https://github.com/fatedier/frp/releases/download/v0.54.0/frp_0.54.0_linux_amd64.tar.gz
 
-tar -xzf frp_0.49.0_linux_amd64.tar.gz
-mv frp_0.49.0_linux_amd64 /usr/local/bin/frp
+tar -xzf frp_0.54.0_linux_amd64.tar.gz
+mv frp_0.54.0_linux_amd64 /usr/local/bin/frp
 chmod +x /usr/local/bin/frp/frps 
 ```
 
@@ -23,13 +23,13 @@ bind_port = 7000                         # frp服务的端口号，可改 (必�
 dashboard_port = 7500                    # frp的web界面的端口号，可改
 dashboard_user = admin                   # web界面的登陆账户，可改
 dashboard_pwd = ********                 # web界面的登陆密码，可改
-authentication_method = token
+authentication_method = token            #                     (最好填)
 token = *******************************  # frp客户端连接时的密码，可改
 vhost_http_port = 8080                   # 为frp指定的http端口
 vhost_https_port = 8443                  # 为frp指定的https端口
 ```
 
-- 在 `/etc/systemd/system/` 添加开机启动脚本
+- 在 `/etc/systemd/system/frps.service` 添加开机启动脚本
 
 ```bash
 [Unit]
@@ -62,8 +62,8 @@ sudo systemctl status frps.service  # 查看服务状态
 ```bash
 wget https://github.com/fatedier/frp/releases/download/v0.49.0/frp_0.49.0_linux_amd64.tar.gz
 
-tar -xzf frp_0.49.0_linux_amd64.tar.gz
-mv frp_0.49.0_linux_amd64 /usr/local/bin/frp
+tar -xzf frp*.tar.gz && rm -f frp*.tar.gz
+mv frp* /usr/local/bin/frp
 chmod +x /usr/local/bin/frp/frpc
 ```
 
@@ -82,7 +82,7 @@ local_port = 22                    # 内网需要穿透的端口 (必填)
 remote_port = 6000                 # 外网映射端口  (必填)
 ```
 
-- 在 `/etc/systemd/system/` 添加开机启动脚本
+- 在 `/etc/systemd/system/frpc.service` 添加开机启动脚本
 
 ```bash
 [Unit]
@@ -126,4 +126,38 @@ plugin_crt_path = /usr/local/bin/frp/cert/***.pem # SSL证书地址
 plugin_key_path = /usr/local/bin/frp/cert/***.key # SSL证书密钥
 plugin_host_header_rewrite = 127.0.0.1
 plugin_header_X-From-Where = frp 
+```
+
+## gost 端口转发
+
+- 下载 gost
+
+```bash
+snap install gost
+```
+
+- 编辑 `/lib/systemd/system/gost.service`
+
+```bash
+[Unit]
+Description=gost service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/snap/bin/gost -L=tcp://:10082/<目标IP>:8081
+ExecStop=/usr/bin/killall gost
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+- 启动服务
+
+```bash
+sudo systemctl enable gost.service  # 开机自启
+sudo systemctl start gost.service   # 启动服务
+sudo systemctl status gost.service  # 查看服务状态
 ```

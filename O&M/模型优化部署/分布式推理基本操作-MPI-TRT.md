@@ -127,3 +127,17 @@ python3 /app/tensorrt_llm/examples/run.py \
        --input_text="Hello tell me about huawei" \
        --max_output_len=1000
 ```
+
+## 参考资料
+
+- 深度学习课程-分布式推理-各种框架
+
+[ML system 入坑指南 | 摸黑干活](https://fazzie-key.cool/2023/02/21/MLsys/#Distributed-Communication)
+
+- llama.cpp -  MPI 
+
+[GitHub - ggerganov/llama.cpp: Port of Facebook&#39;s LLaMA model in C/C++](https://github.com/ggerganov/llama.cpp#mpi-build)
+
+- Intel-CPU/GPU 分布式推理
+
+https://github.com/intel-analytics/BigDL

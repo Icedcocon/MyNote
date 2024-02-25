@@ -509,6 +509,111 @@ curl -X POST localhost:8000/v2/models/ensemble/generate \
 pgrep tritonserver | xargs kill -9
 ```
 
+### 4. 关于engine编译的说明
+
+| 方法       | 易用性 | 性能  | 兼容性 | 开发效率 | 遇到不支持的OP           |
+| -------- | --- | --- | --- | ---- | ------------------ |
+| 框架自带接口   | ★★★ | ★   | ★★  | ★★★  | 返回原框架计算            |
+| 使用Parser | ★★  | ★★☆ | ★★☆ | ★★   | 改网/改Parser/写Plugin |
+| API搭建    | ★   | ★★★ | ★★★ | ★    | 写Plugin            |
+
+#### 4.1 Pytorch-ONNX-TRT编译
+
+```python
+# Export model as ONNX file ----------------------------------------------------
+pytorch.onnx.export(model, pytorch.randn(1, 1, nHeight, nWidth, device="cuda"), onnxFile, input_names=["x"], output_names=["y", "z"], do_constant_folding=True, verbose=True, keep_initializers_as_inputs=True, opset_version=12, dynamic_axes={"x": {0: "nBatchSize"}, "z": {0: "nBatchSize"}})
+print("Succeeded converting model into ONNX!")
+
+# Parse network, rebuild network and do inference in TensorRT ------------------
+logger = trt.Logger(trt.Logger.VERBOSE)
+builder = trt.Builder(logger)
+network = builder.create_network(1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
+profile = builder.create_optimization_profile()
+config = builder.create_builder_config()
+if bUseFP16Mode:
+    config.set_flag(trt.BuilderFlag.FP16)
+if bUseINT8Mode:
+    config.set_flag(trt.BuilderFlag.INT8)
+    config.int8_calibrator = calibrator.MyCalibrator(calibrationDataPath, nCalibration, (1, 1, nHeight, nWidth), cacheFile)
+
+parser = trt.OnnxParser(network, logger)
+if not os.path.exists(onnxFile):
+    print("Failed finding ONNX file!")
+    exit()
+print("Succeeded finding ONNX file!")
+with open(onnxFile, "rb") as model:
+    if not parser.parse(model.read()):
+        print("Failed parsing .onnx file!")
+        for error in range(parser.num_errors):
+            print(parser.get_error(error))
+        exit()
+    print("Succeeded parsing .onnx file!")
+```
+
+#### 4.2 使用框架提供的TensorRT接口
+
+```python
+# Use Torch-TensorRT -----------------------------------------------------------
+tsModel = torch.jit.trace(model, t.randn(1, 1, nHeight, nWidth, device="cuda"))
+trtModel = torch_tensorrt.compile(tsModel, inputs=[t.randn(1, 1, nHeight, nWidth, device="cuda").float()], enabled_precisions={t.float})
+
+data = cv2.imread(inferenceImage, cv2.IMREAD_GRAYSCALE).reshape(1, 1, 28, 28).astype(np.float32)
+inputData = t.from_numpy(data).cuda()
+outputData = trtModel(inputData)  # run inference in TensorRT
+print(t.argmax(t.softmax(outputData, dim=1), dim=1))
+
+t.jit.save(trtModel, tsFile)  # save TRT embedded Torchscript as .ts file
+```
+
+### 5. 源码
+
+```python
+import tensorrt as trt
+
+logger = trt.Logger(trt.Logger.ERROR)
+# 创建构造器
+builder = trt.Builder(logger)  
+# 创建 TensorRT 网络结构
+network = builder.create_network(
+    1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
+    )                          
+config = builder.create_builder_config() 
+inputTensor = network.add_input("inputT0", trt.float32, [3, 4, 5]) 
+identityLayer = network.add_identity(inputTensor)
+network.mark_output(identityLayer.get_output(0))
+# 编译 engine 并序列化
+engineString = builder.build_serialized_network(network, config)
+
+# 反序列化 engine 准备后续推理
+engine = trt.Runtime(logger).deserialize_cuda_engine(engineString) 
+```
+
+#### 6. TRT支持模型
+
+```bash
+.
+├── baichuan
+├── bert
+├── blip2
+├── bloom
+├── chatglm
+├── falcon
+├── gpt
+├── gptj
+├── gptneox
+├── internlm
+├── llama
+├── mixtral
+├── mpt
+├── whisper
+├── qwen
+├── enc_dec
+│   ├── bart
+│   ├── nmt
+│   └── t5
+...
+```
+
 ## 参考资料
 
 https://zhuanlan.zhihu.com/p/668548188

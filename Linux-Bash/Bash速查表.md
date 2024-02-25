@@ -1088,3 +1088,10 @@ topas
 truss
 svmon
 ```
+
+```bash
+# 查文件名
+find ./base-image/ | grep -niP "[\x{4e00}-\x{9fa5}]|inspur|浪潮|寒武纪|MLU|华为|ascend|cambricon|huawei"
+# 查文件内容
+grep -rniP "[\x{4e00}-\x{9fa5}]|inspur|浪潮|寒武纪|MLU|华为|ascend|cambricon|huawei" --binary-files=without-match ./base-image/
+```

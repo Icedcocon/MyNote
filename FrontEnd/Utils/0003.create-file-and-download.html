@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Demo</title>
+</head>
+
+<body>
+    <a id="downloadLink" style="display: none;">下载链接</a>
+    <button id="createLink" onclick="createLink()">创建下载链接</button>
+    <button id="hideLink" onclick="hideLink()">隐藏下载链接</button>
+    <script>
+        function createLink() {
+            fileText = "Hello word!\nThis is what in the file\n"
+            blob = new Blob([fileText], { type: "text/plain" })
+            file = new File([blob], "downloadFile.txt", { type: "text/plain" })
+            downloadLinkA = document.getElementById("downloadLink")
+            downloadLinkA.href = URL.createObjectURL(file)
+            downloadLinkA.download = file.name
+            downloadLinkA.style.display = "block"
+        }
+        function hideLink() {
+            downloadLinkA = document.getElementById("downloadLink")
+            downloadLinkA.style.display = "none"
+        }
+    </script>
+</body>
+
+</html>

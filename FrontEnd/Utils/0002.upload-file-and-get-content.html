@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Demo</title>
+</head>
+
+<body>
+    <input type="file" id="inputFile" />
+    <button id="getContent" onclick="getContent()">获取文件内容</button>
+    <button id="hideContent" onclick="hideContent()">隐藏文件内容</button>
+    <div id=fileContentContainer></div>
+    <script>
+        function getContent() {
+            const fileInput = document.getElementById("inputFile")
+            const file = fileInput.files[0]
+            if (file.type === "text/plain"){
+                const reader = new FileReader()
+                reader.onload = function(event){
+                    const fileContentContainerDiv = document.getElementById("fileContentContainer")
+                    fileContentContainerDiv.innerText = event.target.result
+                }
+                reader.readAsText(file)
+            } else {
+                window.alert("文件类型必须是text/plain")
+            }
+        }
+        function hideContent() {
+            document.getElementById("fileContentContainer").innerHTML = ""
+        }
+    </script>
+</body>
+
+</html>

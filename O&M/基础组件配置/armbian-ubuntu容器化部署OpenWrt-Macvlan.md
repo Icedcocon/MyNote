@@ -7,6 +7,7 @@
 - Step 1:  更新您的系统软件包列表。
 
 ```bash
+sed -ri  's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 apt update 
 ```
 
@@ -311,6 +312,11 @@ uci commit dhcp
 #重启dnsmasq
 /etc/init.d/dnsmasq start
 # 参考 https://wej.cc/142.html
+
+
+# 或编辑 （没用）
+#/etc/config/dhcp
+#修改 list server
 ```
 
 - (5) 插件

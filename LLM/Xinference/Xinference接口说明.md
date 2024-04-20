@@ -1,5 +1,25 @@
 # Xinference接口说明
 
+### 0. 接口梳理
+
+#### 0.1 接口对比
+
+| Method | OpenAI                   | XInferencce              | 说明        |
+| ------ | ------------------------ | ------------------------ | --------- |
+| GET    | /v1/models               | /v1/models               | 列出模型      |
+| GET    | /v1/models/gpt-3.5       | /v1/models/qwen          | 模型详情      |
+| DELETE | /v1/models/gpt-3.5       | /v1/models/qwen          | 删除实例      |
+| ANY    |                          | /v1/model_registrations  | 模型注册/删除   |
+| ANY    | /v1/files                |                          | 文件操作      |
+| POST   | /v1/chat/completions     | /v1/chat/completions     | 对话        |
+| POST   | /v1/audio/transcriptions | /v1/audio/transcriptions | 语音转文字     |
+| POST   | /v1/audio/speech         |                          | 文字转语音     |
+| POST   | /v1/embeddings           | /v1/embeddings           | RAG/词向量映射 |
+| POST   | /v1/images/generations   | /v1/images/generations   | 生成图片      |
+| POST   | /v1/images/variations    | /v1/images/variations    | 图片修复      |
+| POST   | /v1/images/edits         |                          | 图片编辑/扩展   |
+| ANY    | /v1/fine_tuning          |                          | 微调        |
+
 ### 1. 模型列表`GET /v1/model_registrations/{{model_type}}?detailed=true`
 
 ##### 1.1 Query Params

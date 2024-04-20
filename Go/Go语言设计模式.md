@@ -13,6 +13,14 @@
   - 实现一个模板方法(Template Method)，用于定义一个算法的框架
   
   - 模板方法可调用抽象类或子类实现的基本方法，还可调用其他对象方法
+  
+  - **go将抽象类拆分为接口、全局变量、模板类三部分**
+    
+    - 接口定义抽象函数
+    
+    - 局部变量定义模板（公共）属性
+    
+    - 模板类定义模板（公共）方法
 
 - **ConcreteClass（具体子类）**
   
@@ -51,22 +59,22 @@ classDiagram
 ##### 实现
 
 ```go
-// 抽象类
+// 抽象/接口类
 type AbstractClass interface {
     PrimitiveOperation1()
     PrimitiveOperation2()
 }
-// 再封装一层，实现模板方法、抽象类公共方法
+// 抽象/模板类
 type Template struct {
     AbstractClass
 }
-func (a *Template) TemplateMethod() { // 抽象类实现模板方法
+func (a *Template) TemplateMethod() { // 抽象/模板类实现模板方法
     a.PrimitiveOperation1()
     a.PrimitiveOperation2()
     a.ConcreteOperation1()
 }
-func (a *Template) ConcreteOperation1() { // 抽象类公共方法
-    fmt.Println("抽象类类公共方法1实现")
+func (a *Template) ConcreteOperation1() { // 抽象/模板类公共方法
+    fmt.Println("模板类类公共方法1实现")
 }
 // 利用函数实现多态
 func GetAbstractClass(a AbstractClass) *Template {

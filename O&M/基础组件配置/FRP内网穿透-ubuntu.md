@@ -82,6 +82,10 @@ local_port = 22                    # 内网需要穿透的端口 (必填)
 remote_port = 6000                 # 外网映射端口  (必填)
 ```
 
+```toml
+
+```
+
 - 在 `/etc/systemd/system/frpc.service` 添加开机启动脚本
 
 ```bash

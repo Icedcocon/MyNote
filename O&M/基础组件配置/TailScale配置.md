@@ -1,5 +1,96 @@
 ## 容器化部署 IP Derper 服务器
 
+### 0. docker-compose.yaml
+
+- 配置文件
+
+```bash
+mkdir container-config
+mkdir -p container-data/data
+git clone -b v0.22.3  https://github.com/juanfont/headscale.git headscale-repo
+cp headscale-repo/config-example.yaml container-config/config.yaml
+```
+
+- 编辑配置文件
+
+```yaml
+# container-config/config.yaml
+server_url: http://<PUBLIC_ENDPOINT>:8080
+randomize_client_port: true
+ip_prefixes:
+  # - fd7a:115c:a1e0::/48
+  - 100.64.0.0/16
+```
+
+- 拉去镜像
+
+```bash
+docker pull headscale/headscale:0.22.3
+docker pull ifargle/headscale-webui:latest
+docker pull ghcr.io/yangchuansheng/ip_derper:latest
+```
+
+- docker-compose.yaml
+
+```yaml
+services:
+  headscale:
+    image: headscale/headscale:0.22.3
+    container_name: headscale
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./container-config:/etc/headscale
+      - ./container-data/data:/var/lib/headscale
+    entrypoint: headscale serve
+    networks:
+      - external_net
+    ports:
+      - 8080:8080
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+
+  headscale-webui:
+    image: ifargle/headscale-webui:latest
+    container_name: headscale-webui
+    restart: unless-stopped
+    networks:
+      external_net:
+    ports:
+      - 8000:5000
+    environment:
+      - TZ=Asia/Shanghai
+      - COLOR=blue-gray
+      - HS_SERVER=http://headscale:8080       # IP 是headscle容器而非宿主机
+      - DOMAIN_NAME=http://公网IP:8000 # 访问UI的域名
+      - SCRIPT_NAME=/admin
+      - KEY="....." # 生成指令: openssl rand -base64 32
+      - AUTH_TYPE=Basic
+      - LOG_LEVEL=info
+      - BASIC_AUTH_USER=user
+      - BASIC_AUTH_PASS=password
+    volumes:
+      - ./headscale-webui:/data:rw            # 执行 chown 1000:1000 ./headscale-webui
+      - ./container-config:/etc/headscale/:ro # 这映射Headscale容器的配置文件位置
+
+
+  ip-derper:
+    image: ghcr.io/yangchuansheng/ip_derper:latest
+    container_name: ip-derper
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    network_mode: "host"
+
+networks:
+  external_net:
+    external: true
+```
+
 ### 1. 克隆ip_derper仓库并编译
 
 ```bash
@@ -14,8 +105,21 @@ docker run --restart always --net host --name derper -d ghcr.io/yangchuansheng/i
 ### 2. Headscale 部署
 
 ```bash
-wget https://github.com/juanfont/headscale/releases/download/v0.23.0-alpha3/headscale_0.23.0-alpha3_linux_amd64.deb
-dpkg -i headscale_0.23.0-alpha3_linux_amd64.deb
+# 或者容器化部署？
+docker pull headscale/headscale:0.23.0-alpha5
+git clone -b v0.23.0-alpha5  https://github.com/juanfont/headscale.git headscale-repo
+
+mkdir -p /etc/headscale
+mkdir -p /etc/headscale/conf
+mkdir -p /etc/headscale/data
+cd headscale-repo
+cp config-example.yaml /etc/headscale/conf/config.yaml
+
+
+
+# 常规部署
+wget https://github.com/juanfont/headscale/releases/download/v0.23.0-alpha5/headscale_0.23.0-alpha5_linux_amd64
+dpkg -i headscale_0.23.0-alpha5_linux_amd64
 # 修改 Headscale 配置文件：
 # 一定要用对应版本的配置文件 如 0.22.3
 vim /etc/headscale/config.yaml
@@ -279,6 +383,8 @@ https://zhuanlan.zhihu.com/p/676818620
 
 [GitHub - yangchuansheng/ip_derper: 无需域名的 derper](https://github.com/yangchuansheng/ip_derper)
 
+[Tailscale 基础教程：部署私有 DERP 中继服务器 &#183; 云原生实验室](https://icloudnative.io/posts/custom-derp-servers/)
+
 - headscale 使用教程
 
 [Tailscale 基础教程：Headscale 的部署方法和使用教程 &#183; 云原生实验室](https://icloudnative.io/posts/how-to-set-up-or-migrate-headscale/)
@@ -288,3 +394,5 @@ https://zhuanlan.zhihu.com/p/676818620
 [Docker 搭建 headscale 异地组网完整教程](https://www.nodeseek.com/post-37577-1)
 
 https://github.com/iFargle/headscale-webui/issues/79
+
+https://isedu.top/index.php/archives/192/

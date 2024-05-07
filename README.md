@@ -1,5 +1,33 @@
 # 笔记
 
+## 一、学习计划
+
+### 1. 语言
+
+##### (1) 语法
+
+##### (2) 内存/垃圾回收
+
+##### (3) 进程/线程
+
+### 2. 算法
+
+### 3. 操作系统
+
+### 4. 计算机网络
+
+### 5. 设计模式
+
+### 6. 数据库
+
+### 7. 项目
+
+### 8. 面试题
+
+### 9. 云原生/运维相关
+
+### 二、优秀开源学习项目
+
 ### 已学习内容
 
 - Comprehensive Python Cheatsheet          Python速查表大全
@@ -67,7 +95,7 @@
   - 描述： 程序员海外工作/英文面试手册，适合记忆
   
   - 学习状态： 未开始
-  
+
 - Flask 简体中文文档
   
   - 网址： https://github.com/dormouse/Flask_Docs_ZhCn
@@ -83,7 +111,7 @@
   - 描述： golang 常用三方库，适合记忆或查询
   
   - 学习状态： 未开始
-  
+
 - over-golang   Golang综合
   
   - 网址： https://github.com/overnote/over-golang
@@ -99,7 +127,7 @@
   - 描述： golang 数据结构教程，适合记忆或查询
   
   - 学习状态： 未开始 
-  
+
 - LeetCode golang
   
   - 网址： https://github.com/halfrost/LeetCode-Go
@@ -107,7 +135,6 @@
   - 描述： golang 算法题
   
   - 学习状态： 未开始  
- 
 
 ### 工作中用到的知识点
 
@@ -232,3 +259,19 @@
   - 描述： 详细说明了CSS使用方法
   
   - 推荐阅读： 按需，**该文档作者还有其它教程**
+
+- Go语言设计与实现
+  
+  - 网址： https://draveness.me/golang/docs
+  
+  - 描述： go 底层原理
+  
+  - 推荐阅读： 全部  
+
+- Go 博客 与 HTTP协议
+  
+  - 网址： https://github.com/halfrost/Halfrost-Field/blob/master/contents/Go
+  
+  - 描述： go 底层原理 与 HTTP 协议
+  
+  - 推荐阅读： 全部  

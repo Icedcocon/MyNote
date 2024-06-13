@@ -54,13 +54,13 @@ def convert_title(file_name):
         f.close()
 
 if __name__ == '__main__':
-    os.chdir('MyNote/FrontEnd/VueDoc/guide/02.components')
-    split_file('02.01.registration.md', format_str='## ', prefix_num=2)
+    # os.chdir('MyNote/FrontEnd/VueDoc/guide/02.components')
+    # split_file('02.01.registration.md', format_str='## ', prefix_num=2)
     
     #split_file('MyNote/FrontEnd/ES6/10/10.object.md', format_str='## ', prefix_num=1)
-    #os.chdir('MyNote/FrontEnd/JavaScript/06.oop/06.02')
-    #split_file('06.02.this.md', format_str='## ', prefix_num=2)
-    #split_file('MyNote/FrontEnd/HTML/13/13.form.md', format_str='## ', prefix_num=1)
+    os.chdir('MyNote/FrontEnd/JavaScript/01.basic/01.03')
+    split_file('01.03.grammar.md', format_str='## ', prefix_num=2)
+    # split_file('MyNote/FrontEnd/HTML/13/13.form.md', format_str='## ', prefix_num=1)
     
     # os.chdir('MyNote/AI/Pytorch速通/01/01.03')
     # convert_title('01.03.neural_networks_tutorial.md')

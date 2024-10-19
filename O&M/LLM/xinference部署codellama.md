@@ -140,6 +140,37 @@ docker run --name one-api -d --restart unless-stopped -p 3000:3000 -e TZ=Asia/Sh
 cat /etc/systemd/system/docker.service.d/docker-dns.conf
 ```
 
+### 4. 命令行部署
+
+#### 5. setup.py函数 代理
+
+- 指定以下环境变量
+
+```dockerfile
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+ENV PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+```
+
+- 在setup.py脚本的setup函数中添加以下内容
+
+```python
+setup(
+    # ... 其他参数 ...
+    options={
+        'easy_install': {
+            'index_url': os.environ.get('PIP_INDEX_URL', 'https://pypi.org/simple'),
+        },
+    },
+    # ... 其他参数 ...
+)
+```
+
+- 修改 pip 仓库
+
+```bash
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
 ## 参考文档
 
 - awq、gptq、guff等类型模型下载位置

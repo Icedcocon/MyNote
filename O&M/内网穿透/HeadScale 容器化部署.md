@@ -355,6 +355,8 @@ docker exec -it headscale headscale apikey create --expiration 1d
 # 开启 cmd 并输入以下指令
 tailscale login --login-server http://公网IP:8080/windows
 # 打开 headscale-ui device 页面 并填入 nodekey:... 及之后内容
+# 或使用命令
+docker exec -it headscale headscale nodes register --user private --key nodekey:bd3f70
 ```
 
 #### 6.2 Linux
@@ -363,6 +365,10 @@ tailscale login --login-server http://公网IP:8080/windows
 # 开启 bash 并输入以下指令
 tailscale login --login-server http://公网IP:8080/windows
 # 打开 headscale-ui device 页面 并填入 nodekey:... 及之后内容
+# 或使用命令
+docker exec -it headscale headscale nodes register --user private --key nodekey:bd3f70
+# 可选
+tailscale up --force-reauth  --login-server=http://公网IP:8080
 ```
 
 #### 6.3 Android
@@ -414,6 +420,39 @@ adb install tailscale-debug.apk
 
 安装后在手机上打开，点击`Get start`，登录时选择`Sign in with others`，会自动跳转到浏览器，把最后一行的命令复制到 headscale 服务器上并将`NAMESPACE`替换为刚才创建的命名空间后执行，执行成功后会返回`Machine register`，同时在客户机上会自动跳转到主界面，将主界面上方的开关打开后，再按照上面查看已连接客户端的方法在服务端查询确认设备在线就可以了。
 
+#### 6.4 开启 subnet 子网
+
+- 客户端
+
+```bash
+tailscale up \
+--advertise-routes 192.168.1.0/24 \
+--advertise-exit-node \
+--reset \
+--force-reauth \
+--accept-dns=false \
+--login-server=http://<公网IP地址>:8080
+```
+
+- 服务端
+
+```bash
+# 查看 （注意 -i 后是节点索引）
+docker exec -it headscale headscale routes list -i 2
+# 开启 （注意 -r 后是路由索引）
+docker exec -it headscale headscale routes enable -r 3
+```
+
+- 其他 Linux 节点
+
+```bash
+tailscale up \
+--accept-routes  \
+--force-reauth \
+
+--login-server=http://<公网IP地址>:8080 
+```
+
 ### 7. heascale 常用命令
 
 - namespace
@@ -434,6 +473,8 @@ headscale -n myspace node ls # 只查看namespace为myspace下的节点
 headscale node delete -i<ID> # 根据id删除指定的节点（id可用node list查询）
                              # 如 headscale nodes delete -i=2
 headscale node tag -i=2 -t=tag:test # 给id为2的node设置tag为tag:test
+# 添加节点
+headscale nodes register --user private --key nodekey:bd3f70
 ```
 
 - route

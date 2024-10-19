@@ -7,14 +7,14 @@
 一般情况下，你可以直接运行如下命令执行搜索：
 
 ```bash
-$ ldapsearch -x -b <search_base> -H <ldap_host> -D <bind_dn> -W
+$ ldapsearch -x -b <search_base> -H <ldap_host> -D <bind_dn> -w 123456a? -W ...
 ```
 
 - `-x`：表示简单的身份认证。
 - `-b`：指定搜索的DC。
 - `-H`：指定搜索的主机URL，如果你是在LDAP服务器上，则不需要带这个参数。比如我这里为 `ldap://192.168.31.76:389`
 - `-D`：绑定的DN。
-- `-W`：绑定的DN的密码。
+- `-w`：绑定的DN的密码。
 
 如通过如下命令可以查询：
 

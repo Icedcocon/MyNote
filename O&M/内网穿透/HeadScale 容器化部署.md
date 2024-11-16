@@ -33,9 +33,25 @@ func (m *manualCertManager) getCertificate(hi *tls.ClientHelloInfo) (*tls.Certif
 }
 ```
 
+- 安装 docker （可省略）
+
+```bash
+# step 1: 安装必要的一些系统工具
+sudo apt-get update
+sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
+# step 2: 安装GPG证书
+curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+# Step 3: 写入软件源信息
+sudo add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+# Step 4: 更新并安装Docker-CE
+sudo apt-get -y update
+sudo apt-get -y install docker-ce
+```
+
 - 编译镜像（并启动）
 
 ```bash
+# curl -fsSL https://get.docker.com -o get-docker.sh
 docker build -t ip_derper:1.62.0 .
 # 可选
 docker run \
@@ -363,7 +379,7 @@ docker exec -it headscale headscale nodes register --user private --key nodekey:
 
 ```bash
 # 开启 bash 并输入以下指令
-tailscale login --login-server http://公网IP:8080/windows
+tailscale login --login-server http://公网IP:8080
 # 打开 headscale-ui device 页面 并填入 nodekey:... 及之后内容
 # 或使用命令
 docker exec -it headscale headscale nodes register --user private --key nodekey:bd3f70
@@ -525,3 +541,11 @@ https://zhuanlan.zhihu.com/p/676818620
 https://github.com/iFargle/headscale-webui/issues/79
 
 https://isedu.top/index.php/archives/192/
+
+- derper详细说明
+
+https://kiprey.github.io/2023/11/tailscale-derp/
+
+- NAT虚拟服务器配置derper
+
+https://www.kxzhai.moe/archives/27.html

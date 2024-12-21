@@ -90,6 +90,45 @@ python token_benchmark_ray.py \
 
 - `--llm-api` : 接口类型
 
+### 3. 故障处理
+
+#### 3.1 注意 `llmperf` 库的文件位置
+
+> hint: 如果需要在挂载的代码中调试，请重新安装该代码
+
+- llmperf库的位置由安装位置决定
+
+```bash
+cd /workspace/llmperf
+pip install -e .
+```
+
+#### 3.2 注意最后一个 `choice` 列表可能为空
+
+```python
+@ray.remote
+class OpenAIChatCompletionsClient(LLMClient):
+    """Client for OpenAI Chat Completions API."""
+    ......
+                    delta = data["choices"][0]["delta"]
+```
+
+修改为
+
+```python
+```python
+@ray.remote
+class OpenAIChatCompletionsClient(LLMClient):
+    """Client for OpenAI Chat Completions API."""
+    ......
+                    try:
+                        delta = data["choices"][0]["delta"]
+                    except:
+                        continue
+```
+
+```
 ## 参考资料
 
 https://github.com/ray-project/llmperf
+```

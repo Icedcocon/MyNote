@@ -4,19 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "783814261d78ec9c",
+        "id": "aa12da118ae7e5f0",
         "type": "tabs",
         "children": [
           {
-            "id": "df0c9a4e7619b5e4",
+            "id": "7861c88c67b172e9",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Go/Go语言设计模式.md",
-                "mode": "source",
-                "source": false
-              }
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "新标签页"
             }
           }
         ]
@@ -38,8 +36,11 @@
             "state": {
               "type": "file-explorer",
               "state": {
-                "sortOrder": "alphabetical"
-              }
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
             }
           },
           {
@@ -54,7 +55,9 @@
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical"
-              }
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
             }
           },
           {
@@ -62,7 +65,19 @@
             "type": "leaf",
             "state": {
               "type": "starred",
-              "state": {}
+              "state": {},
+              "icon": "lucide-file",
+              "title": "插件不再活动"
+            }
+          },
+          {
+            "id": "a70139c64722033f",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
             }
           }
         ]
@@ -85,7 +100,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Go/Go语言设计模式.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -93,7 +107,9 @@
                 "searchQuery": "",
                 "backlinkCollapsed": false,
                 "unlinkedCollapsed": true
-              }
+              },
+              "icon": "links-coming-in",
+              "title": "反向链接"
             }
           },
           {
@@ -102,10 +118,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Go/Go语言设计模式.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
-              }
+              },
+              "icon": "links-going-out",
+              "title": "出链"
             }
           },
           {
@@ -115,8 +132,12 @@
               "type": "tag",
               "state": {
                 "sortOrder": "frequency",
-                "useHierarchy": true
-              }
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
             }
           },
           {
@@ -125,8 +146,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Go/Go语言设计模式.md"
-              }
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "大纲"
             }
           }
         ]
@@ -147,8 +172,9 @@
       "webpage-html-export:Export Vault to HTML": false
     }
   },
-  "active": "df0c9a4e7619b5e4",
+  "active": "7861c88c67b172e9",
   "lastOpenFiles": [
+    "有用的项目分类整理.md",
     "模板方法.md",
     "Go/Go语言设计模式.md",
     "easy-template.html.md",

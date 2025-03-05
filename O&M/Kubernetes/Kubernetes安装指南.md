@@ -135,6 +135,7 @@ kubeadm config print init-defaults > kubeadm-config.yaml
   - `imageRepository` 国内镜像仓库地址
   - `networking.dnsDomain` 集群域名
   - `networking.serviceSubnet` Service子网
+  - `networking.podSubnet` Pod IP 所在子网，使用Calico时请注意填写
 
 ```yaml
 apiVersion: kubeadm.k8s.io/v1beta3
@@ -172,6 +173,7 @@ kubernetesVersion: 1.26.3
 networking:
   dnsDomain: cluster.local
   serviceSubnet: 10.96.0.0/12
+  podSubnet: 10.10.0.0/16
 scheduler: {}
 ---
 kind: KubeletConfiguration
@@ -194,7 +196,7 @@ kubeadm config images pull --config kubeadm-config.yaml
 - 使用 `kubeadm-config.yaml` 初始化集群
 
 ```bash
-kubeadm init --config kubeadm-config.yaml
+kubeadm init --config kubeadm-config.yaml -v=5
 ```
 
 ### 2.3 containerd 指定镜像仓库
@@ -275,9 +277,67 @@ ctr containers export <container-id> > <output-path>
 ctr containers import <tar-file> <container-id>
 ```
 
-## 3 Kubernetes配置
+## 3. Kubernetes 容器运行时CNI配置
 
-### 3.1 Kubernetes配置文件位置及内容
+### 3.1 下载cri-dockerd
+
+[Releases · Mirantis/cri-dockerd · GitHub](https://github.com/Mirantis/cri-dockerd/releases)
+
+```bash
+wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.16/cri-dockerd_0.3.16.3-0.debian-bullseye_amd64.deb
+apt install ./cri-dockerd_0.3.16.3-0.debian-bullseye_amd64.deb
+```
+
+### 3.2 配置kubernetes
+
+- 生成配置文件
+
+```bash
+kubeadm config print init-defaults > kubeadm-config.yaml
+```
+
+- 修改配置文件
+
+```yaml
+# This section includes base Calico installation configuration.
+# For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.Installation
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  # Configures Calico networking.
+  calicoNetwork:
+    # Note: The ipPools section cannot be modified post-install.
+    ipPools:
+    - blockSize: 26
+      cidr: 192.168.0.0/16
+      encapsulation: VXLANCrossSubnet
+      natOutgoing: Enabled
+      nodeSelector: all()
+
+---
+
+# This section configures the Calico API server.
+# For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.APIServer
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}
+```
+
+### 3.3 初始化集群
+
+- 使用 `kubeadm-config.yaml` 初始化集群
+
+```bash
+kubeadm init --config kubeadm-config.yaml -
+```
+
+## 4 Kubernetes配置
+
+### 4.1 Kubernetes配置文件位置及内容
 
 ```bash
 # 获取证书
@@ -297,9 +357,74 @@ curl --cert ./client.pem --key ./client-key.pem --cacert ./ca.pem \
 ${hostPath}/api/v1/pods
 ```
 
-### 4. Calico
+## 5. Calico
 
-##### 4.1 安装部署
+##### 5.1 安装部署
+
+- 配置calico
+
+```bash
+# 创建 tigera-operator
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/tigera-operator.yaml
+
+# 下载自定义资源配置文件
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/custom-resources.yaml -O
+
+# 如果需要，修改 CIDR 范围，确保与 kubeadm init 时指定的 pod-network-cidr 一致
+# 编辑 custom-resources.yaml 文件中的 cidr 配置：
+# ipPools:
+# - cidr: 192.168.0.0/16  # 根据需要修改这个值
+
+# 应用配置
+kubectl create -f custom-resources.yaml
+```
+
+- 修改 pod 的 CIDR 不要与 service 重叠
+
+```yaml
+# This section includes base Calico installation configuration.
+# For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.Installation
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  # Configures Calico networking.
+  calicoNetwork:
+    # Note: The ipPools section cannot be modified post-install.
+    ipPools:
+    - blockSize: 26
+      cidr: 10.10.0.0/16
+      encapsulation: VXLANCrossSubnet
+      natOutgoing: Enabled
+      nodeSelector: all()
+
+---
+
+# This section configures the Calico API server.
+# For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.APIServer
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}
+```
+
+- 配置 calicoctl
+
+```bash
+# 下载 calicoctl
+curl -L https://github.com/projectcalico/calico/releases/download/v3.27.0/calicoctl-linux-amd64 -o calicoctl
+
+# 添加执行权限
+chmod +x calicoctl
+
+# 移动到系统路径
+sudo mv calicoctl /usr/local/bin/
+
+# 验证安装
+calicoctl version
+```
 
 - 下载calico离线包
 
@@ -312,4 +437,153 @@ wget
 
 ```bash
 grep image: calico.yaml
+```
+
+## 6. 安装istio
+
+```bash
+# 下载Istio
+curl -L https://istio.io/downloadIstio | sh -
+
+# 进入Istio目录
+cd istio-*
+
+# 安装Istio
+./bin/istioctl install --set profile=demo -y
+
+# 给default命名空间添加标签，启用Istio注入
+kubectl label namespace default istio-injection=enabled
+```
+
+## 6. 安装 Knative
+
+### 6.1 安装 Knative CLI
+
+```bash
+wget https://github.com/knative/client/releases/download/knative-v1.16.1/kn-linux-amd64
+
+mv kn-linux-amd64 kn
+
+mv kn /usr/local/bin
+
+chmod +x /usr/local/bin/kn
+```
+
+### 6.2 （失败）安装 Knative quickstart plugin （请勿用于生产环境）
+
+```bash
+wget https://github.com/knative-extensions/kn-plugin-quickstart/releases/download/knative-v1.16.0/kn-quickstart-linux-amd64
+
+mv kn-quickstart-linux-amd64 /usr/local/bin/kn-quickstart
+
+chmod +x /usr/local/bin/kn-quickstart
+
+kn quickstart --help
+
+kn quickstart kind
+```
+
+### 6.3 yaml 部署
+
+```bash
+# 安装 Knative Serving CRDs
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.16.1/serving-crds.yaml
+
+# 安装 Knative Serving 核心组件
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.16.1/serving-core.yaml
+
+# 安装 Kourier 网络层
+kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v1.16.0/kourier.yaml
+
+# 配置 Knative Serving 使用 Kourier
+kubectl patch configmap/config-network \
+  --namespace knative-serving \
+  --type merge \
+  --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
+```
+
+## 6. 安装 KServe
+
+### 6.1 安装 cert-manager
+
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.0/cert-manager.yaml
+```
+
+### 6.2 安装 KServe
+
+```bash
+# 安装 KServe CRDs 和控制器
+kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml
+
+# 安装 KServe 内置的 ClusterServingRuntimes
+kubectl apply --server-side -f https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
+```
+
+## 7. 安装kubernetes 开发工具
+
+### 7.1 安装开发插件
+
+```bash
+# 安装 kubectl-krew (kubectl 插件管理器)
+(
+  set -x; cd "$(mktemp -d)" &&
+  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+  KREW="krew-${OS}_${ARCH}" &&
+  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+  tar zxvf "${KREW}.tar.gz" &&
+  ./"${KREW}" install krew
+)
+
+# 配置环境变量
+
+# 安装常用的kubectl插件
+kubectl krew install ctx ns
+```
+
+### 7.2 安装 SDK
+
+```bash
+# 在Linux系统上安装
+export ARCH=$(case $(uname -m) in x86_64) echo -n amd64 ;; aarch64) echo -n arm64 ;; *) echo -n $(uname -m) ;; esac)
+export OS=$(uname | awk '{print tolower($0)}')
+export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/download/v1.31.0
+curl -LO ${OPERATOR_SDK_DL_URL}/operator-sdk_${OS}_${ARCH}
+chmod +x operator-sdk_${OS}_${ARCH} && sudo mv operator-sdk_${OS}_${ARCH} /usr/local/bin/operator-sdk
+```
+
+### 7.3 安装并配置kubebuilder
+
+#### 7.3.1 安装 kubebuilder
+
+```bash
+# 下载并安装kubebuilder
+curl -L -o kubebuilder https://go.kubebuilder.io/dl/latest/$(go env GOOS)/$(go env GOARCH)
+chmod +x kubebuilder && sudo mv kubebuilder /usr/local/bin/
+```
+
+#### 7.3.2 初始化项目
+
+```bash
+# 初始化kubebuilder项目
+kubebuilder init --domain icedcocon.github.io --repo github.com/Icedcocon/CodeUpdater
+
+# 先创建API，但指定--resource=false，这样不会创建新的CRD
+kubebuilder create api \
+    --group serving.kserve.io \
+    --version v1beta1 \
+    --kind InferenceService \
+    --resource=false \
+    --controller=false
+
+# 创建api type
+
+# 创建webhook
+kubebuilder create webhook \
+    --group serving.kserve.io \
+    --version v1beta1 \
+    --kind InferenceService \
+    --defaulting \
+    --programmatic-validation
 ```

@@ -84,6 +84,7 @@ cp harbor-fry.com.key /data/cert/
 #     Docker守护程序将.crt文件解释为CA证书，并将.cert文件解释为客户端证书。
 cd /data/cert
 openssl x509 -inform PEM -in harbor-fry.com.crt -out harbor-fry.com.cert
+cp harbor-fry.com.cert /home/harbor/ssl
 # (3) 将服务器证书，密钥和CA文件复制到Harbor主机上的Docker证书文件夹中。
 #     您必须首先创建适当的文件夹。
 mkdir -p /etc/docker/certs.d/harbor-fry.com:10084/
@@ -99,7 +100,7 @@ cp ca.crt /etc/docker/certs.d/harbor-fry.com:10084/
 ### 3. 下载 Harbor 安装包并配置
 
 ```bash
-whet https://github.com/goharbor/harbor/releases/download/v2.8.2/harbor-offline-installer-v2.8.2.tgz \
+wget https://github.com/goharbor/harbor/releases/download/v2.8.2/harbor-offline-installer-v2.8.2.tgz \
 && tar -xf harbor-offline-installer-v2.8.2.tgz -C /usr/local/ \
 && cd /usr/local/harbor \
 && cp harbor.yml.tmpl harbor.yml \

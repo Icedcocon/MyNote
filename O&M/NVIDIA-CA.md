@@ -79,7 +79,7 @@
 | H20      | FP8, FP16, bfloat16 |
 | A100     | FP16, bfloat16      |
 | A800     | FP16, bfloat16      |
-| T4       | FP16      |
+| T4       | FP16                |
 
 ## 参考文档
 

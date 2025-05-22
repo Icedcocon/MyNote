@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "aa12da118ae7e5f0",
+        "id": "33fcc0bee2f79812",
         "type": "tabs",
         "children": [
           {
-            "id": "7861c88c67b172e9",
+            "id": "a2e0ad75d5114cfa",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -49,7 +49,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "kubebuilder",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -100,6 +100,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "Anki/AI/d2l/chapter1-introduction.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -109,7 +110,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "chapter1-introduction 的反向链接列表"
             }
           },
           {
@@ -118,11 +119,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "Anki/AI/d2l/chapter1-introduction.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "出链"
+              "title": "chapter1-introduction 的出链列表"
             }
           },
           {
@@ -146,12 +148,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "Anki/AI/d2l/chapter1-introduction.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "大纲"
+              "title": "chapter1-introduction 的大纲"
             }
           }
         ]
@@ -169,15 +172,57 @@
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
-      "webpage-html-export:Export Vault to HTML": false
+      "webpage-html-export:Export Vault to HTML": false,
+      "obsidian-to-anki-plugin:Obsidian_to_Anki - Scan Vault": false
     }
   },
-  "active": "7861c88c67b172e9",
+  "active": "a0f6104afdd3ecb7",
   "lastOpenFiles": [
+    "common-sense/未命名",
+    "Utils/DST-server部署指南.md",
     "有用的项目分类整理.md",
-    "模板方法.md",
-    "Go/Go语言设计模式.md",
-    "easy-template.html.md",
-    "Go/Go语言设计模式.html"
+    "Utils",
+    "Anki/AI/minimind/model-MOEFeedForward.md",
+    "Anki/AI/minimind/model-MoEGate.md",
+    "Anki/PDT需求.md",
+    "Docker-Kubernetes/istio请求流程.md",
+    "Anki/test_chapter_conversion.py",
+    "Anki/chapter_title_converter.py",
+    "Go/DesignPattern/接口隔离/13.代理模式.md",
+    "O&M/Kubernetes/Kubernetes安装指南.md",
+    "Docker-Kubernetes/Webhook/Webhook快速开始.md",
+    "Anki/AI/notes.md",
+    "Anki/AI/minimind/model-FeedForward.md",
+    "Anki/AI/model_documentation.md",
+    "Anki/AI/minimind/model-RMSNorm.md",
+    "Anki/AI/minimind/model-Attention.md",
+    "O&M/域名解析&证书&加密/在线获取证书到期日期.md",
+    "Anki/AI/测试笔记.md",
+    "Rust/rust-by-example-cn/01.hello/01.02.02.print_display.md",
+    "Rust/rust-by-example-cn/01.hello/01.02.03.testcase_list.md",
+    "Rust/rust-by-example-cn/01.hello/01.02.04.fmt.md",
+    "Rust/Rust库/三方库/001.clap-命令行解析工具.md",
+    "Rust/Tauri/Tauri项目快速开始.md",
+    "SQL/MySQL基础笔记.md",
+    "SQL/MySQL安装与配置.md",
+    "SQL/MySQL操作笔记.md",
+    "SQL/MySQL进阶笔记.md",
+    "Anki/AI/minimind/minimind/train_pretrain.py",
+    "Anki/AI/minimind/minimind/train_lora.py",
+    "Anki/AI/minimind/minimind/train_full_sft.py",
+    "Anki/AI/minimind/minimind/train_dpo.py",
+    "Anki/AI/minimind/minimind/train_distillation.py",
+    "Anki/AI/minimind/minimind/train_distill_reason.py",
+    "Anki/AI/minimind/minimind/scripts/web_demo.py",
+    "Anki/AI/minimind/minimind/images/sft_768_loss.png",
+    "Anki/AI/minimind/minimind/images/sft_512_loss.png",
+    "Anki/AI/minimind/minimind/images/pre_768_loss.png",
+    "Anki/AI/minimind/minimind/images/pre_512_loss.png",
+    "Anki/AI/minimind/minimind/images/minimind2.gif",
+    "Anki/AI/minimind/minimind/images/logo2.png",
+    "Anki/AI/minimind/minimind/images/LLM-structure.png",
+    "Anki/AI/minimind/minimind/images/logo.png",
+    "Anki/AI/minimind/minimind/images/LLM-structure-moe.png",
+    "Anki/AI/minimind/minimind/images/gpt3_config.png"
   ]
 }

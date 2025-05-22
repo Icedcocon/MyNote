@@ -303,7 +303,7 @@ docker build -t immortalwrt .
 
 ### 3. 配置宿主机网络
 
-#### 3.1 netplan
+#### 3.1 netplan （可选）
 
 ```bash
 cat /etc/netplan/01-netcfg.yaml
@@ -329,8 +329,8 @@ network:
 
 ```bash
 docker network create -d macvlan \
-  --subnet=192.168.2.0/24 \
-  --gateway=192.168.2.1 \
+  --subnet=192.168.5.0/24 \
+  --gateway=192.168.5.1 \
   -o parent=eth0 \
   macnet
 # 检查是否创建成功
